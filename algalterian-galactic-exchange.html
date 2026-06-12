@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Algalterian Galactic Exchange</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06080F; --panel:#0D1322; --panel2:#111A30; --line:#1D2A47;
+  --ink:#E8EEFF; --dim:#8A97B8;
+  --cyan:#3FE0D0; --amber:#FFB454; --vio:#9D7BFF;
+  --up:#42E596; --down:#FF5C7A;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;
+  background-image:radial-gradient(1200px 500px at 70% -10%, rgba(63,224,208,.07), transparent 60%),
+  radial-gradient(900px 400px at 10% 110%, rgba(157,123,255,.06), transparent 60%);}
+.mono{font-family:'IBM Plex Mono',monospace}
+h1,h2,h3,.disp{font-family:'Orbitron',sans-serif;letter-spacing:.06em}
+.up{color:var(--up)} .down{color:var(--down)} .dim{color:var(--dim)} .amber{color:var(--amber)} .cyan{color:var(--cyan)}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:8px;font-size:14px}
+input,select{font-family:'IBM Plex Mono',monospace;background:#0A1020;border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:10px 12px;font-size:16px;width:100%}
+input:focus,select:focus{outline:2px solid var(--cyan);border-color:transparent}
+.btn{background:var(--cyan);color:#04221E;font-weight:700;padding:11px 18px}
+.btn.ghost{background:transparent;color:var(--cyan);border:1px solid var(--cyan)}
+.btn.amber{background:var(--amber);color:#2A1A00}
+.btn.red{background:var(--down);color:#2A0008}
+.btn.vio{background:var(--vio);color:#170A33}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.wrap{max-width:920px;margin:0 auto;padding:0 12px 90px}
+
+/* header */
+header{position:sticky;top:0;z-index:30;background:rgba(6,8,15,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hbar{max-width:920px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:10px 12px}
+.logo{font-family:'Orbitron';font-weight:900;font-size:15px;color:var(--cyan);line-height:1}
+.logo small{display:block;font-size:9px;color:var(--dim);letter-spacing:.3em;font-weight:500}
+.hnw{margin-left:auto;text-align:right}
+.hnw .v{font-family:'IBM Plex Mono';font-weight:600;font-size:15px}
+.hnw .l{font-size:10px;color:var(--dim);letter-spacing:.15em}
+.scan{height:2px;background:linear-gradient(90deg,transparent,var(--cyan),var(--vio),transparent);opacity:.7}
+.gclk{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--dim);text-align:center;padding:3px 0;border-bottom:1px solid var(--line);letter-spacing:.08em}
+nav{padding-left:max(2px,env(safe-area-inset-left));padding-right:max(2px,env(safe-area-inset-right))}
+nav button{flex:1 1 0;min-width:0;font-size:9px;padding:9px 1px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm-tag{color:var(--down)!important}
+
+/* ticker */
+.ticker{overflow:hidden;border-bottom:1px solid var(--line);background:#080D1A;white-space:nowrap}
+.ticker-inner{display:inline-block;padding:6px 0;font-family:'IBM Plex Mono','SF Mono','Menlo',monospace;font-size:12px;animation:tk 45s linear infinite}
+@keyframes tk{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion: reduce){.ticker-inner{animation:none}}
+.ticker b{color:var(--amber);font-weight:600}
+.regime-banner{padding:7px 12px;text-align:center;font-family:'Orbitron';font-size:11px;letter-spacing:.2em;border-bottom:1px solid var(--line)}
+.halt-banner{padding:8px 12px;text-align:center;font-family:'Orbitron';font-size:12px;letter-spacing:.2em;background:rgba(255,92,122,.15);color:var(--down);border-bottom:1px solid var(--down)}
+
+/* nav */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(8,11,20,.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{background:none;color:var(--dim);font-size:11px;letter-spacing:.08em;padding:8px 10px;font-family:'Orbitron'}
+nav button.on{color:var(--cyan);text-shadow:0 0 12px rgba(63,224,208,.6)}
+
+/* tables */
+.row{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.row:active{background:rgba(63,224,208,.05)}
+.row .sym{font-family:'IBM Plex Mono';font-weight:600;font-size:14px;width:58px;flex:none}
+.row .nm{flex:1;min-width:0}
+.row .nm .n1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm .n2{font-size:10px;color:var(--dim);letter-spacing:.1em}
+.row .pxc{text-align:right;font-family:'IBM Plex Mono'}
+.row .pxc .p{font-size:14px;font-weight:600}
+.row .pxc .c{font-size:11px}
+.chips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:10px 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:12px}
+.chip.on{color:var(--cyan);border-color:var(--cyan)}
+.sect{font-family:'Orbitron';font-size:11px;letter-spacing:.25em;color:var(--dim);margin:18px 0 6px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(3,5,10,.8);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:920px;
+  max-height:92vh;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.grab{width:42px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 14px}
+.bigpx{font-family:'IBM Plex Mono';font-size:30px;font-weight:600}
+.ranges{display:flex;gap:6px;margin:10px 0}
+.ranges button{background:var(--panel2);color:var(--dim);padding:6px 12px;font-family:'IBM Plex Mono';font-size:12px}
+.ranges button.on{color:#04221E;background:var(--cyan);font-weight:600}
+canvas{width:100%;height:180px;display:block;touch-action:none}
+.tradebox{display:flex;gap:8px;margin-top:10px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.kv b{font-family:'IBM Plex Mono'}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:80px;background:var(--panel2);border:1px solid var(--cyan);
+  color:var(--ink);padding:12px 18px;border-radius:10px;z-index:99;font-size:14px;max-width:90vw;text-align:center}
+.toast.err{border-color:var(--down)}
+
+/* auth */
+.auth{min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth .card{width:100%;max-width:380px}
+.auth h1{font-size:20px;color:var(--cyan);text-align:center}
+.auth .sub{text-align:center;color:var(--dim);font-size:11px;letter-spacing:.25em;margin:6px 0 20px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;letter-spacing:.15em;color:var(--dim);margin-bottom:5px;font-family:'Orbitron'}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat .l{font-size:10px;letter-spacing:.18em;color:var(--dim);font-family:'Orbitron'}
+.stat .v{font-family:'IBM Plex Mono';font-size:17px;font-weight:600;margin-top:4px}
+.admin-grid{display:grid;gap:14px}
+.admin-grid h3{font-size:12px;letter-spacing:.2em;color:var(--amber);margin-bottom:10px}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.inline>*{flex:1;min-width:110px}
+.feed-item{padding:12px 4px;border-bottom:1px solid var(--line)}
+.feed-item .t{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono'}
+.lb-rank{font-family:'Orbitron';width:34px;color:var(--dim);flex:none}
+@media(min-width:700px){.modal-bg{align-items:center}.modal{border-radius:18px}}
+.iconfirm-bg{position:fixed;inset:0;background:rgba(3,5,10,.85);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.iconfirm{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:920px;padding:22px 18px calc(20px + env(safe-area-inset-bottom));text-align:center}
+.iconfirm p{margin-bottom:16px;font-size:15px;line-height:1.5}
+.iconfirm .ic-btns{display:flex;gap:10px;justify-content:center}
+/* casino animations */
+@keyframes cardIn{from{transform:translateY(16px) rotate(5deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes flipIn{0%{transform:rotateY(90deg);opacity:.4}100%{transform:rotateY(0);opacity:1}}
+.pcard{display:inline-block;background:#0E1730;border:1px solid var(--line);border-radius:7px;padding:7px 9px;margin:3px;font-family:'IBM Plex Mono','SF Mono',monospace;font-size:17px;font-weight:600}
+.pcard.deal{animation:cardIn .35s ease both}
+.pcard.flip{animation:flipIn .45s ease both}
+.pcard.redsuit{color:var(--down)}
+@keyframes winPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.win-flash{animation:winPulse .45s ease 2;color:var(--up)}
+@keyframes loseShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.lose-shake{animation:loseShake .3s ease 2;color:var(--down)}
+.rl-wrap{overflow:hidden;border:1px solid var(--line);border-radius:10px;position:relative;height:56px;margin:10px 0;background:#070C18}
+.rl-strip{display:flex;will-change:transform}
+.rl-cell{flex:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-weight:700;font-size:18px;border-right:1px solid #111A30}
+.rl-marker{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--amber);transform:translateX(-1px);z-index:2;box-shadow:0 0 10px var(--amber)}
+.sreel-row{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.sreel{width:66px;height:66px;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:#070C18}
+.sreel-col{display:flex;flex-direction:column;will-change:transform}
+.sreel-col span{height:66px;flex:none;display:flex;align-items:center;justify-content:center;font-size:38px}
+.h-roll-big{font-family:'IBM Plex Mono';font-size:42px;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){.rl-strip,.sreel-col{transition:none!important}.pcard.deal,.pcard.flip,.win-flash,.lose-shake{animation:none}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* ============ ALGALTERIAN GALACTIC EXCHANGE ============ */
+/* ---------- ASSET UNIVERSE (100 listings) ---------- */
+// [symbol, name, type S=stock E=etf C=commodity, sector, base price]
+const RAW=[
+["ABDR","Imperial Merchant Authority","S","Finance",482],["SANJ","Sanjaval Spaceflight","S","Starships",96],
+["ULRK","Ulrikka Clanholdings","S","Mining",154],["RNGW","Verces Ringworks","S","Starships",213],
+["HELL","Kurogane Aegis Division","S","Defense",77],["SKYF","Kurogane Strike Corps","S","Defense",41],
+["ZETA","Zeta-Prime Cybernetics","S","Tech",312],["AEGI","Kurogane Shield Systems","S","Defense",128],
+["MULX","Multifold Industries","S","Tech",254],["BRTH","Brethedan Gasworks","S","Energy",64],
+["THRX","Thasteron Refining Corp","S","Energy",88],["SOLR","Solrev Helios Arrays","S","Energy",33],
+["PLSM","Plasma Dynamics","S","Energy",142],["VITX","Bradtopian BioCorp","S","Biotech",201],
+["GENM","Bradtopian Clone Sciences","S","Biotech",57],["SERU","Serum Labs Algalterian","S","Biotech",119],
+["XNTH","Bradtopian Pharmaceuticals","S","Biotech",73],["CYBR","Cybernetics United","S","Tech",188],
+["AIDA","Epsilon Enclave Cognition","S","Tech",421],["DTNT","Directorate Datatrunk Authority","S","Tech",167],
+["INFO","Directorate Data Holdings","S","Tech",232],["CMET","Comet Couriers","S","Logistics",49],
+["DRLX","Drift Relay Logistics","S","Logistics",138],["HAUL","LongHaul Voidfreight","S","Logistics",61],
+["PORT","Algalterian Portworks","S","Logistics",95],["LUXR","Luxora Consumer Goods","S","Consumer",84],
+["FZZL","Fizzlepop Beverages","S","Consumer",22],["NOMS","NomNom Nutripaste","S","Consumer",17],
+["WEAR","Vesk-Wear Outfitters","S","Consumer",39],["GRND","Grindhouse Caf Chains","S","Consumer",28],
+["BANK","Imperial Treasury of Algalteria","S","Finance",301],["CRED","CredStick Financial","S","Finance",112],
+["INSR","Algalterian Mutual Insurance","S","Finance",76],["LOAN","Golden Vault Lending","S","Finance",58],
+["ENTM","Entertaina Holovids","S","Media",91],["SPYG","Directorate Surveillance Grid","S","Media",47],
+["ARNA","Arena Worlds Combatainment","S","Media",133],["LOTT","Lucky Drift Lottery","S","Media",19],
+["MAGI","Arcanamirium Applied Magic","S","Magitech",274],["RUNE","Runewrights Guild Co","S","Magitech",158],
+["AEOS","Aeon Stone Works","S","Magitech",343],["HEXX","Hexware Foundry","S","Magitech",66],
+["TERA","Terraforma Unlimited","S","Terraform",187],["ATMO","Atmoseed Corp","S","Terraform",93],
+["HABT","Habitat Domes Intl","S","Terraform",121],["AKIT","Akiton Redworks","S","Mining",44],
+["DIAS","Diaspora Belt Mining","S","Mining",102],["CORE","Coreward Extraction","S","Mining",178],
+["VESK","Imperial Trade Combine","S","Finance",226],["SHIR","Shirren Collective Farms","S","Agriculture",53],
+["GROW","Hydrovault Agriculture","S","Agriculture",71],["KALO","Kalo Deepsea Harvest","S","Agriculture",36],
+["EOXN","Eox Necrotech","S","Biotech",149],["PHRX","Pharasman Rest Services","S","Consumer",31],
+["IDRN","Idari Voidsail","S","Starships",83],["STWD","Starward Shipyards","S","Starships",195],
+["TRAX","Triaxus Dragonline Rail","S","Logistics",87],["CSTL","Castrovel Silks","S","Consumer",62],
+["NANO","Nanoforge Fabrication","S","Tech",245],["GRAV","Gravitas Drive Tech","S","Starships",318],
+["COMM","CommArray Networks","S","Tech",109],["SECC","Kurogane Vault Security","S","Defense",134],
+["MECH","Epsilon Enclave Fabricators","S","Tech",207],["PRSP","Prospero Salvage","S","Mining",26],
+["ANDR","Epsilon Synthetic Works","S","Tech",289],["WTCH","Witchwyrd Trading House","S","Finance",173],
+["AGXT","AGX Total Market Index","E","Index ETF",250],["DRFE","Drift Economy ETF","E","Index ETF",145],
+["VAST","Vast Frontier Explorers","E","Index ETF",88],["DEFX","Defense & Security Index","E","Index ETF",132],
+["BIOX","Biotech Innovators","E","Index ETF",117],["NRGX","Stellar Energy Index","E","Index ETF",96],
+["MINX","Asteroid Mining Index","E","Index ETF",104],["MAGX","Magitech Composite","E","Index ETF",156],
+["SHPX","Shipbuilders Index","E","Index ETF",121],["CONX","Consumer Staples Index","E","Index ETF",79],
+["FINX","Pact Financials Index","E","Index ETF",113],["TECX","Infosphere Tech 100","E","Index ETF",198],
+["AGRX","Agriworlds ETF","E","Index ETF",64],["ENTX","Entertainment Index","E","Index ETF",83],
+["DIVD","High-Dividend Megacorps","E","Index ETF",142],["VOLX","Deepvoid Volatility Fund","E","Index ETF",51],
+["UPB","Universal Polymer Base","C","Industrial",6.2],["THAS","Thasteron Fuel (barrel)","C","Fuel & Energy",41],
+["ADAM","Adamantine (kg)","C","Starmetals",1850],["HORA","Horacalcum (kg)","C","Starmetals",5200],
+["NOQL","Noqual (kg)","C","Starmetals",2300],["SICC","Siccatite (kg)","C","Starmetals",940],
+["DJEZ","Djezet (kg)","C","Starmetals",1450],["INBX","Inubrix (kg)","C","Starmetals",760],
+["ABYS","Abysium (kg)","C","Starmetals",1120],["AEON","Raw Aeon Stones (ct)","C","Arcane Materials",3800],
+["PLAT","Platinum (kg)","C","Industrial",1010],["IRID","Iridium (kg)","C","Industrial",640],
+["HE3","Helium-3 (canister)","C","Fuel & Energy",152],["ICE","Comet Ice / Water (ton)","C","Agricultural",3.1],
+["GRN","Hydro-Grain (ton)","C","Agricultural",5.4],["KELP","Kalo Kelp (ton)","C","Agricultural",2.7],
+["SALV","Scrap Salvage (ton)","C","Industrial",18],["CRYS","Power Crystals (case)","C","Fuel & Energy",410],
+["DRFC","DriftCoin","X","Crypto",420],["ABIT","AbadarBit","X","Crypto",61000],
+["CRDX","CredEx Token","X","Crypto",3.4],["QBIT","Qubit Chain","X","Crypto",88],
+["AENX","AeonChain","X","Crypto",1450],["VDGE","VoidDoge","X","Crypto",0.085],
+["STLX","StellarX","X","Crypto",12.6],["GAPC","GapCoin","X","Crypto",240],
+["TBIL","Algalterian 90-Day Bill","B","Treasury",100],["TNB2","Algalterian 2-Yr Note","B","Treasury",100],
+["TNB10","Algalterian 10-Yr Bond","B","Treasury",100],["TIPS","Inflation-Linked Bond","B","Treasury",100]
+];
+// risk-free annual yields per bond (the "treasury curve")
+const BOND_YIELD={TBIL:0.03,TNB2:0.038,TNB10:0.045,TIPS:0.035};
+// the canonical risk-free rate used elsewhere (3-month bill)
+function riskFreeRate(){return BOND_YIELD.TBIL;}
+
+/* ---------- deterministic price engine ---------- */
+function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rnd(seed,i){const x=Math.sin(seed*374761.393+i*668265.263)*43758.5453;return (x-Math.floor(x))*2-1}
+function noise(seed,t){const i=Math.floor(t),f=t-i,u=f*f*(3-2*f);return rnd(seed,i)*(1-u)+rnd(seed,i+1)*u}
+
+const NEG_BETA={VOLX:-1.1,PHRX:-0.45,PLAT:-0.3,SALV:-0.55,SECC:-0.25,AEON:-0.35,ICE:-0.2};
+function mkAsset(sym,name,type,sector,base,opt){
+  opt=opt||{};const seed=h32(sym);
+  const h1=(rnd(seed,1)+1)/2, h2=(rnd(seed,2)+1)/2, h3=(rnd(seed,3)+1)/2;
+  let vol=opt.vol!==undefined?opt.vol:(type==="B"?.004+h1*.012:type==="E"?.05+h1*.05:type==="C"?.07+h1*.20:type==="X"?.22+h1*.28:.09+h1*.13);
+  let beta=type==="B"?(sym==="TNB10"?-.15:-.05):type==="C"?.4+h3*.6:type==="X"?1.1+h3*.9:.6+h3*.9;
+  if(NEG_BETA[sym]!==undefined)beta=NEG_BETA[sym];
+  // market cap (float): bigger cap = more liquid = tighter spread.
+  // log-normal-ish spread of caps from ~50M to ~900B
+  const capTier= type==="E"?8e10 : type==="B"?5e11 : type==="X"?2e9+h2*4e10 :
+                 (a=>a)(3e8+Math.pow(h1,2)*8e11);
+  return {sym,name,name0:name,type,sector,sector0:sector,base,seed,vol,
+    trend:type==="B"?0:(h2-.48)*.30,beta,
+    cap:capTier, bm:opt.bm||false,listed:opt.listed||0};
+}
+let CFG=null, EV=[], REGIMES=[], PUMPS=[], SPUMPS=[], HALTED=false;
+const BASE_ASSETS=RAW.map(r=>mkAsset(r[0],r[1],r[2],r[3],r[4]));
+const BM_RAW=[
+ ["SPICE","Akitonian Dreamdust (gram)",18],["GUNS","Unregistered Arms Crates",260],
+ ["SOUL","Soul Gems — provenance unknown",1400],["WARP","Bootleg Drift Charts",95],
+ ["VENM","Ksarik Venom Vials",54],["RELC","Looted Cult Relics",330]];
+let ASSETS=[],BYSYM={};
+function rebuildAssets(){
+  ASSETS=[...BASE_ASSETS];
+  for(const r of BM_RAW)ASSETS.push(mkAsset(r[0],r[1],"C","Contraband",r[2],{bm:true,vol:.28+((rnd(h32(r[0]),4)+1)/2)*.25}));
+  for(const i of ((CFG&&CFG.ipos)||[]))
+    if(!ASSETS.some(a=>a.sym===i.sym))ASSETS.push(mkAsset(i.sym,i.name,i.type||"S",i.sec||"New Listing",i.base,{vol:i.vol,bm:i.bm,listed:i.at}));
+  BYSYM=Object.fromEntries(ASSETS.map(a=>[a.sym,a]));
+  clearLpRef();
+  if(CFG)applyNames();
+}
+
+const REGIME_DEFS={
+  neutral:{label:"OPEN MARKET",d:0,xv:0,col:"var(--dim)"},
+  bull:{label:"BULL MARKET",d:.25,xv:0,col:"var(--up)"},
+  bear:{label:"BEAR MARKET",d:-.22,xv:0,col:"var(--down)"},
+  boom:{label:"SPECULATIVE BOOM",d:.9,xv:.05,col:"var(--up)"},
+  crash:{label:"MARKET CRASH",d:-1.1,xv:.12,col:"var(--down)"},
+  volatile:{label:"HIGH VOLATILITY",d:0,xv:.18,col:"var(--amber)"},
+  calm:{label:"CALM DRIFT",d:.04,xv:0,col:"var(--cyan)"}
+};
+
+
+
+/* game clock v2: anchored, supports pause + speed multiplier */
+function migrateCfg(c){
+  if(c&&!c.priceAnchor){c.priceAnchor=c.anchorG||Date.now();clearLpRef();}
+  if(!c)return c;
+  if(c.anchorR===undefined){
+    c.anchorG=(c.pauseStart?c.pauseStart:Date.now())-(c.offset||0);
+    c.anchorR=Date.now();c.speed=1;c.paused=!!c.pauseStart;
+    delete c.pauseStart;delete c.offset;
+  }
+  return c;
+}
+function gameNow(){if(!CFG||CFG.anchorR===undefined)return Date.now();
+  return CFG.paused?CFG.anchorG:CFG.anchorG+(Date.now()-CFG.anchorR)*(CFG.speed||1)}
+function isPaused(){return !!(CFG&&CFG.paused)}
+function speedNow(){return (CFG&&CFG.speed)||1}
+
+/* ---------- options math (Black-Scholes, r=0) ---------- */
+function ncdf(x){const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2);
+  let p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p}
+function bsv(type,S,K,Tyr,sig){
+  if(Tyr<=0)return Math.max(0,type==="C"?S-K:K-S);
+  const sq=sig*Math.sqrt(Tyr),d1=(Math.log(S/K)+sig*sig/2*Tyr)/sq,d2=d1-sq;
+  return type==="C"?S*ncdf(d1)-K*ncdf(d2):K*ncdf(-d2)-S*ncdf(-d1);
+}
+function osig(a){return Math.min(3,Math.max(.35,a.vol*5))}
+function optVal(o){const a=BYSYM[o.sym];if(!a)return 0;
+  return Math.max(0,bsv(o.type,px(o.sym),o.K,(o.exp-gameNow())/(365*864e5),osig(a)))}
+function optsValue(u){return (u.opts||[]).reduce((v,o)=>v+optVal(o)*o.q,0)}
+
+/* ---------- fundamentals (deterministic, price-linked) ---------- */
+function fundamentals(a){
+  const p=px(a.sym),h=(rnd(a.seed,5)+1)/2,h2=(rnd(a.seed,6)+1)/2,gh=(gameNow()-(CFG?CFG.epoch:0))/3.6e6;
+  const f={beta:a.beta,sigma:osig(a)};
+  if(a.type==="S"){
+    f.eps=a.base/(14+h*22)*(1+.25*noise(a.seed^41,gh/300));
+    f.pe=p/f.eps;
+    f.div=divAnnual(a);f.yld=f.div/p*100;
+  }else if(a.type==="E"){
+    f.nav=p*(1+.004*noise(a.seed^77,gh/4));f.prem=(p/f.nav-1)*100;
+    f.div=divAnnual(a);f.yld=f.div/p*100;
+  }
+  let hi=-1/0,lo=1/0;const now=gameNow(),t0=Math.max(now-7776e6,CFG?CFG.epoch:0);
+  for(let i=0;i<=48;i++){const v=priceAt(a,t0+(now-t0)*i/48);if(v>hi)hi=v;if(v<lo)lo=v}
+  f.hi=hi;f.lo=lo;
+  return f;
+}
+function applyNames(){
+  const ov=(CFG&&CFG.names)||{};
+  for(const a of ASSETS){
+    const o=ov[a.sym];
+    a.name=(o&&o.n)?o.n:a.name0;
+    a.sector=(o&&o.s)?o.s:a.sector0;
+  }
+}
+
+function digestEvents(){
+  const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>a.at-b.at);
+  REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:e.at,
+    end: regs[i+1]?regs[i+1].at:Infinity, seed:h32("rg"+e.at)}));
+  PUMPS=EV.filter(e=>e.t==="pump");
+  SPUMPS=EV.filter(e=>e.t==="spump");
+  const halts=EV.filter(e=>e.t==="halt");
+  HALTED=halts.length?halts[halts.length-1].on:false;
+}
+function curRegime(){const now=gameNow();const r=REGIMES.find(r=>now>=r.start&&now<r.end);return r||{...REGIME_DEFS.neutral,k:"neutral"}}
+
+function rawLp(a,tMs){
+  const ep=CFG?CFG.epoch:0;
+  const tH=(tMs-ep)/3.6e6;
+  let lp=0;
+
+  // ── two-layer price model ────────────────────────────────────────────
+  //
+  // Layer 1: SECULAR / FUNDAMENTAL VALUE
+  //   A slow walk that can lock in a directional move for months.
+  //   ~15% of stocks and all cryptos are "breakout" assets.
+  //   ETFs and commodities drift slowly (index-like).
+  //
+  const hBreak=(rnd(a.seed^0xBEEF,3)+1)/2; // 0-1, fixed per asset
+  const isBreakout=(a.type==="X")||(a.type==="S"&&hBreak>0.85);
+
+  // "Phase" noise: one slow cycle (~1.5 yr period) that stays bullish or
+  //  bearish for 6-12 months at a stretch — the core breakout mechanism.
+  const phase = noise(a.seed^0xF00D, tH/2600);          // -1 … +1, ~108-day half-cycle
+  const momentum = noise(a.seed^0xCAFE, tH/900);        // shorter momentum swings
+  const tr = a.trend*tH/8760;                           // ANNUAL drift (±15%/yr)
+
+  // secular contribution per asset class — calibrated so a typical year
+  // gives most assets ±10-50%, breakouts up to ~+150%, crypto up to ~+300%
+  let secular;
+  if(a.type==="E"){
+    secular = 0.10*phase + 0.05*momentum + tr;
+  }else if(a.type==="C"){
+    secular = 0.14*phase + 0.06*momentum + tr;
+  }else if(a.type==="X"){
+    const str = 0.40 + hBreak*0.55;                     // crypto: biggest runs
+    secular = str*phase + 0.20*str*momentum + tr*2;
+  }else if(isBreakout){
+    const str = 0.30 + hBreak*0.40;                     // breakout stock
+    secular = str*phase + 0.20*str*momentum + tr*1.5;
+  }else{
+    secular = 0.20*phase + 0.08*momentum + tr;          // normal stock
+  }
+
+  // Layer 2: SHORT-TERM NOISE with SECTOR CORRELATION
+  //   ρ fraction of noise is shared across all assets in the same sector
+  //   (same seed → same daily moves), the rest is idiosyncratic.
+  //   Formula: ρ·sectorFactor + √(1-ρ²)·idioFactor preserves total variance.
+  const rho = a.type==="S"?0.42:a.type==="X"?0.28:0.15; // stocks correlate most
+  const ss  = h32("sec:"+a.sector);   // deterministic per sector
+  const sectorF = 0.6*noise(ss,tH/36)+0.3*noise(ss^9973,tH/6)+0.15*noise(ss^311,tH);
+  const idioF   = 0.6*noise(a.seed,tH/36)+0.3*noise(a.seed^9973,tH/6)+0.15*noise(a.seed^311,tH);
+  const shortNoise = a.vol*(rho*sectorF + Math.sqrt(1-rho*rho)*idioF);
+  const revertFrac = Math.min(tH/2160, 0.65);
+  lp += secular + shortNoise*(1 - revertFrac);
+
+  // Soft boundary: if log-price drifts beyond ±ln(30) (~30× from base),
+  //   apply a hard elastic pull — prices can't go to zero or infinity.
+  const soften = (x,cap)=>x>cap?cap+(x-cap)*0.15:x<-cap?-cap+(x+cap)*0.15:x;
+  lp = soften(lp, Math.log(12));
+
+  for(const r of REGIMES){
+    const st=Math.max(r.start,ep), en=Math.min(tMs,r.end);
+    if(en>st) lp+=a.beta*r.d*(en-st)/864e5;
+    if(r.xv&&tMs>r.start){
+      const t1=Math.min(tMs,r.end)/3.6e6/2, t0=r.start/3.6e6/2;
+      lp+=a.beta*r.xv*3*(noise(a.seed^r.seed,t1)-noise(a.seed^r.seed,t0));
+    }
+  }
+  for(const p of PUMPS){
+    if(p.sym===a.sym&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+  }
+  for(const p of SPUMPS){
+    if(p.sec===a.sector&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+  }
+  return lp;
+}
+// volume: shares traded in the last 24h (simulated, not stored)
+function volSim(a,tMs){
+  const tH=tMs/3.6e6;
+  const reg=curRegime(),baseVol=a.base*200*(1+a.vol*4);
+  // regime multiplier: crash/boom drive volume
+  const regMult={neutral:1,bull:1.3,bear:1.5,boom:2.2,crash:3.1,volatile:2.0,calm:0.7}[reg.k]||1;
+  // intraday pattern: high at open/close, low midday (using hour-of-day approximation)
+  const hr=(tMs%(864e5))/3.6e6; // 0-24
+  const dayPatt=1+0.5*Math.abs(Math.sin((hr-9)*Math.PI/6.5));
+  // noise
+  const noiseF=0.6+0.8*((rnd(a.seed^1337,Math.floor(tH/24))+1)/2);
+  // pump spike
+  let pumpMult=1;
+  for(const p of PUMPS){if(p.sym===a.sym&&tMs>p.at&&tMs<p.at+p.dur)pumpMult=3.5}
+  for(const p of SPUMPS){if(p.sec===a.sector&&tMs>p.at&&tMs<p.at+p.dur)pumpMult=Math.max(pumpMult,2.2)}
+  return Math.round(baseVol*regMult*dayPatt*noiseF*pumpMult);
+}
+/* ── ETF COMPOSITION MAP ─────────────────────────────────────────────────
+   Each ETF is priced as equal-weighted average of its constituents' rawLp
+   plus a tiny tracking error. VOLX is kept as a simulated inverse product. */
+const ETF_HOLDINGS={
+  DEFX:["HELL","SKYF","AEGI","SECC"],
+  BIOX:["VITX","GENM","SERU","XNTH","EOXN"],
+  NRGX:["BRTH","THRX","SOLR","PLSM"],
+  MINX:["ULRK","AKIT","DIAS","CORE","PRSP"],
+  MAGX:["MAGI","RUNE","AEOS","HEXX"],
+  SHPX:["SANJ","RNGW","IDRN","STWD","GRAV"],
+  CONX:["LUXR","FZZL","NOMS","WEAR","GRND","PHRX","CSTL"],
+  FINX:["ABDR","BANK","CRED","INSR","LOAN","VESK","WTCH"],
+  TECX:["ZETA","MULX","CYBR","AIDA","DTNT","INFO","NANO","COMM","MECH","ANDR"],
+  AGRX:["SHIR","GROW","KALO"],
+  ENTX:["ENTM","SPYG","ARNA","LOTT"],
+  DRFE:["CMET","DRLX","HAUL","PORT","TRAX","SANJ","RNGW","IDRN","STWD"],
+  VAST:["ULRK","AKIT","DIAS","CORE","TERA","ATMO","HABT"],
+  DIVD:["ABDR","BANK","BRTH","THRX","CRED","SHIR","GROW","VITX","PORT","INSR","RUNE","AEOS"],
+  // AGXT: representative cross-sector basket (20 stocks for perf)
+  AGXT:["ABDR","SANJ","ZETA","THRX","VITX","LUXR","ENTM","MAGI","TERA","ULRK",
+        "BANK","CMET","CYBR","AIDA","BRTH","RNGW","GENM","NANO","ARNA","GRAV"],
+  // VOLX: volatility inverse — keep as standalone simulation (negative beta)
+};
+function etfLp(a,tMs){
+  const syms=ETF_HOLDINGS[a.sym];
+  if(!syms)return null; // VOLX falls through to normal simulation
+  const ep=CFG?CFG.epoch:0;
+  let sum=0,n=0;
+  for(const sym of syms){const c=BYSYM[sym];if(c){sum+=rawLp(c,tMs);n++;}}
+  if(!n)return null;
+  // tracking error: ±0.4% slow noise
+  const tH=(tMs-ep)/3.6e6;
+  const te=0.004*noise(a.seed^0xE7F1,tH/96);
+  // AGXT targets ~7%/yr log-drift (mirrors S&P 500 real return) on top of its basket
+  const agxtBoost=a.sym==="AGXT"?Math.log(1.07)*tH/8760:0;
+  return sum/n+te+agxtBoost;
+}
+// Fixed price anchor: computed ONCE at first launch from CFG.priceAnchor.
+// base price = price at anchor time. Prices drift forward from there.
+// Cache never re-anchors to current time — that was the bug.
+const _lpRef={};
+function clearLpRef(){Object.keys(_lpRef).forEach(k=>delete _lpRef[k]);}
+function lpRef(a){
+  const anchor=CFG&&CFG.priceAnchor?CFG.priceAnchor:(CFG?CFG.epoch:Date.now());
+  if(_lpRef[a.sym]===undefined)
+    _lpRef[a.sym]=a.type==="E"?(etfLp(a,anchor)||0):rawLp(a,anchor);
+  return _lpRef[a.sym];
+}
+function priceAt(a,tMs){
+  // Anchor: base price is always the current price.
+  // History and future are expressed as deviation from that anchor.
+  if(a.type==="B"){
+    // bonds: steady appreciation at their yield + tiny noise, with a
+    // gentle inverse-rate wobble. Anchored so current price = base.
+    const anchor=CFG&&CFG.priceAnchor?CFG.priceAnchor:(CFG?CFG.epoch:tMs);
+    const y=(BOND_YIELD[a.sym]!==undefined?BOND_YIELD[a.sym]:0.03);
+    const yrs=(tMs-anchor)/(365*864e5);
+    const wob=a.vol*0.5*noise(a.seed,(tMs-(CFG?CFG.epoch:0))/3.6e6/72);
+    return a.base*Math.exp(y*yrs+wob);
+  }
+  if(a.type==="E"){
+    const elp=etfLp(a,tMs);
+    if(elp!==null) return a.base*Math.exp(elp-lpRef(a));
+  }
+  return a.base*Math.exp(rawLp(a,tMs)-lpRef(a));
+}
+const px=s=>priceAt(BYSYM[s],gameNow());
+// ── bid/ask spread model ──────────────────────────────────────────────
+// ── LEVEL-2 ORDER BOOK ENGINE ─────────────────────────────────────────
+// A fully simulated depth ladder exists for every asset at all times and
+// always governs fills (slippage). The GM toggle only controls whether an
+// operator can SEE the depth (level-2 data), like paying for it IRL.
+//
+// half-spread: the inside spread (top of book), each side, as a fraction.
+function halfSpread(a){
+  if(!a)return 0;
+  if(a.type==="B")return 0.0002;                  // 2 bps each side
+  const capRef=a.cap||5e9;
+  const liq=Math.max(0.12,Math.min(1,Math.log10(capRef)/12)); // 0.12..1
+  let hs=(0.0008/liq)*(1+a.vol*3);                // tighter inside spread
+  if(a.type==="X")hs*=1.6;
+  if(a.bm)hs*=2.2;
+  return Math.min(hs,0.03);
+}
+// Depth at the inside level, in CREDITS of notional. Log-scaled so even
+// mega-caps have a finite, walkable book: a player-sized order barely
+// moves it, but a whale or leveraged order causes real slippage.
+function bookDepthUnit(a){
+  const cap=a.cap||5e9;
+  const t=Math.max(0,Math.min(1,(Math.log10(cap)-8.5)/(11.95-8.5))); // 0..1
+  let unit=1500+t*38500;                 // ~1.5k (small) … ~40k (mega) credits
+  if(a.type==="X")unit*=0.55;            // crypto books are thinner
+  if(a.bm)unit*=0.35;                    // black market very thin
+  if(a.type==="E")unit*=1.6;             // ETFs deep & liquid
+  return unit;
+}
+// tick size between book levels, as a fraction of mid
+function bookTick(a){
+  return Math.max(halfSpread(a)*0.6, 0.0004);
+}
+// Build a deterministic N-level ladder around the mid for one side.
+// Returns [{px, size(credits), cum(credits)}], worsening away from mid.
+function bookLevels(sym,side,levels){       // side:+1 ask, -1 bid
+  const a=BYSYM[sym],mid=px(sym),hs=halfSpread(a),tick=bookTick(a);
+  const unit=bookDepthUnit(a),seed=a.seed^(side>0?0xA5C:0x5C3);
+  const gh=(gameNow()-(CFG?CFG.epoch:0))/3.6e6;
+  const out=[];let cum=0;
+  for(let i=0;i<(levels||8);i++){
+    // price walks out from the inside quote
+    const lvlFrac=hs+i*tick;
+    const p=mid*(1+side*lvlFrac);
+    // size grows deeper into the book, with deterministic jitter
+    const jitter=0.6+0.8*((noise(seed^(i*131),gh/24)+1)/2);
+    const size=unit*Math.pow(1.45,i)*jitter;
+    cum+=size;
+    out.push({px:p,size,cum});
+  }
+  return out;
+}
+// Walk the book to fill `qty` shares on `side`. Returns {avgPx, filled, slip%}.
+function fillThroughBook(sym,side,qty){
+  const mid=px(sym);
+  if(!qty||qty<=0)return {avgPx:mid,filled:0,slip:0};
+  const levels=bookLevels(sym,side,14);
+  let remain=qty,spent=0,filled=0;
+  for(const lv of levels){
+    const lvShares=lv.size/lv.px;             // convert credit-depth to shares
+    const take=Math.min(remain,lvShares);
+    spent+=take*lv.px;filled+=take;remain-=take;
+    if(remain<=1e-9)break;
+  }
+  if(remain>1e-9){                            // ran out of book — worst level + penalty
+    const last=levels[levels.length-1];
+    const penaltyPx=last.px*(1+side*0.02);
+    spent+=remain*penaltyPx;filled+=remain;
+  }
+  const avgPx=spent/filled;
+  return {avgPx,filled:qty,slip:(avgPx/mid-1)*100*side};
+}
+// Execution price for a trade of `qty` shares (slippage-aware).
+function tradePxQty(sym,side,qty){
+  return fillThroughBook(sym,side,qty).avgPx;
+}
+// Top-of-book single-share price (used for quotes/estimates).
+function tradePx(sym,side){
+  const a=BYSYM[sym],mid=px(sym);
+  return mid*(1+side*halfSpread(a));
+}
+function bidAsk(sym){const a=BYSYM[sym],mid=px(sym),hs=halfSpread(a);
+  return {bid:mid*(1-hs),ask:mid*(1+hs),mid,hs};}
+// can THIS operator see level-2 depth? (GM grant). Default: no.
+function canSeeL2(){return !!(ME&&ME.l2);}
+function fmtCap(c){if(!c)return"—";if(c>=1e12)return "\u20A2"+(c/1e12).toFixed(2)+"T";
+  if(c>=1e9)return "\u20A2"+(c/1e9).toFixed(2)+"B";if(c>=1e6)return "\u20A2"+(c/1e6).toFixed(1)+"M";return "\u20A2"+c.toFixed(0);}
+const MRANGE_MS={"1D":864e5,"1W":6048e5,"1M":2592e6,"1Y":31536e6,"ALL":1/0};
+function chgMs(sym,ms){const a=BYSYM[sym],n=gameNow(),p1=priceAt(a,n),ep=CFG?CFG.epoch:0;const t0=!isFinite(ms)?Math.max(ep,a.listed||0):Math.max(n-ms,ep,a.listed||0);const p0=priceAt(a,t0);return p0>0?(p1/p0-1)*100:0}
+const chg24=s=>{const a=BYSYM[s],n=gameNow();const p1=priceAt(a,n),p0=priceAt(a,n-864e5);return (p1/p0-1)*100};
+
+function series(sym,ms,n=140){
+  const a=BYSYM[sym],now=gameNow(),t0=Math.max(now-ms,CFG.epoch,a.listed||0),pts=[];
+  for(let i=0;i<=n;i++)pts.push(priceAt(a,t0+(now-t0)*i/n));
+  return pts;
+}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+function fmt(n){
+  if(!isFinite(n))return"--";
+  const d=Math.abs(n)<10?3:2;
+  return "\u20A2"+n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+const pct=n=>(n>=0?"+":"")+n.toFixed(2)+"%";
+const cls=n=>n>=0?"up":"down";
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("pwx:"+s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function toast(msg,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+function ago(t){const s=(Date.now()-t)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";
+  if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"}
+
+/* ---------- storage ---------- */
+/* ── storage layer: tries window.storage (shared/web), then localStorage (local), then memory ── */
+let SG_MODE="unknown"; // "shared" | "local" | "memory"
+const MEM={};
+const SG={
+  /* ── tier detection ── */
+  hasWS(){return typeof window!=="undefined"&&typeof window.storage==="object"&&!!window.storage},
+  hasLS(){try{localStorage.setItem("_t","1");localStorage.removeItem("_t");return true}catch(e){return false}},
+  async probe(){
+    // try window.storage first (claude.ai web — shared across users)
+    if(this.hasWS()){
+      try{const k="_p"+Date.now(),v="ok";
+        const w=await window.storage.set(k,JSON.stringify(v),true);
+        if(w){const r=await window.storage.get(k,true);await window.storage.delete(k,true);
+          if(r&&JSON.parse(r.value)===v){SG_MODE="shared";return true}}}
+      catch(e){}
+    }
+    // fall back to localStorage (published URL in Safari/Chrome — device-local)
+    if(this.hasLS()){SG_MODE="local";return true}
+    // last resort: in-memory (lost on page close)
+    SG_MODE="memory";return false;
+  },
+  /* ── unified get/set/del/list that dispatch to the active tier ── */
+  async get(k){
+    if(SG_MODE==="shared"||SG_MODE==="unknown"){
+      if(this.hasWS()){try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null}catch(e){}}
+    }
+    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
+      const v=localStorage.getItem("pwx:"+k);return v?JSON.parse(v):null}
+    return MEM[k]!==undefined?JSON.parse(JSON.stringify(MEM[k])):null;
+  },
+  async set(k,v,att=0){
+    if(SG_MODE==="shared"||SG_MODE==="unknown"){
+      if(this.hasWS()){
+        try{const r=await window.storage.set(k,JSON.stringify(v),true);
+          if(r&&(r.key!==undefined||r.value!==undefined))return true;throw 0}
+        catch(e){if(att<3){await new Promise(r=>setTimeout(r,Math.min(300*Math.pow(2,att),2000)));return this.set(k,v,att+1)}}
+      }
+    }
+    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
+      try{localStorage.setItem("pwx:"+k,JSON.stringify(v));return true}catch(e){}}
+    MEM[k]=JSON.parse(JSON.stringify(v));return true; // memory always succeeds
+  },
+  async del(k){
+    if(this.hasWS()&&SG_MODE==="shared")try{await window.storage.delete(k,true)}catch(e){}
+    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS()))try{localStorage.removeItem("pwx:"+k)}catch(e){}
+    delete MEM[k];
+  },
+  async list(p){
+    if(this.hasWS()&&SG_MODE==="shared"){
+      try{const r=await window.storage.list(p,true);return r?r.keys:[]}catch(e){}}
+    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
+      const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+        if(k&&k.startsWith("pwx:"+p))keys.push(k.slice(4));}return keys;}
+    return Object.keys(MEM).filter(k=>k.startsWith(p));
+  }
+};
+
+/* ---------- iOS-safe confirm shim ---------- */
+function iconfirm(msg){return new Promise(resolve=>{
+  const bg=document.createElement('div');bg.className='iconfirm-bg';
+  bg.innerHTML=`<div class="iconfirm"><p>${msg}</p>
+    <div class="ic-btns">
+      <button class="btn ghost" id="ic-no" style="flex:1;max-width:160px">CANCEL</button>
+      <button class="btn red" id="ic-yes" style="flex:1;max-width:160px">CONFIRM</button>
+    </div></div>`;
+  document.body.appendChild(bg);
+  bg.querySelector('#ic-yes').onclick=()=>{bg.remove();resolve(true)};
+  bg.querySelector('#ic-no').onclick=()=>{bg.remove();resolve(false)};
+})}
+/* ---------- app state ---------- */
+let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="";
+const RANGES={"1D":864e5,"1W":6048e5,"1M":2592e6,"3M":7776e6,"ALL":1/0};
+
+async function ensureCfg(){
+  CFG=migrateCfg(await SG.get("cfg"));
+  if(!CFG){
+    CFG={epoch:Date.now()-31536e6, priceAnchor:Date.now(), startCash:10000, fee:0.25, marginRate:12, maxLev:2, casino:true, bmOpen:false, ipos:[],
+      adminHash:await sha("gamemaster"), created:Date.now()};
+    const ok=await SG.set("cfg",CFG);
+    if(!ok&&!SG.ok())toast("Server storage unavailable — running in local demo mode.",true);
+  }
+}
+async function loadEvents(){EV=(await SG.get("ev"))||[];digestEvents()}
+async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||gameNow()});
+  if(EV.length>250)EV=EV.slice(-250);await SG.set("ev",EV);digestEvents()}
+
+function feeFrac(){return ((CFG&&CFG.fee!==undefined)?CFG.fee:0.25)/100}
+function divAnnual(a){const h2=(rnd(a.seed,6)+1)/2;
+  if(a.type==="S")return h2<.3?0:a.base*h2*.05;
+  if(a.type==="E")return a.base*h2*.035;return 0}
+function shortLiab(u){let l=0;for(const s in u.sh||{})if(BYSYM[s])l+=u.sh[s].q*px(s);return l}
+function marginRate(){return ((CFG&&CFG.marginRate!==undefined)?CFG.marginRate:12)/100}  // annual %
+function maxLeverage(){return (CFG&&CFG.maxLev!==undefined)?CFG.maxLev:2}
+function marginDebt(u){return u.margin||0}
+function marginBuyingPower(u){
+  // available margin = equity * maxLeverage - existing margin debt
+  const eq=netWorth(u),extra=Math.max(0,eq*(maxLeverage()-1)-marginDebt(u));
+  return u.cash+extra}
+function netWorth(u){let v=u.cash+optsValue(u);
+  for(const s in u.hold||{})if(BYSYM[s])v+=u.hold[s].q*px(s);
+  return v-shortLiab(u)-marginDebt(u)}
+function invested(u){return (u.sc!==undefined?u.sc:CFG.startCash)+(u.dep||0)}
+function trueRet(u){const inv=invested(u);return inv>0?(netWorth(u)/inv-1)*100:NaN}
+async function refreshMe(){const f=await SG.get(MYKEY);if(f)ME=f}
+async function saveMe(){return await SG.set(MYKEY,ME)}
+
+/* ---------- auth ---------- */
+function renderAuth(msg,isErr){
+  $("#root").innerHTML=`
+  <div class="auth"><div class="card">
+    <h1>ALGALTERIAN<br>GALACTIC EXCHANGE</h1>
+    <div class="sub">ALGALTERIAN GALACTIC EXCHANGE · SECURITIES TERMINAL</div>
+    ${SG_MODE==="local"?`<div style="background:rgba(255,180,84,.12);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:var(--amber);text-align:center;margin-bottom:14px">
+      📱 Running in local mode — accounts are saved on this device only. For shared multiplayer, open the published link in Safari.</div>`
+    :SG_MODE==="memory"?`<div style="background:rgba(255,92,122,.15);border:1px solid var(--down);border-radius:8px;padding:10px;font-size:12px;color:var(--down);text-align:center;margin-bottom:14px">
+      ⚠ No storage available — data will be lost when you close this page.</div>`
+    :!STORAGE_OK?`<div style="background:rgba(255,180,84,.12);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:var(--amber);text-align:center;margin-bottom:14px">
+      ⚠ Connecting to exchange — tap button again if login fails.</div>`:""}
+    ${msg?`<div style="color:${isErr?"var(--down)":"var(--up)"};font-size:13px;text-align:center;margin-bottom:12px">${esc(msg)}</div>`:""}
+    <div class="field"><label>OPERATIVE CALLSIGN</label><input id="a-user" maxlength="20" autocomplete="off" placeholder="e.g. Navasi_7" value="${esc(_lastUser)}"></div>
+    <div class="field"><label>ACCESS CODE</label><input id="a-pass" type="password" placeholder="passphrase"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn" style="flex:1" id="a-login">LOG IN</button>
+      <button class="btn ghost" style="flex:1" id="a-reg">NEW ACCOUNT</button>
+    </div>
+    <div class="dim" style="font-size:11px;margin-top:16px;text-align:center">Shared game server — accounts are visible to all players. Don't reuse a real password.</div>
+  </div></div>`;
+  $("#a-login").onclick=()=>auth(false);
+  $("#a-reg").onclick=()=>auth(true);
+  const pw=$("#a-pass");if(pw)pw.addEventListener("keydown",e=>{if(e.key==="Enter")auth(false)});
+}
+async function auth(isNew){
+  const name=$("#a-user").value.trim(), pass=$("#a-pass").value;
+  _lastUser=name;
+  if(!/^[A-Za-z0-9_-]{2,20}$/.test(name))return renderAuth("Callsign: 2-20 letters, numbers, _ or - (no spaces).",true);
+  if(pass.length<3)return renderAuth("Access code too short.",true);
+  const key="u:"+name.toLowerCase().replace(/[^a-z0-9_-]/g,"_"), hp=await sha(pass), ex=await SG.get(key);
+  if(isNew){
+    if(ex)return renderAuth("That callsign is taken.",true);
+    ME={n:name,p:hp,cash:CFG.startCash,sc:CFG.startCash,dep:0,hold:{},opts:[],hist:[],wl:[],eq:[],created:Date.now(),g0:gameNow()};
+    MYKEY=key;
+    if(!await saveMe()){ME=null;MYKEY=null;return renderAuth("Write failed — close and reopen in Safari for best results.",true)}
+  }else{
+    if(!ex||ex.p!==hp)return renderAuth("Callsign or access code not recognized.",true);
+    ME=ex;MYKEY=key;
+  }
+  await settleOptions();await housekeeping();snapshotEq();renderApp();
+}
+function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
+  const last=ME.eq[ME.eq.length-1];
+  if(!last||Date.now()-last[0]>3e5||Math.abs(nw-last[1])>.01){ME.eq.push([Date.now(),nw]);if(ME.eq.length>400)ME.eq=ME.eq.slice(-400);saveMe()}}
+
+/* ---------- app shell ---------- */
+function renderApp(){
+  const r=curRegime();
+  $("#root").innerHTML=`
+  <header>
+    <div class="hbar">
+      <div class="logo">AGX<small>ALGALTERIAN GALACTIC EXCHANGE</small></div>
+      <div class="hnw"><div class="l">NET WORTH — ${esc(ME.n.toUpperCase())}</div><div class="v" id="h-nw"></div></div>
+      <button class="btn ghost" style="padding:7px 10px;font-size:11px" onclick="logout()">EXIT</button>
+    </div>
+    <div class="scan"></div>
+    <div class="gclk" id="gclock"></div>
+    <div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
+    <div id="halt-slot">${HALTED?`<div class="halt-banner">⛔ TRADING HALTED BY EXCHANGE AUTHORITY</div>`:""}${isPaused()?`<div class="regime-banner" style="color:var(--vio);border-bottom:1px solid var(--vio)">⏸ MARKET PAUSED — BETWEEN SESSIONS</div>`:speedNow()!==1?`<div class="regime-banner" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">⏩ TIME COMPRESSION ${speedNow()}×</div>`:""}</div>
+    <div class="regime-banner" id="regime-b" style="color:${r.col}">◈ ${r.label} ◈</div>
+  </header>
+  <div class="wrap" id="view"></div>
+  <nav>
+    ${[["market","MARKET"],["portfolio","PORTFOLIO"]].concat(!CFG||CFG.casino!==false?[["casino","CASINO"]]:[])
+      .concat([["leaders","LEADERS"],["feed","FEED"],["guide","GUIDE"],["admin","ADMIN"]]).map(t=>
+      `<button class="${TAB===t[0]?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
+  </nav>
+  <div id="modal-slot"></div>`;
+  buildTicker();renderTab();tick();
+}
+function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;renderAuth()}
+function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab()}
+function buildTicker(){
+  const movers=ASSETS.filter(a=>!a.bm||CFG.bmOpen).map(a=>({s:a.sym,c:chg24(a.sym)})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,8);
+  const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg)}</b>`);
+  $("#ticker").innerHTML=[...news,...movers.map(m=>`${m.s} <span class="${cls(m.c)}">${pct(m.c)}</span>`)].join(" &nbsp;·&nbsp; ");
+}
+function renderTab(){
+  const v=$("#view");
+  if(TAB==="market")return renderMarket(v);
+  if(TAB==="casino")return renderCasino(v);
+  if(TAB==="portfolio")return renderPortfolio(v);
+  if(TAB==="leaders")return renderLeaders(v);
+  if(TAB==="feed")return renderFeed(v);
+  if(TAB==="guide")return renderGuide(v);
+  if(TAB==="admin")return renderAdmin(v);
+}
+
+/* ---------- market ---------- */
+function rowHTML(a){
+  const p=px(a.sym),c=chgMs(a.sym,MRANGE_MS[MRANGE]||864e5);
+  return `<div class="row" onclick="openAsset('${a.sym}')">
+    <div class="sym">${a.sym}</div>
+    <div class="nm"><div class="n1">${esc(a.name)}</div><div class="n2 ${a.bm?"bm-tag":""}">${a.bm?"\u2620 CONTRABAND":a.type==="S"?"STOCK":a.type==="E"?"ETF":a.type==="X"?"CRYPTO":a.type==="B"?"BOND":"COMMODITY"} · ${esc(a.sector.toUpperCase())}</div></div>
+    <div class="pxc"><div class="p" data-px="${a.sym}">${fmt(p)}</div><div class="c ${cls(c)}" data-chgm="${a.sym}">${pct(c)}</div></div>
+  </div>`;
+}
+function renderMarket(v){
+  v.innerHTML=`
+    <div style="padding-top:12px"><input id="srch" placeholder="Search symbol or name…" value="${esc(SEARCH)}"></div>
+    <div class="chips">${[["ALL","ALL"],["STOCKS","STOCKS"],["ETFS","ETFS"],["BONDS","BONDS"],["COMMODITIES","COMMODITIES"],["CRYPTO","CRYPTO"],["WATCHLIST","WATCHLIST"]]
+      .concat(CFG.bmOpen?[["BM","\u2620 BLACK MARKET"]]:[]).map(f=>
+      `<button class="chip ${FILTER===f[0]?"on":""}" data-f="${f[0]}" onclick="setFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
+    <div style="margin-bottom:6px"><select id="msort" onchange="SORT=this.value;paintList()">
+      ${[["FEAT","SORT: FEATURED"],["GAINERS","SORT: TOP GAINERS"],["LOSERS","SORT: TOP LOSERS"],
+         ["PXHI","SORT: PRICE HIGH→LOW"],["PXLO","SORT: PRICE LOW→HIGH"],
+         ["SECTOR","SORT: SECTOR A-Z"],["NAME","SORT: NAME A-Z"]].map(o=>
+        `<option value="${o[0]}" ${SORT===o[0]?"selected":""}>${o[1]}</option>`).join("")}
+    </select></div>
+    ${FILTER==="COMMODITIES"?`<div class="chips" id="comfilter-bar">${["ALL","Starmetals","Fuel & Energy","Industrial","Agricultural","Arcane Materials"].map(t=>`<button class="chip ${COMFILTER===t?"on":""}" data-cf="${esc(t)}" onclick="setCOMFilter('${t}')">${t==="ALL"?"ALL TYPES":t.toUpperCase()}</button>`).join("")}</div>`:""}
+    <div class="ranges" style="margin:4px 0 2px" id="mrange-bar">${["1D","1W","1M","1Y","ALL"].map(r=>`<button class="${MRANGE===r?"on":""}" onclick="setMRange('${r}')">${r}</button>`).join("")}</div>
+    <div id="mlist"></div>`;
+  $("#srch").addEventListener("input",e=>{SEARCH=e.target.value;paintList()});
+  paintList();
+}
+function setCOMFilter(t){COMFILTER=t;
+  const bar=document.getElementById("comfilter-bar");
+  if(bar)bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.cf===t));
+  paintList();}
+function setMRange(r){MRANGE=r;
+  const bar=document.getElementById("mrange-bar");
+  if(bar)bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.textContent===r));
+  paintList();}
+function setFilter(f){FILTER=f;if(f!=="COMMODITIES")COMFILTER="ALL";document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.f===f));paintList()}
+function paintList(){
+  const q=SEARCH.trim().toLowerCase();
+  let list=ASSETS.filter(a=>{
+    if(a.bm){if(!CFG.bmOpen)return false;if(FILTER!=="BM"&&!q&&FILTER!=="WATCHLIST")return false}
+    if(FILTER==="BM")return a.bm&&(!q||a.sym.toLowerCase().includes(q)||a.name.toLowerCase().includes(q));
+    if(FILTER==="STOCKS"&&a.type!=="S")return false;
+    if(FILTER==="ETFS"&&a.type!=="E")return false;
+    if(FILTER==="COMMODITIES"&&a.type!=="C")return false;
+    if(FILTER==="COMMODITIES"&&COMFILTER!=="ALL"&&a.sector!==COMFILTER)return false;
+    if(FILTER==="CRYPTO"&&a.type!=="X")return false;
+    if(FILTER==="BONDS"&&a.type!=="B")return false;
+    if(FILTER==="WATCHLIST"&&!(ME.wl||[]).includes(a.sym))return false;
+    return !q||a.sym.toLowerCase().includes(q)||a.name.toLowerCase().includes(q);
+  });
+  // commodities auto-group by sector type unless user picked a price sort
+  const comGroup=(FILTER==="COMMODITIES"||FILTER==="ALL")&&(SORT==="FEAT"||SORT==="SECTOR");
+  const winMs=MRANGE_MS[MRANGE]||864e5;
+  if(SORT==="GAINERS")list.sort((a,b)=>chgMs(b.sym,winMs)-chgMs(a.sym,winMs));
+  else if(SORT==="LOSERS")list.sort((a,b)=>chgMs(a.sym,winMs)-chgMs(b.sym,winMs));
+  else if(SORT==="PXHI")list.sort((a,b)=>px(b.sym)-px(a.sym));
+  else if(SORT==="PXLO")list.sort((a,b)=>px(a.sym)-px(b.sym));
+  else if(SORT==="NAME")list.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(SORT==="SECTOR")list.sort((a,b)=>a.sector.localeCompare(b.sector)||a.sym.localeCompare(b.sym));
+  else if(FILTER==="COMMODITIES")list.sort((a,b)=>a.sector.localeCompare(b.sector)||a.sym.localeCompare(b.sym));
+  const el=$("#mlist");if(!el)return;
+  let html="";
+  const useHeaders=SORT==="SECTOR"||(FILTER==="COMMODITIES"&&COMFILTER==="ALL"&&SORT==="FEAT");
+  if(useHeaders){let cur="";for(const a of list){
+    if(a.sector!==cur){cur=a.sector;html+=`<div class="sect">${esc(cur.toUpperCase())}</div>`}html+=rowHTML(a)}}
+  else html=list.map(rowHTML).join("");
+  el.innerHTML=list.length?html:`<div class="dim" style="padding:30px;text-align:center">No listings match.</div>`;
+}
+
+/* ---------- charts ---------- */
+function drawChart(canvas,pts,color){
+  const dpr=window.devicePixelRatio||1, w=canvas.clientWidth||320, h=canvas.clientHeight||180;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  const x=canvas.getContext("2d");x.scale(dpr,dpr);x.clearRect(0,0,w,h);
+  if(!pts||pts.length<2)return;
+  let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
+  const pad=10,X=i=>pad+(w-2*pad)*i/(pts.length-1),Y=p=>h-pad-(h-2*pad)*(p-mn)/(mx-mn);
+  const col=color||(pts[pts.length-1]>=pts[0]?"#42E596":"#FF5C7A");
+  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+"55");g.addColorStop(1,col+"00");
+  x.beginPath();x.moveTo(X(0),Y(pts[0]));for(let i=1;i<pts.length;i++)x.lineTo(X(i),Y(pts[i]));
+  x.strokeStyle=col;x.lineWidth=2;x.stroke();
+  x.lineTo(X(pts.length-1),h);x.lineTo(X(0),h);x.closePath();x.fillStyle=g;x.fill();
+  x.fillStyle="#8A97B8";x.font="10px IBM Plex Mono";
+  x.fillText(fmt(mx),pad,12);x.fillText(fmt(mn),pad,h-3);
+}
+
+function attachHover(cv,pts,t0,t1,color){
+  const redraw=()=>drawChart(cv,pts,color);
+  cv.onpointermove=e=>{
+    const r=cv.getBoundingClientRect(),fr=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
+    const i=Math.round(fr*(pts.length-1)),t=t0+(t1-t0)*i/(pts.length-1),p=pts[i];
+    redraw();
+    const ctx=cv.getContext("2d"),w=cv.clientWidth,h=cv.clientHeight,pad=10;
+    let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
+    const X=pad+(w-2*pad)*i/(pts.length-1),Y=h-pad-(h-2*pad)*(p-mn)/(mx-mn);
+    ctx.strokeStyle="#8A97B8";ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="#E8EEFF";ctx.beginPath();ctx.arc(X,Y,3.5,0,7);ctx.fill();
+    const lbl=fmt(p)+"  "+gdate(t,true);
+    ctx.font="11px IBM Plex Mono";const tw=ctx.measureText(lbl).width;
+    const tx=Math.min(Math.max(X-tw/2,4),w-tw-8);
+    ctx.fillStyle="rgba(6,8,15,.88)";ctx.fillRect(tx-4,2,tw+8,16);
+    ctx.fillStyle="#3FE0D0";ctx.fillText(lbl,tx,14);
+  };
+  cv.onpointerleave=redraw;
+}
+/* ---------- asset modal & trading ---------- */
+function openAsset(sym){OPEN=sym;RANGE="1D";paintModal()}
+function closeModal(){OPEN=null;$("#modal-slot").innerHTML="";if(TAB==="portfolio")renderTab()}
+function paintModal(){
+  const a=BYSYM[OPEN];if(!a)return;
+  const p=px(a.sym),c=chg24(a.sym),pos=ME.hold[a.sym],watching=(ME.wl||[]).includes(a.sym);
+  $("#modal-slot").innerHTML=`
+  <div class="modal-bg" onclick="if(event.target===this)closeModal()">
+   <div class="modal">
+    <div class="grab"></div>
+    <div style="display:flex;align-items:flex-start;gap:10px">
+      <div style="flex:1">
+        <div class="disp" style="font-size:13px;color:var(--cyan)">${a.sym} <span class="dim" style="font-family:'Space Grotesk';letter-spacing:0">· ${a.type==="S"?"Stock":a.type==="E"?"ETF":a.type==="X"?"Crypto":a.type==="B"?"Bond":"Commodity"} · ${esc(a.sector)}</span></div>
+        <div style="font-size:17px;font-weight:700;margin:2px 0">${esc(a.name)}</div>
+        <div class="bigpx" data-px="${a.sym}">${fmt(p)}</div>
+        <div class="${cls(c)} mono" style="font-size:13px" data-chg="${a.sym}">${pct(c)} · 24H</div>
+        <div class="mono dim" id="bidask" style="font-size:11px;margin-top:2px"></div>
+      </div>
+      <button class="btn ghost" style="padding:8px 12px" onclick="toggleWatch('${a.sym}')">${watching?"★":"☆"}</button>
+      <button class="btn ghost" style="padding:8px 12px" onclick="closeModal()">✕</button>
+    </div>
+    <div class="ranges">${Object.keys(RANGES).map(r=>`<button class="${RANGE===r?"on":""}" onclick="setRange('${r}')">${r}</button>`).join("")}</div>
+    <canvas id="achart"></canvas>
+    ${pos&&pos.q>0?`
+      <div class="kv"><span class="dim">Your position</span><b>${(+pos.q.toFixed(4)).toLocaleString()} sh · ${fmt(pos.q*p)}</b></div>
+      <div class="kv"><span class="dim">Avg cost / total P&L</span><b class="${cls(pos.q*p-pos.c)}">${fmt(pos.c/pos.q)} · ${pct((pos.q*p/pos.c-1)*100)}</b></div>
+      ${!HALTED?`<button class="btn red" style="width:100%;margin-top:6px" onclick="sellAll('${a.sym}')">SELL ALL ${a.sym}</button>`:""}`:""}
+    <div class="kv"><span class="dim">Cash / margin power</span><b>${fmt(ME.cash)} / ${fmt(marginBuyingPower(ME))}</b></div>
+    ${marginDebt(ME)>0?`<div class="kv"><span class="dim">Margin borrowed (${(marginRate()*100).toFixed(1)}% p.a.)</span><b class="down">-${fmt(marginDebt(ME))}</b></div>`:""}
+    <div class="sect" style="margin-top:14px">FUNDAMENTALS</div>
+    <div id="fund-rows">${fundRows(a)}</div>
+    ${a.type!=="B"&&canSeeL2()?`<div class="sect" style="margin-top:14px">LEVEL 2 — ORDER BOOK <span class="dim" style="font-family:'Space Grotesk';letter-spacing:0">· depth</span></div>
+      <div id="l2book">${l2BookHTML(a.sym)}</div>`:a.type!=="B"?`<div class="dim" style="font-size:11px;margin-top:12px;padding:10px;border:1px dashed var(--line);border-radius:8px;text-align:center">🔒 Level-2 order book depth requires market-data access. Ask the gamemaster to enable it for your terminal.</div>`:""}
+    ${HALTED?`<div style="color:var(--down);text-align:center;padding:14px" class="disp">TRADING HALTED</div>`:`
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <div class="ranges" style="margin:0;flex:1">
+        <button class="bm ${BUYMODE==="sh"?"on":""}" data-m="sh" onclick="setBuyMode('sh')">SHARES</button>
+        <button class="bm ${BUYMODE==="cr"?"on":""}" data-m="cr" onclick="setBuyMode('cr')">CREDITS \u20A2</button>
+      </div>
+      <button onclick="toggleMargin()" style="background:${USEMARGIN?"var(--amber)":"var(--panel2)"};color:${USEMARGIN?"#2A1A00":"var(--dim)"};border:1px solid ${USEMARGIN?"var(--amber)":"var(--line)"};border-radius:8px;padding:8px 12px;font-size:12px;font-family:inherit;cursor:pointer;white-space:nowrap" id="mg-toggle">MARGIN ${USEMARGIN?"ON ✓":"OFF"}</button>
+    </div>
+    ${USEMARGIN?`<div class="dim" style="font-size:11px;margin-bottom:6px;color:var(--amber)">Margin buying power: ${fmt(marginBuyingPower(ME))} · Borrowed: ${fmt(marginDebt(ME))}</div>`:""}
+    <div class="tradebox">
+      <input id="qty" type="number" min="0" step="any" inputmode="decimal" placeholder="${BUYMODE==="sh"?"Quantity (shares)":"Amount (credits)"}" style="flex:1.4">
+      <button class="btn" style="flex:1" onclick="trade('${a.sym}',1)">BUY</button>
+      <button class="btn red" style="flex:1" onclick="trade('${a.sym}',-1)">SELL</button>
+    </div>
+    <div class="dim mono" style="font-size:11px;margin-top:8px" id="est"></div>
+    <div class="tradebox" style="margin-top:8px">
+      <button class="btn amber" style="flex:1" onclick="shortTrade('${a.sym}',1)">SHORT</button>
+      <button class="btn ghost" style="flex:1" ${ME.sh&&ME.sh[a.sym]?"":"disabled"} onclick="shortTrade('${a.sym}',-1)">COVER</button>
+    </div>
+    ${ME.sh&&ME.sh[a.sym]?`<div class="kv"><span class="dim">Short position</span><b class="${cls(ME.sh[a.sym].c-ME.sh[a.sym].q*p)}">${ME.sh[a.sym].q} sh short · P&L ${fmt(ME.sh[a.sym].c-ME.sh[a.sym].q*p)}</b></div>`:""}
+    <div class="dim" style="font-size:11px;margin-top:6px">Shorts use the quantity box above. 50% margin to open; margin call if net worth falls below 25% of short exposure.</div>
+    <div class="sect" style="margin-top:16px">AUTOMATED ORDERS</div>
+    <div class="inline">
+      <select id="ao-side"><option value="B">BUY</option><option value="S">SELL</option></select>
+      <select id="ao-kind"><option value="L">LIMIT</option><option value="T">STOP</option></select>
+    </div>
+    <div class="inline" style="margin-top:8px">
+      <input id="ao-trig" type="number" step="any" inputmode="decimal" placeholder="Trigger \u20A2 (now ${fmt(p)})">
+      <input id="ao-q" type="number" step="any" inputmode="decimal" placeholder="Shares">
+      <button class="btn ghost" onclick="placeOrder('${a.sym}')">PLACE</button>
+    </div>
+    <div class="dim" style="font-size:11px;margin-top:6px">Limit buy fills at-or-below trigger; stop sell (stop-loss) fills at-or-below; limit sell / stop buy fill at-or-above. Checked continuously, even between sessions.</div>
+    <div class="sect" style="margin-top:16px">OPTIONS DESK</div>
+    <div class="inline">
+      <select id="o-type"><option value="C">CALL</option><option value="P">PUT</option></select>
+      <select id="o-strike">${[.8,.9,.95,1,1.05,1.1,1.25].map(m=>{const K=sig3(p*m);
+        return `<option value="${K}" ${m===1?"selected":""}>K ${fmt(K)}</option>`}).join("")}</select>
+      <select id="o-exp"><option value="1">1D</option><option value="3">3D</option><option value="7" selected>1W</option><option value="30">1M</option></select>
+    </div>
+    <div class="inline" style="margin-top:8px">
+      <input id="o-qty" type="number" min="1" step="1" inputmode="numeric" placeholder="Contracts (1 sh each)">
+      <button class="btn vio" onclick="buyOption('${a.sym}')">BUY OPTION</button>
+    </div>
+    <div class="dim mono" style="font-size:11px;margin-top:8px" id="o-quote"></div>`}
+   </div></div>`;
+  {const pts=series(a.sym,RANGES[RANGE]),now=gameNow(),
+     t0=Math.max(now-RANGES[RANGE],CFG.epoch,a.listed||0);
+   drawChart($("#achart"),pts);attachHover($("#achart"),pts,t0,now)}
+  updateBidAsk(a.sym);
+  const q=$("#qty");if(q)q.addEventListener("input",()=>{const n=parseFloat(q.value)||0,pp=px(a.sym),ff=feeFrac();
+    if(n<=0){$("#est").textContent="";return;}
+    if(BUYMODE==="sh"){
+      const buy=fillThroughBook(a.sym,1,n),sell=fillThroughBook(a.sym,-1,n);
+      const slipTxt=(Math.abs(buy.slip)>0.05||Math.abs(sell.slip)>0.05)
+        ?" · slippage "+Math.max(Math.abs(buy.slip),Math.abs(sell.slip)).toFixed(2)+"%":"";
+      $("#est").textContent="Buy "+fmt(n*buy.avgPx*(1+ff))+" · sell "+fmt(n*sell.avgPx*(1-ff))+" (incl. fee"+slipTxt+")";
+    }else{
+      const buy=fillThroughBook(a.sym,1,n/pp).avgPx*(1+ff),sell=fillThroughBook(a.sym,-1,n/pp).avgPx*(1-ff);
+      $("#est").textContent="\u2248 "+(n/buy).toFixed(4)+" sh bought, or "+(n/sell).toFixed(4)+" sold (incl. fee & slippage)";
+    }});
+  ["o-type","o-strike","o-exp","o-qty"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("input",oQuote);if(el)el.addEventListener("change",oQuote)});
+  oQuote();
+}
+function sig3(x){const m=Math.pow(10,Math.floor(Math.log10(Math.abs(x)))-2);return Math.round(x/m)*m}
+function fundRows(a){
+  const f=fundamentals(a),r=[];
+  if(a.type==="B"){
+    const y=(BOND_YIELD[a.sym]!==undefined?BOND_YIELD[a.sym]:0.03);
+    r.push(["Annual yield",(y*100).toFixed(2)+"%"],
+           ["Type","Algalterian sovereign debt"],
+           ["Risk","Effectively risk-free"],
+           ["Bid / Ask spread","~0.04% (deep liquidity)"]);
+    return r.map(x=>`<div class="kv"><span class="dim">${x[0]}</span><b>${x[1]}</b></div>`).join("");
+  }
+  if(f.pe!==undefined)r.push(["P/E ratio",f.pe>0&&f.pe<999?f.pe.toFixed(1):"—"],["EPS (ttm)",fmt(f.eps)]);
+  if(f.nav!==undefined){
+    const hasComp=ETF_HOLDINGS&&!!ETF_HOLDINGS[a.sym];
+    r.push(["NAV / share",fmt(f.nav)],
+           ["Premium to NAV",hasComp?"~0% (index fund)":pct(f.prem)],
+           ["Constituents",hasComp?(ETF_HOLDINGS[a.sym].length+" holdings"):"Simulated"]);
+  }
+  if(f.yld!==undefined)r.push(["Dividend yield",f.div?f.yld.toFixed(2)+"%":"—"]);
+  const vol24=volSim(a,gameNow());
+  const ba=bidAsk(a.sym);
+  r.push(["Market cap",fmtCap(a.cap)],
+    ["Bid / Ask",fmt(ba.bid)+" / "+fmt(ba.ask)],
+    ["Spread",(ba.hs*200).toFixed(2)+"%"],
+    ["Beta (regime sensitivity)",f.beta.toFixed(2)],["Implied volatility",(f.sigma*100).toFixed(0)+"%"],
+    ["24h Volume",vol24>1e6?(vol24/1e6).toFixed(2)+"M":vol24>1e3?(vol24/1e3).toFixed(1)+"K":vol24.toString()],
+    ["90-day range",fmt(f.lo)+" – "+fmt(f.hi)]);
+  return r.map(x=>`<div class="kv"><span class="dim">${x[0]}</span><b>${x[1]}</b></div>`).join("");
+}
+function oQuote(){
+  const a=BYSYM[OPEN];if(!a||!$("#o-type"))return;
+  const type=$("#o-type").value,K=parseFloat($("#o-strike").value),d=parseFloat($("#o-exp").value),
+    q=parseInt($("#o-qty").value)||1,prem=Math.max(.01,bsv(type,px(a.sym),K,d/365,osig(a)));
+  $("#o-quote").textContent="Premium "+fmt(prem)+" / contract · total "+fmt(prem*q)+" · expires in "+d+" game-day"+(d>1?"s":"");
+}
+async function buyOption(sym){
+  if(HALTED)return toast("Trading is halted.",true);
+  const type=$("#o-type").value,K=parseFloat($("#o-strike").value),d=parseFloat($("#o-exp").value),
+    q=parseInt($("#o-qty").value);
+  if(!q||q<1)return toast("Enter contract count.",true);
+  await refreshMe();
+  const a=BYSYM[sym],prem=Math.max(.01,bsv(type,px(sym),K,d/365,osig(a))),cost=prem*q;
+  const useOptMargin=USEMARGIN;
+  if(useOptMargin){
+    if(cost>marginBuyingPower(ME)+1e-9)return toast("Exceeds margin buying power ("+fmt(marginBuyingPower(ME))+").",true);
+    if(maxLeverage()<=1)return toast("Margin trading is disabled by the GM.",true);
+    const fromCash=Math.min(ME.cash,cost),borrowed=Math.max(0,cost-fromCash);
+    if((ME.margin||0)<=0.01&&borrowed>0)ME.lastInt=gameNow();
+    ME.cash-=fromCash;ME.margin=(ME.margin||0)+borrowed;
+  }else{
+    if(cost>ME.cash+1e-9)return toast("Insufficient credits. Toggle MARGIN ON to borrow.",true);
+    ME.cash-=cost;
+  }
+  ME.opts=ME.opts||[];
+  ME.opts.push({id:Date.now()+"_"+Math.floor(Math.random()*1e4),sym,type,K,q,prem,exp:gameNow()+d*864e5,at:Date.now(),g:gameNow()});
+  ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),sym,side:"OBUY",q,p:prem,o:type+" "+fmt(K)});
+  if(!await saveMe())return toast("Order failed to sync.",true);
+  toast("Bought "+q+" "+sym+" "+(type==="C"?"CALL":"PUT")+" @ "+fmt(prem));
+  oQuote();paintModal();
+}
+async function sellOption(id){
+  if(HALTED)return toast("Trading is halted.",true);
+  await refreshMe();
+  const i=(ME.opts||[]).findIndex(o=>o.id===id);if(i<0)return;
+  const o=ME.opts[i],v=optVal(o);
+  ME.cash+=v*o.q;ME.opts.splice(i,1);
+  ME.hist.push({at:Date.now(),g:gameNow(),sym:o.sym,side:"OSELL",q:o.q,p:v,o:o.type+" "+fmt(o.K)});
+  if(!await saveMe())return toast("Order failed to sync.",true);
+  toast("Closed "+o.sym+" "+(o.type==="C"?"CALL":"PUT")+" for "+fmt(v*o.q));
+  if(TAB==="portfolio")renderTab();
+}
+async function shortTrade(sym,dir){
+  if(HALTED)return toast("Trading is halted.",true);
+  let q=parseFloat($("#qty").value);
+  if(!q||q<=0)return toast("Enter an amount in the quantity box.",true);
+  await refreshMe();
+  const p=px(sym),f=feeFrac();
+  if(BUYMODE==="cr")q=Math.floor(q/(p*(dir>0?(1-f):(1+f)))*1e6)/1e6;
+  if(q<=0)return toast("Amount too small.",true);
+  ME.sh=ME.sh||{};const pos=ME.sh[sym]||{q:0,c:0};
+  if(dir>0){ // open short: SELL into the book (bid side), receive proceeds
+    const pEff=fillThroughBook(sym,-1,q).avgPx*(1-f),proceeds=q*pEff;
+    pos.q+=q;pos.c+=proceeds;ME.cash+=proceeds;ME.sh[sym]=pos;
+    if(netWorth(ME)<0.5*shortLiab(ME)){ // revert
+      pos.q-=q;pos.c-=proceeds;ME.cash-=proceeds;
+      if(pos.q<=1e-9)delete ME.sh[sym];
+      return toast("Insufficient margin — net worth must cover 50% of short exposure.",true);
+    }
+    ME.hist.push({at:Date.now(),g:gameNow(),sym,side:"SHORT",q,p:pEff});
+    if(!await saveMe())return toast("Order failed to sync.",true);
+    toast("Shorted "+(+q.toFixed(4))+" "+sym+" @ "+fmt(pEff));
+  }else{ // cover
+    if(q>pos.q+1e-9)q=pos.q;
+    if(q<=0)return toast("No short to cover.",true);
+    const pEff=fillThroughBook(sym,1,q).avgPx*(1+f),cost=q*pEff;
+    if(cost>ME.cash+1e-9)return toast("Insufficient credits to cover.",true);
+    ME.cash-=cost;pos.c-=pos.c*(q/pos.q);pos.q-=q;
+    if(pos.q<=1e-9)delete ME.sh[sym];else ME.sh[sym]=pos;
+    ME.hist.push({at:Date.now(),g:gameNow(),sym,side:"COVER",q,p:pEff});
+    if(!await saveMe())return toast("Order failed to sync.",true);
+    toast("Covered "+(+q.toFixed(4))+" "+sym+" @ "+fmt(pEff));
+  }
+  paintModal();
+}
+async function placeOrder(sym){
+  const side=$("#ao-side").value,kind=$("#ao-kind").value,
+    trig=parseFloat($("#ao-trig").value),q=parseFloat($("#ao-q").value);
+  if(!trig||trig<=0||!q||q<=0)return toast("Enter trigger price and shares.",true);
+  await refreshMe();
+  ME.orders=ME.orders||[];
+  if(ME.orders.length>=20)return toast("Max 20 open orders.",true);
+  ME.orders.push({id:Date.now()+"_"+Math.floor(Math.random()*1e4),sym,side,kind,trig,q,pg:gameNow()});
+  if(!await saveMe())return toast("Failed to sync.",true);
+  toast((kind==="L"?"Limit ":"Stop ")+(side==="B"?"buy":"sell")+" placed: "+q+" "+sym+" @ "+fmt(trig));
+}
+async function cancelOrder(id){
+  await refreshMe();
+  ME.orders=(ME.orders||[]).filter(o=>o.id!==id);
+  await saveMe();toast("Order canceled.");if(TAB==="portfolio")renderTab();
+}
+async function housekeeping(){
+  if(!ME)return;let dirty=false;const now=gameNow(),f=feeFrac();
+  /* --- dividend accrual (pays when >= 1 credit; shorts owe dividends) --- */
+  const lastDiv=ME.lastDiv!==undefined?ME.lastDiv:(ME.g0!==undefined?ME.g0:now);
+  if(now>lastDiv){
+    const dtY=(now-lastDiv)/(365*864e5);let acc=0;
+    for(const sm in ME.hold||{}){const a=BYSYM[sm];if(a)acc+=ME.hold[sm].q*divAnnual(a)*dtY}
+    for(const sm in ME.sh||{}){const a=BYSYM[sm];if(a)acc-=ME.sh[sm].q*divAnnual(a)*dtY}
+    if(Math.abs(acc)>=1){
+      ME.cash+=acc;ME.lastDiv=now;
+      ME.hist.push({at:Date.now(),g:now,side:"DIV",d:acc});
+      toast("Dividends "+(acc>=0?"received: +":"owed on shorts: ")+fmt(acc));dirty=true;
+    }
+  }
+  /* --- limit / stop order fills (samples the path since placement) --- */
+  if((ME.orders||[]).length){
+    for(let i=ME.orders.length-1;i>=0;i--){
+      const o=ME.orders[i],a=BYSYM[o.sym];if(!a){ME.orders.splice(i,1);dirty=true;continue}
+      const t0=o.pg,steps=40;let hit=false;
+      if(now>t0)for(let k=0;k<=steps;k++){
+        const pp=priceAt(a,t0+(now-t0)*k/steps);
+        if(o.side==="B"&&o.kind==="L"&&pp<=o.trig){hit=true;break}
+        if(o.side==="B"&&o.kind==="T"&&pp>=o.trig){hit=true;break}
+        if(o.side==="S"&&o.kind==="L"&&pp>=o.trig){hit=true;break}
+        if(o.side==="S"&&o.kind==="T"&&pp<=o.trig){hit=true;break}
+      }
+      if(!hit)continue;
+      const lbl=(o.kind==="L"?"LIMIT":"STOP")+" FILL";
+      if(o.side==="B"){
+        const pEff=o.trig*(1+f);let q=o.q;
+        if(q*pEff>ME.cash)q=Math.floor(ME.cash/pEff*1e6)/1e6;
+        if(q>1e-9){
+          ME.cash-=q*pEff;ME.hold=ME.hold||{};const pos=ME.hold[o.sym]||{q:0,c:0};
+          pos.q+=q;pos.c+=q*pEff;ME.hold[o.sym]=pos;
+          ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"BUY",q,p:pEff,o:lbl});
+          toast(lbl+": bought "+(+q.toFixed(4))+" "+o.sym+" @ "+fmt(pEff));
+        }else ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"OFAIL",q:o.q,p:o.trig,o:"NO CREDITS"});
+      }else{
+        const pEff=o.trig*(1-f),held=(ME.hold&&ME.hold[o.sym])?ME.hold[o.sym].q:0,q=Math.min(o.q,held);
+        if(q>1e-9){
+          const pos=ME.hold[o.sym];ME.cash+=q*pEff;pos.c-=pos.c*(q/pos.q);pos.q-=q;
+          if(pos.q<=1e-9)delete ME.hold[o.sym];
+          ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"SELL",q,p:pEff,o:lbl});
+          toast(lbl+": sold "+(+q.toFixed(4))+" "+o.sym+" @ "+fmt(pEff));
+        }else ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"OFAIL",q:o.q,p:o.trig,o:"NO SHARES"});
+      }
+      ME.orders.splice(i,1);dirty=true;
+    }
+  }
+  /* --- margin interest accrual (game-time based, batched) --- */
+  if((ME.margin||0)>0.01){
+    const last=(ME.lastInt!==undefined)?ME.lastInt:now;
+    const dtY=Math.max(0,(now-last)/(365*864e5));
+    const interest=ME.margin*marginRate()*dtY;
+    // only post an entry once accrued interest reaches >= 1 credit, to avoid
+    // spamming the log at high time-compression. cash is charged at posting.
+    if(interest>=1){
+      ME.cash-=interest;ME.lastInt=now;
+      ME.hist.push({at:Date.now(),g:now,side:"INT",d:-interest});
+      if(interest>50)toast("Margin interest charged: "+fmt(interest),true);
+      dirty=true;
+    }
+  }else if(ME.margin<=0.01&&ME.lastInt!==undefined){
+    // no debt — reset the clock so interest doesn't accumulate while debt-free
+    ME.lastInt=now;
+  }
+  /* --- margin call: net worth < 25% of total long exposure --- */
+  const longExp=Object.keys(ME.hold||{}).reduce((v,sm)=>v+(BYSYM[sm]?ME.hold[sm].q*px(sm):0),0);
+  if((ME.margin||0)>0&&netWorth(ME)<0.25*longExp){
+    // force-sell all holdings to repay debt
+    for(const sm in ME.hold){const a=BYSYM[sm];if(!a)continue;
+      const pEff=px(sm)*(1-feeFrac()),proceeds=ME.hold[sm].q*pEff;
+      ME.hist.push({at:Date.now(),g:now,sym:sm,side:"SELL",q:ME.hold[sm].q,p:pEff,o:"MARGIN CALL"});
+      const repay=Math.min(ME.margin,proceeds);ME.margin-=repay;ME.cash+=proceeds-repay;
+      delete ME.hold[sm];}
+    ME.margin=0;dirty=true;
+    toast("⚠ MARGIN CALL — all positions liquidated to repay loan.",true);
+  }
+  /* --- margin call: forced cover of all shorts --- */
+  const liab=shortLiab(ME);
+  if(liab>0&&netWorth(ME)<0.25*liab){
+    for(const sm in ME.sh){
+      const q=ME.sh[sm].q,pEff=px(sm)*(1+f);
+      ME.cash-=q*pEff;
+      ME.hist.push({at:Date.now(),g:now,sym:sm,side:"COVER",q,p:pEff,o:"MARGIN CALL"});
+    }
+    ME.sh={};dirty=true;
+    toast("\u26A0 MARGIN CALL — all short positions force-covered at market.",true);
+  }
+  if(dirty)await saveMe();
+}
+async function settleOptions(){
+  if(!ME||!(ME.opts||[]).length)return;
+  const now=gameNow();let changed=false;
+  for(let i=ME.opts.length-1;i>=0;i--){
+    const o=ME.opts[i];
+    if(now>=o.exp){
+      const a=BYSYM[o.sym],S=priceAt(a,o.exp),
+        v=Math.max(0,o.type==="C"?S-o.K:o.K-S);
+      ME.cash+=v*o.q;
+      ME.hist.push({at:Date.now(),g:o.exp,sym:o.sym,side:"OEXP",q:o.q,p:v,o:o.type+" "+fmt(o.K)});
+      ME.opts.splice(i,1);changed=true;
+      toast(o.sym+" "+(o.type==="C"?"CALL":"PUT")+" expired "+(v>0?"in the money: +"+fmt(v*o.q):"worthless."));
+    }
+  }
+  if(changed)await saveMe();
+}
+function setRange(r){RANGE=r;paintModal()}
+function updateBidAsk(sym){
+  const el=$("#bidask");if(!el)return;
+  const a=BYSYM[sym];if(a&&a.type==="B"){el.textContent="";return;}
+  const ba=bidAsk(sym);
+  el.innerHTML=`Bid ${fmt(ba.bid)} · Ask ${fmt(ba.ask)} · spread ${(ba.hs*200).toFixed(2)}%`+
+    (canSeeL2()?' <span class="cyan">· L2</span>':'');
+}
+function l2BookHTML(sym){
+  const asks=bookLevels(sym,1,8),bids=bookLevels(sym,-1,8);
+  const maxCum=Math.max(asks[asks.length-1].cum,bids[bids.length-1].cum);
+  const row=(lv,side)=>{
+    const w=Math.max(4,Math.min(100,lv.cum/maxCum*100));
+    const col=side>0?"rgba(255,92,122,.16)":"rgba(66,229,150,.16)";
+    const tc=side>0?"var(--down)":"var(--up)";
+    const sz=lv.size>=1e6?(lv.size/1e6).toFixed(2)+"M":lv.size>=1e3?(lv.size/1e3).toFixed(0)+"K":Math.round(lv.size);
+    return `<div style="position:relative;display:flex;justify-content:space-between;font-family:'IBM Plex Mono';font-size:11px;padding:3px 6px;border-bottom:1px solid var(--line)">
+      <div style="position:absolute;top:0;bottom:0;${side>0?"right":"left"}:0;width:${w}%;background:${col}"></div>
+      <span style="position:relative;color:${tc}">${fmt(lv.px)}</span>
+      <span style="position:relative" class="dim">\u20A2${sz}</span></div>`;
+  };
+  // asks shown high→low (worst at top), then bids low→high
+  return `<div style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+    ${asks.slice().reverse().map(l=>row(l,1)).join("")}
+    <div style="text-align:center;font-family:'IBM Plex Mono';font-size:12px;font-weight:600;padding:5px;background:var(--panel2);color:var(--amber)">${fmt(px(sym))} MID</div>
+    ${bids.map(l=>row(l,-1)).join("")}
+  </div>
+  <div class="dim" style="font-size:10px;margin-top:5px">Bars show cumulative resting size. Large orders walk this book and fill at progressively worse prices (slippage).</div>`;
+}
+async function sellAll(sym){
+  if(HALTED)return toast("Trading is halted.",true);
+  await refreshMe();
+  const pos=ME.hold&&ME.hold[sym];
+  if(!pos||pos.q<=0)return toast("No position to sell.",true);
+  const qty=pos.q,f=feeFrac(),pEff=fillThroughBook(sym,-1,qty).avgPx*(1-f),proceeds=qty*pEff;
+  // repay margin first
+  const repay=Math.min(ME.margin||0,proceeds);
+  ME.margin=(ME.margin||0)-repay;ME.cash+=proceeds-repay;
+  delete ME.hold[sym];
+  ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),sym,side:"SELL",q:qty,p:pEff,o:"SELL ALL"});
+  snapshotEq();
+  if(!await saveMe())return toast("Order failed to sync.",true);
+  toast("Sold all "+(+qty.toFixed(4))+" "+sym+" @ "+fmt(pEff));
+  paintModal();
+}
+async function toggleWatch(sym){ME.wl=ME.wl||[];const i=ME.wl.indexOf(sym);
+  i>=0?ME.wl.splice(i,1):ME.wl.push(sym);await saveMe();paintModal()}
+let BUYMODE="sh";
+function setBuyMode(m){BUYMODE=m;
+  document.querySelectorAll(".bm").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+  const q=$("#qty");if(q){q.placeholder=m==="sh"?"Quantity (shares)":"Amount (credits)";q.dispatchEvent(new Event("input"))}}
+function toggleMargin(){USEMARGIN=!USEMARGIN;const el=$("#mg-toggle");
+  if(el){el.textContent="MARGIN "+(USEMARGIN?"ON ✓":"OFF");
+    el.style.background=USEMARGIN?"var(--amber)":"var(--panel2)";
+    el.style.color=USEMARGIN?"#2A1A00":"var(--dim)";
+    el.style.borderColor=USEMARGIN?"var(--amber)":"var(--line)";}
+  const d=el&&el.nextElementSibling;
+  if(d&&d.classList.contains("dim")){d.textContent=USEMARGIN?"Margin buying power: "+fmt(marginBuyingPower(ME))+" · Borrowed: "+fmt(marginDebt(ME)):"";d.style.display=USEMARGIN?"block":"none";}}
+async function trade(sym,dir){
+  if(HALTED)return toast("Trading is halted.",true);
+  let q=parseFloat($("#qty").value);
+  if(!q||q<=0)return toast("Enter an amount.",true);
+  await refreshMe();              // pull freshest balance (admin may have changed it)
+  const f=feeFrac(),sideSign=dir>0?1:-1;
+  if(BUYMODE==="cr"){
+    // typed amount is total credits; estimate shares at top-of-book then
+    // refine by walking the book so big orders get the right slippage.
+    const topPx=tradePx(sym,sideSign)*(dir>0?(1+f):(1-f));
+    let est=q/topPx;
+    // refine twice using actual book avg price
+    for(let it=0;it<2;it++){
+      const ap=fillThroughBook(sym,sideSign,est).avgPx*(dir>0?(1+f):(1-f));
+      est=q/ap;
+    }
+    q=Math.floor(est*1e6)/1e6;
+    if(dir<0&&ME.hold&&ME.hold[sym])q=Math.min(q,ME.hold[sym].q);
+    if(q<=0)return toast("Amount too small.",true);
+  }
+  // walk the order book for the actual average fill price (slippage)
+  const fillRes=fillThroughBook(sym,sideSign,q);
+  const pEff=dir>0?fillRes.avgPx*(1+f):fillRes.avgPx*(1-f);
+  const cost=q*pEff;
+  const useMargin=USEMARGIN&&dir>0;
+  ME.hold=ME.hold||{};const pos=ME.hold[sym]||{q:0,c:0};
+  if(dir>0){
+    if(useMargin){
+      const bp=marginBuyingPower(ME);
+      if(cost>bp+1e-9)return toast("Exceeds margin buying power ("+fmt(bp)+").",true);
+      if(maxLeverage()<=1)return toast("Margin trading is disabled by the GM.",true);
+      // draw from cash first, borrow the rest
+      const fromCash=Math.min(ME.cash,cost),borrowed=Math.max(0,cost-fromCash);
+      if((ME.margin||0)<=0.01&&borrowed>0)ME.lastInt=gameNow(); // start interest clock
+      ME.cash-=fromCash;ME.margin=(ME.margin||0)+borrowed;
+      // check maintenance: equity must be >= 30% of total long exposure
+      const longVal=Object.keys(ME.hold||{}).reduce((v,sm)=>v+(BYSYM[sm]?(ME.hold[sm].q+(sm===sym?q:0))*px(sm):0),0)+q*p;
+      if(netWorth(ME)<0.3*longVal&&netWorth(ME)<0){ME.cash+=fromCash;ME.margin-=borrowed;
+        return toast("Insufficient margin — net equity too low.",true)}
+    }else{
+      if(cost>ME.cash+0.005)return toast("Insufficient credits ("+fmt(cost)+" needed, "+fmt(ME.cash)+" available). Toggle MARGIN ON to borrow.",true);
+      ME.cash-=cost;
+    }
+    pos.q+=q;pos.c+=cost;
+  }else{
+    if(q>pos.q+1e-9)return toast("You only hold "+pos.q+" shares.",true);
+    // proceeds repay margin debt first, remainder goes to cash
+    const repay=Math.min(ME.margin||0,cost);
+    ME.margin=(ME.margin||0)-repay;ME.cash+=cost-repay;
+    pos.c-=pos.c*(q/pos.q);pos.q-=q;
+    if(pos.q<1e-9){delete ME.hold[sym]}
+  }
+  if(pos.q>0)ME.hold[sym]=pos;
+  ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),sym,side:dir>0?"BUY":"SELL",q,p:pEff});
+  if(ME.hist.length>500)ME.hist=ME.hist.slice(-500);
+  snapshotEq();
+  if(!await saveMe())return toast("Order failed to sync — check connection and retry.",true);
+  toast((dir>0?"Bought ":"Sold ")+(+q.toFixed(4))+" "+sym+" @ "+fmt(pEff)+" (incl. fee)");
+  paintModal();
+}
+
+/* ---------- portfolio ---------- */
+function portfolioSeries(ms,n=110){
+  const now=gameNow(),g0=ME.g0!==undefined?ME.g0:(ME.created||now);
+  const t0=Math.max(isFinite(ms)?now-ms:g0,g0);
+  const evs=(ME.hist||[]).map(h=>({...h,gt:h.g!==undefined?h.g:h.at})).sort((a,b)=>a.gt-b.gt);
+  let cash=ME.sc!==undefined?ME.sc:CFG.startCash,hold={},j=0;
+  let shorts={};
+  const apply=e=>{
+    if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
+    else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
+    else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"){cash+=e.d}
+    else if(e.side==="OBUY"){cash-=e.q*e.p}
+    else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
+    else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
+    else if(e.side==="COVER"){cash-=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)-e.q}
+    else if(e.side==="INT"){cash+=e.d}
+  };
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const t=t0+(now-t0)*i/n;
+    while(j<evs.length&&evs[j].gt<=t){apply(evs[j]);j++}
+    let val=cash;
+    for(const sm in hold)if(BYSYM[sm]&&hold[sm]>1e-9)val+=hold[sm]*priceAt(BYSYM[sm],t);
+    for(const sm in shorts)if(BYSYM[sm]&&shorts[sm]>1e-9)val-=shorts[sm]*priceAt(BYSYM[sm],t);
+    pts.push(val);
+  }
+  pts[pts.length-1]=netWorth(ME); // anchor to live value (incl. options MTM)
+  return pts;
+}
+const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
+  OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
+  SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
+  BET:["CASINO","vio"],OFAIL:["ORDER CANCELED","dim"]};
+function histLine(h){
+  const L=HIST_LBL[h.side]||[h.side,"dim"];
+  let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
+    h.side==="DIV"?(h.d>=0?"+":"")+fmt(h.d)+" payout":
+    h.side==="INT"?fmt(h.d)+" interest":
+    h.side==="BET"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
+    `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
+  return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
+   <div class="t">${ago(h.at)}</div></div>`;
+}
+function setPRange(r){PRANGE=r;renderTab()}
+function renderPortfolio(v){
+  const nw=netWorth(ME),tr=trueRet(ME),ov=optsValue(ME);
+  const syms=Object.keys(ME.hold||{}).filter(s=>BYSYM[s]&&ME.hold[s].q>0);
+  let dayPL=0;syms.forEach(s=>{const a=BYSYM[s],n=gameNow();dayPL+=ME.hold[s].q*(priceAt(a,n)-priceAt(a,n-864e5))});
+  v.innerHTML=`
+   <div style="padding-top:14px" class="statgrid">
+     <div class="stat"><div class="l">NET WORTH</div><div class="v" id="h-nw2">${fmt(nw)}</div></div>
+     <div class="stat"><div class="l">TRUE RETURN <span style="letter-spacing:0">(excl. GM money)</span></div><div class="v ${isNaN(tr)?"dim":cls(tr)}">${isNaN(tr)?"—":pct(tr)}</div></div>
+     <div class="stat"><div class="l">CREDITS (CASH)</div><div class="v">${fmt(ME.cash)}</div></div>
+     <div class="stat"><div class="l">24H P&amp;L</div><div class="v ${cls(dayPL)}">${(dayPL>=0?"+":"")+fmt(dayPL)}</div></div>
+     <div class="stat"><div class="l">OPTIONS VALUE</div><div class="v">${fmt(ov)}</div></div>
+     <div class="stat"><div class="l">MARGIN DEBT</div><div class="v ${marginDebt(ME)>0?"down":"dim"}">${marginDebt(ME)>0?"-"+fmt(marginDebt(ME)):"—"}</div></div>
+     <div class="stat"><div class="l">MARGIN POWER</div><div class="v cyan">${fmt(marginBuyingPower(ME))}</div></div>
+     <div class="stat"><div class="l">GM DEPOSITS</div><div class="v ${ME.dep?"amber":"dim"}">${fmt(ME.dep||0)}</div></div>
+   </div>
+   <div class="card" style="margin-bottom:14px">
+     <div style="display:flex;align-items:center;justify-content:space-between">
+       <div class="sect" style="margin:0">EQUITY CURVE</div>
+       <div class="ranges" style="margin:0">${["1D","1W","1M","ALL"].map(r=>
+         `<button class="${PRANGE===r?"on":""}" onclick="setPRange('${r}')">${r}</button>`).join("")}</div>
+     </div>
+     <canvas id="pchart" style="height:120px;margin-top:8px"></canvas>
+   </div>
+   <div class="sect">HOLDINGS</div>
+   ${syms.length?syms.map(s=>{
+      const a=BYSYM[s],pos=ME.hold[s],p=px(s),pl=pos.q*p-pos.c,plp=pos.c>0?(pos.q*p/pos.c-1)*100:0;
+      return `<div class="row" onclick="openAsset('${s}')">
+        <div class="sym">${s}</div>
+        <div class="nm"><div class="n1">${(+pos.q.toFixed(4)).toLocaleString()} sh · avg ${fmt(pos.c/pos.q)}</div><div class="n2">${esc(a.name.toUpperCase())}</div></div>
+        <div class="pxc"><div class="p">${fmt(pos.q*p)}</div><div class="c ${cls(pl)}">${(pl>=0?"+":"")+fmt(pl)} · ${pct(plp)}</div></div></div>`;
+    }).join(""):`<div class="dim" style="padding:24px;text-align:center">No positions yet. Hit the Market tab and buy something speculative.</div>`}
+   ${(ME.opts||[]).length?`<div class="sect">OPTION POSITIONS</div>`+ME.opts.map(o=>{
+      const v2=optVal(o),pl=(v2-o.prem)*o.q,days=Math.max(0,(o.exp-gameNow())/864e5);
+      return `<div class="row" onclick="if(!event.target.closest('button'))openAsset('${o.sym}')">
+        <div class="sym">${o.sym}</div>
+        <div class="nm"><div class="n1">${o.q}× ${o.type==="C"?"CALL":"PUT"} K ${fmt(o.K)}</div>
+          <div class="n2">EXPIRES IN ${days.toFixed(1)} GAME-DAYS · PAID ${fmt(o.prem)}</div></div>
+        <div class="pxc"><div class="p">${fmt(v2*o.q)}</div><div class="c ${cls(pl)}">${(pl>=0?"+":"")+fmt(pl)}</div></div>
+        <button class="btn red" style="padding:8px 10px;font-size:12px" onclick="event.stopPropagation();sellOption('${o.id}')">CLOSE</button></div>`;
+    }).join(""):""}
+   ${Object.keys(ME.sh||{}).filter(sm=>BYSYM[sm]).length?`<div class="sect">SHORT POSITIONS</div>`+
+     Object.keys(ME.sh).filter(sm=>BYSYM[sm]).map(sm=>{
+       const sp=ME.sh[sm],p2=px(sm),pl=sp.c-sp.q*p2;
+       return `<div class="row" onclick="openAsset('${sm}')">
+        <div class="sym">${sm}</div>
+        <div class="nm"><div class="n1">${(+sp.q.toFixed(4))} sh SHORT · entry ${fmt(sp.c/sp.q)}</div>
+        <div class="n2">${esc(BYSYM[sm].name.toUpperCase())}</div></div>
+        <div class="pxc"><div class="p">-${fmt(sp.q*p2)}</div><div class="c ${cls(pl)}">${(pl>=0?"+":"")+fmt(pl)}</div></div></div>`;
+     }).join("")+`<div class="dim" style="font-size:11px;padding:6px 4px">Margin call triggers if net worth drops below 25% of short exposure.</div>`:""}
+   ${(ME.orders||[]).length?`<div class="sect">OPEN ORDERS</div>`+ME.orders.map(o=>
+     `<div class="row" style="cursor:default">
+       <div class="sym">${o.sym}</div>
+       <div class="nm"><div class="n1">${o.kind==="L"?"LIMIT":"STOP"} ${o.side==="B"?"BUY":"SELL"} ${o.q} sh</div>
+       <div class="n2">TRIGGER ${fmt(o.trig)} · PLACED ${gdate(o.pg,true)}</div></div>
+       <button class="btn ghost" style="padding:8px 10px;font-size:12px" onclick="cancelOrder('${o.id}')">CANCEL</button></div>`).join(""):""}
+   <div class="sect">RECENT ACTIVITY</div>
+   ${(ME.hist||[]).slice(-20).reverse().map(histLine).join("")||`<div class="dim" style="padding:14px">No orders yet.</div>`}`;
+  const ms={"1D":864e5,"1W":6048e5,"1M":2592e6,"ALL":1/0}[PRANGE];
+  {const now=gameNow(),g0=ME.g0!==undefined?ME.g0:(ME.created||now),
+    t0=Math.max(isFinite(ms)?now-ms:g0,g0),pts=portfolioSeries(ms);
+   drawChart($("#pchart"),pts,"#3FE0D0");attachHover($("#pchart"),pts,t0,now,"#3FE0D0")}
+}
+
+/* ---------- leaderboard ---------- */
+const BOT_NAMES=["Zo_Prime","Ratrod","Cpt_Valeros","Unit-734","YsokiTrader","LadyNova","GrimVesk","DriftDiva","Skitter_S","Obozaya_Fan"];
+function botEntries(){
+  if(CFG.bots===false)return[];
+  const t=gameNow(),ep=CFG.epoch;
+  const years=(t-ep)/(365*864e5);
+  return BOT_NAMES.map(n=>{
+    const sd=h32("bot:"+n);
+    const tr=rnd(sd,1)*0.18+0.03;   // -15% … +21% annual log-drift
+    const nw=CFG.startCash*Math.exp(
+      tr*years
+      +0.09*noise(sd,t/1.3e8)
+      +0.05*noise(sd^7,t/2.5e7)
+    );
+    return {n,nw,ret:(nw/CFG.startCash-1)*100,
+      pos:2+(sd%7),joined:ep+(sd%24)*864e5};
+  });
+}
+async function renderLeaders(v){
+  v.innerHTML=`<div class="dim" style="padding:30px;text-align:center">Scanning operative accounts…</div>`;
+  const keys=await SG.list("u:");
+  const entries=[];
+  for(const k of keys.slice(0,60)){const u=await SG.get(k);if(u)
+    entries.push({n:u.n,nw:netWorth(u),ret:trueRet(u),pos:Object.keys(u.hold||{}).length,joined:u.created||Date.now(),me:u.n===ME.n})}
+  for(const b of botEntries())entries.push(b);
+  entries.sort((a,b)=>{const x=a.ret,y=b.ret;return (isNaN(y)?-1e9:y)-(isNaN(x)?-1e9:x)});
+  v.innerHTML=`<div class="sect" style="margin-top:18px">OPERATIVE LEADERBOARD</div>
+   <div class="dim" style="font-size:11px;margin-bottom:4px">Ranked by true return — gamemaster credit injections don't count.</div>`+
+   entries.map((u,i)=>{
+     return `<div class="row" style="cursor:default">
+      <div class="lb-rank">${i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1).padStart(2,"0")}</div>
+      <div class="nm"><div class="n1" style="font-weight:700">${esc(u.n)}${u.me?' <span class="cyan">(you)</span>':""}</div>
+      <div class="n2">${u.pos} POSITIONS · JOINED ${ago(u.joined)}</div></div>
+      <div class="pxc"><div class="p">${fmt(u.nw)}</div><div class="c ${isNaN(u.ret)?"dim":cls(u.ret)}">${isNaN(u.ret)?"—":pct(u.ret)}</div></div></div>`;
+   }).join("");
+}
+
+/* ---------- guide + recommendations ---------- */
+function recommendations(){
+  // build data-driven picks with real reasoning from the engine state
+  const recs=[];
+  const tradeable=ASSETS.filter(a=>!a.bm||CFG.bmOpen);
+  const reg=curRegime();
+  // helper metrics
+  const withMetrics=tradeable.map(a=>{
+    const f=fundamentals(a);
+    return {a,
+      m1:chgMs(a.sym,2592e6),    // 1-month
+      y1:chgMs(a.sym,31536e6),   // 1-year
+      yld:(a.type==="B"?(BOND_YIELD[a.sym]||0)*100:(f&&f.yld)||0),
+      beta:a.beta, vol:a.vol, pe:(f&&f.pe)||null};
+  });
+  // 1. Best value: a beaten-down NON-breakout-crashed name that's recovering
+  const value=withMetrics.filter(x=>x.a.type==="S"&&x.y1<-15&&x.m1>x.y1/12)
+    .sort((x,y)=>x.y1-y.y1)[0];
+  if(value)recs.push({sym:value.a.sym,tag:"VALUE PLAY",col:"var(--up)",
+    reason:`Down ${value.y1.toFixed(0)}% over the year but up ${value.m1.toFixed(1)}% this month — a possible bottom. Mean reversion favors a recovery from oversold levels.`});
+  // 2. Momentum: a strong 1-month gainer with high beta
+  const mom=withMetrics.filter(x=>(x.a.type==="S"||x.a.type==="X")&&x.m1>8)
+    .sort((x,y)=>y.m1-x.m1)[0];
+  if(mom)recs.push({sym:mom.a.sym,tag:"MOMENTUM",col:"var(--amber)",
+    reason:`Up ${mom.m1.toFixed(1)}% in the last month with beta ${mom.beta.toFixed(2)}. Riding a strong trend — but watch for the cycle turning if it's run a while.`});
+  // 3. Safe haven for current regime
+  if(reg.k==="crash"||reg.k==="bear"||reg.k==="volatile"){
+    const hedge=withMetrics.filter(x=>x.beta<0).sort((x,y)=>x.beta-y.beta)[0];
+    if(hedge)recs.push({sym:hedge.a.sym,tag:"REGIME HEDGE",col:"var(--cyan)",
+      reason:`Negative beta (${hedge.beta.toFixed(2)}) — tends to rise when the market falls. Current ${reg.label.toLowerCase()} makes this a defensive anchor.`});
+  }else{
+    const growth=withMetrics.filter(x=>x.a.type==="S"&&x.beta>1.2).sort((x,y)=>y.beta-x.beta)[0];
+    if(growth)recs.push({sym:growth.a.sym,tag:"GROWTH",col:"var(--amber)",
+      reason:`High beta (${growth.beta.toFixed(2)}) amplifies the current ${reg.label.toLowerCase()}. Aggressive upside if the trend holds.`});
+  }
+  // 4. Income: highest dividend yield
+  const income=withMetrics.filter(x=>x.yld>2&&x.a.type!=="B").sort((x,y)=>y.yld-x.yld)[0];
+  if(income)recs.push({sym:income.a.sym,tag:"INCOME",col:"var(--cyan)",
+    reason:`Pays a ${income.yld.toFixed(1)}% dividend yield — steady cash flow that compounds at high time-compression. Good ballast for a portfolio.`});
+  // 5. Risk-free: the bond bill
+  recs.push({sym:"TBIL",tag:"RISK-FREE",col:"var(--dim)",
+    reason:`Algalterian 90-day bill yields ${(riskFreeRate()*100).toFixed(1)}% with effectively zero risk. Park credits here between plays, or as a benchmark — any risky bet should beat this.`});
+  // 6. Diversified core
+  recs.push({sym:"AGXT",tag:"CORE HOLDING",col:"var(--vio)",
+    reason:`The whole-market index returns ~7%/yr like a real broad-market fund. The boring, reliable backbone of any portfolio — buy and forget.`});
+  return recs.filter((r,i,arr)=>arr.findIndex(x=>x.sym===r.sym)===i&&BYSYM[r.sym]);
+}
+
+function renderGuide(v){
+  const recs=recommendations();
+  v.innerHTML=`
+   <div class="sect" style="margin-top:18px">RECOMMENDED FOR THIS MARKET</div>
+   <div class="dim" style="font-size:11px;margin-bottom:4px">Generated from live market conditions. Not financial advice — your operative, your call.</div>
+   ${recs.map(r=>{const a=BYSYM[r.sym],p=px(r.sym),c=chgMs(r.sym,2592e6);
+     return `<div class="row" onclick="openAsset('${r.sym}')">
+       <div class="sym">${r.sym}</div>
+       <div class="nm"><div class="n1"><b style="color:${r.col}">${r.tag}</b> · ${esc(a.name)}</div>
+         <div class="n2" style="white-space:normal;line-height:1.4;letter-spacing:0;text-transform:none;font-size:11px">${r.reason}</div></div>
+       <div class="pxc"><div class="p">${fmt(p)}</div><div class="c ${cls(c)}">${pct(c)}</div></div></div>`;
+   }).join("")}
+   <div class="sect" style="margin-top:22px">OPERATIVE FIELD MANUAL</div>
+   ${guideSection("Getting started","Every operative starts with ₢10,000 in credits. Your goal is to grow your Net Worth — shown top-right — by trading smartly. The leaderboard ranks everyone by <b>true return</b>, which ignores any credits the gamemaster grants you, so you can't buy your way to the top.")}
+   ${guideSection("Buying & selling","Tap any listing to open its trade panel. Choose <b>SHARES</b> to enter a quantity, or <b>CREDITS</b> to spend a set amount (it converts to fractional shares). Hit BUY or SELL. Use <b>SELL ALL</b> to dump an entire position in one tap.")}
+   ${guideSection("Order book & slippage","Every asset has a live order book — a ladder of buy/sell orders at different prices. You buy at the <b>ask</b>, sell at the <b>bid</b>. Small trades fill at the top; <b>large trades walk the book</b> and fill at progressively worse prices (slippage), especially on small-caps and crypto. The deeper and more liquid the book, the less it costs to move size.")}
+   ${guideSection("Level-2 market data","The full order-book depth is <b>Level-2 data</b> — like in real markets, it costs extra and not everyone has it. If the gamemaster has granted your terminal L2 access, you'll see the depth ladder on each asset page. Without it, you still pay the spread and slippage — you just can't see the depth in advance.")}
+   ${guideSection("Market cap","Bigger companies (higher market cap) have tighter spreads and move more steadily. Small caps are volatile and expensive to trade in and out of — higher risk, higher reward.")}
+   ${guideSection("Asset types","<b>Stocks</b> — individual companies, medium risk.<br><b>ETFs</b> — baskets of stocks, lower risk (AGXT tracks the whole market at ~7%/yr).<br><b>Bonds</b> — risk-free Algalterian treasuries paying a fixed yield.<br><b>Commodities</b> — starmetals, fuel, materials.<br><b>Crypto</b> — wild swings, biggest gains and losses.")}
+   ${guideSection("Reading an asset","Each asset page shows its price chart (tap to scrub history), 24h change, P/E ratio, dividend yield, beta, volatility, volume, and bid/ask. <b>Beta</b> tells you how it reacts to the market: above 1 amplifies moves, below 0 means it rises when the market falls (a hedge).")}
+   ${guideSection("Dividends & income","Some stocks and ETFs pay dividends — passive credits that land in your cash automatically over time. Bonds pay a steady risk-free yield. Both compound faster when the gamemaster speeds up time.")}
+   ${guideSection("Options","Calls bet a price goes up; puts bet it goes down. They're cheap leverage — a small premium controls a big position — but expire worthless if the bet's wrong. High risk. Tap an option in your portfolio to view its underlying asset.")}
+   ${guideSection("Margin","Toggle MARGIN ON to borrow and buy more than your cash allows (up to your buying-power limit). You pay interest over time, and if your net worth drops too low you get a <b>margin call</b> — positions force-sold to repay the loan. Powerful but dangerous.")}
+   ${guideSection("Short selling","SHORT profits when a price <i>falls</i> — you borrow shares, sell now, buy back cheaper. If the price rises against you, losses mount and you can be margin-called. The way to profit in a crash.")}
+   ${guideSection("Limit & stop orders","Set automated orders on any asset: a <b>limit</b> buys/sells when price reaches your target; a <b>stop</b> (stop-loss) sells if price drops to a floor. They trigger even while you're offline — set traps before logging off.")}
+   ${guideSection("The casino","Roulette, blackjack, over/under, and slots. Pure gambling with a real house edge — fun for a flutter, but the math favors the house. Don't bet the portfolio.")}
+   ${guideSection("Tips from the floor","• Beaten-down quality names often recover — buy fear, sell greed.<br>• A stock that already ran 100% may be late in its cycle.<br>• Diversify across sectors; they don't all move together.<br>• Park idle credits in TBIL to earn the risk-free rate.<br>• Any risky bet should beat the ~3% bond yield to be worth it.")}
+   <div style="height:20px"></div>`;
+}
+function guideSection(title,body){
+  return `<div class="card" style="margin-bottom:10px"><div style="font-family:'Orbitron';font-size:12px;letter-spacing:.1em;color:var(--cyan);margin-bottom:6px">${title.toUpperCase()}</div><div style="font-size:13px;line-height:1.55;color:var(--ink)">${body}</div></div>`;
+}
+/* ---------- feed ---------- */
+function renderFeed(v){
+  const items=[...EV].reverse().filter(e=>["news","regime","halt","pump","spump"].includes(e.t)&&!(e.silent&&(e.t==="pump"||e.t==="spump"))).slice(0,60);
+  v.innerHTML=`<div class="sect" style="margin-top:18px">INFOSPHERE FEED</div>`+
+   (items.map(e=>{
+     let body="";
+     if(e.t==="news")body=`<b class="amber">⬢ NEWSWIRE:</b> ${esc(e.msg)}`;
+     else if(e.t==="regime")body=`<b style="color:${REGIME_DEFS[e.k].col}">◈ MARKET REGIME:</b> ${REGIME_DEFS[e.k].label}`;
+     else if(e.t==="halt")body=e.on?`<b class="down">⛔ Exchange authority has HALTED all trading.</b>`:`<b class="up">▶ Trading has RESUMED.</b>`;
+     else if(e.t==="pump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ ANOMALY:</b> Unusual order flow detected in <b>${e.sym}</b>. Analysts are baffled.`;
+     else if(e.t==="spump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ SECTOR ANOMALY:</b> Correlated order flow sweeping the <b>${esc(e.sec)}</b> sector.`;
+     return `<div class="feed-item"><div>${body}</div><div class="t">${ago(e.at)}</div></div>`;
+   }).join("")||`<div class="dim" style="padding:24px;text-align:center">All quiet on the infosphere.</div>`);
+}
+
+/* ---------- casino ---------- */
+let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false;
+const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
+function renderCasino(v){
+  if(CFG.casino===false){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The casino decks are dark. The gamemaster has closed the tables.</div>`;return}
+  v.innerHTML=`
+   <div class="sect" style="margin-top:18px">THE DRIFT CASINO <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· house always wins, eventually</span></div>
+   <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
+     `<button class="chip ${CGAME===g[0]?"on":""}" data-f="${g[0]}" onclick="if(!SPINNING){CGAME='${g[0]}';BJ=null;renderTab()}">${g[1]}</button>`).join("")}</div>
+   <div class="card" id="cas"></div>
+   <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>`;
+  paintCasino();
+}
+async function wager(delta,game){
+  await refreshMe();
+  ME.cash+=delta;
+  ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),side:"BET",d:delta,o:game});
+  if(ME.hist.length>500)ME.hist=ME.hist.slice(-500);
+  await saveMe();
+}
+function betVal(id){const n=parseFloat($(id).value);return (!n||n<=0)?null:n}
+function rHistHTML(){return RHIST.slice(-12).map(n=>`<span style="color:${rlCol(n)}">${n}</span>`).join(" \u00B7 ")}
+function paintCasino(){
+  const el=$("#cas");if(!el)return;
+  if(CGAME==="roulette"){
+    el.innerHTML=`
+     <div class="inline" style="margin-bottom:8px">
+       <input id="r-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+       <select id="r-pick" onchange="$('#r-num').style.display=this.value==='NUM'?'block':'none'">
+         <option value="RED">RED (2\u00D7)</option><option value="BLACK">BLACK (2\u00D7)</option>
+         <option value="EVEN">EVEN (2\u00D7)</option><option value="ODD">ODD (2\u00D7)</option>
+         <option value="NUM">SINGLE NUMBER (36\u00D7)</option></select>
+     </div>
+     <input id="r-num" type="number" min="0" max="36" inputmode="numeric" placeholder="Number 0-36" style="display:none;margin-bottom:8px">
+     <div class="rl-wrap" id="rl-wrap"><div class="rl-marker"></div>
+       <div class="rl-strip" id="rl-strip">${Array.from({length:14},()=>{const n=Math.floor(Math.random()*37);
+         return `<div class="rl-cell" style="color:${rlCol(n)}">${n}</div>`}).join("")}</div></div>
+     <button class="btn vio" style="width:100%" id="r-go" onclick="spinRoulette()">SPIN THE WHEEL</button>
+     <div id="r-res" class="disp" style="text-align:center;padding:14px;font-size:15px;min-height:20px"></div>
+     <div class="mono dim" style="font-size:12px;text-align:center" id="r-hist">${rHistHTML()}</div>`;
+  }else if(CGAME==="blackjack"){
+    el.innerHTML=BJ?bjHTML():`
+     <div class="inline"><input id="bj-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+     <button class="btn vio" onclick="bjDeal()">DEAL</button></div>
+     <div class="dim" style="font-size:11px;margin-top:8px">Dealer stands on 17. Blackjack pays 3:2.</div>`;
+  }else if(CGAME==="hilo"){
+    el.innerHTML=`
+     <div class="inline" style="margin-bottom:8px">
+       <input id="h-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+       <input id="h-line" type="number" min="5" max="95" value="50" inputmode="numeric" placeholder="Line (5-95)" oninput="hlMults()">
+     </div>
+     <div class="inline">
+       <button class="btn" onclick="hiloPlay(1)" id="h-over">OVER</button>
+       <button class="btn amber" onclick="hiloPlay(-1)" id="h-under">UNDER</button>
+     </div>
+     <div class="dim mono" style="font-size:11px;margin-top:8px" id="h-mult"></div>
+     <div class="h-roll-big dim" id="h-roll">--</div>
+     <div id="h-res" class="disp" style="text-align:center;padding:6px;font-size:15px;min-height:20px"></div>
+     <div class="dim" style="font-size:11px">A d100 is rolled. OVER wins if the roll beats the line; UNDER wins if it lands below. Landing exactly on the line: house wins.</div>`;
+    hlMults();
+  }else if(CGAME==="slots"){
+    el.innerHTML=`
+     <div class="sreel-row">${[0,1,2].map(i=>
+       `<div class="sreel"><div class="sreel-col" id="s-r${i}"><span>\uD83C\uDF0C</span></div></div>`).join("")}</div>
+     <div class="inline"><input id="s-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+     <button class="btn vio" onclick="spinSlots()" id="s-go">PULL THE LEVER</button></div>
+     <div id="s-res" class="disp" style="text-align:center;padding:12px;font-size:14px;min-height:20px"></div>
+     <div class="dim mono" style="font-size:11px">PAIRS 1.35\u00D7 \u00B7 \uD83C\uDF0C\uD83C\uDF0C\uD83C\uDF0C 3\u00D7 \u00B7 \uD83E\uDE90 5\u00D7 \u00B7 \u2B50 8\u00D7 \u00B7 \uD83D\uDE80 12\u00D7 \u00B7 \uD83D\uDC7E 20\u00D7 \u00B7 \uD83D\uDEF8 40\u00D7 \u00B7 \uD83D\uDC8E 100\u00D7</div>`;
+  }
+}
+/* ── roulette: decelerating strip ── */
+async function spinRoulette(){
+  if(SPINNING)return;
+  const bet=betVal("#r-bet");if(!bet)return toast("Enter a bet.",true);
+  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
+  const pick=$("#r-pick").value,num=parseInt($("#r-num").value);
+  if(pick==="NUM"&&(isNaN(num)||num<0||num>36))return toast("Pick a number 0-36.",true);
+  const n=Math.floor(Math.random()*37);
+  let win=false,mult=2;
+  if(pick==="RED")win=REDS.has(n);
+  else if(pick==="BLACK")win=n!==0&&!REDS.has(n);
+  else if(pick==="EVEN")win=n!==0&&n%2===0;
+  else if(pick==="ODD")win=n%2===1;
+  else{win=n===num;mult=36}
+  const delta=win?bet*(mult-1):-bet;
+  SPINNING=true;$("#r-go").disabled=true;$("#r-res").textContent="";
+  await wager(delta,"ROULETTE");
+  RHIST.push(n);
+  const wrap=$("#rl-wrap"),strip=$("#rl-strip");
+  const finish=()=>{
+    SPINNING=false;const go=$("#r-go");if(go)go.disabled=false;
+    const res=$("#r-res");if(res){res.innerHTML=`Ball lands on <span style="color:${rlCol(n)}">${n}</span> — <span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`}
+    const hh=$("#r-hist");if(hh)hh.innerHTML=rHistHTML();
+  };
+  if(!wrap||!strip||RM()){finish();return}
+  const CELL=56,COUNT=44,LAND=COUNT-6;
+  const cells=[];
+  for(let i=0;i<COUNT;i++){const v=i===LAND?n:Math.floor(Math.random()*37);
+    cells.push(`<div class="rl-cell" style="color:${rlCol(v)}">${v}</div>`)}
+  strip.style.transition="none";strip.style.transform="translateX(0)";
+  strip.innerHTML=cells.join("");
+  const w=wrap.clientWidth,jit=(Math.random()*28-14);
+  const off=LAND*CELL+CELL/2-w/2+jit;
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    strip.style.transition="transform 3s cubic-bezier(.12,.65,.06,1)";
+    strip.style.transform=`translateX(${-off}px)`;
+  })});
+  setTimeout(finish,3150);
+}
+/* ── blackjack: card objects with stable suits + deal/flip animations ── */
+function bjDraw(){return {r:1+Math.floor(Math.random()*13),s:Math.floor(Math.random()*4)}}
+function bjVal(h){let v=0,a=0;for(const c of h){if(c.r===1){a++;v+=11}else v+=Math.min(c.r,10)}
+  while(v>21&&a>0){v-=10;a--}return v}
+const SUITS=["\u2660","\u2665","\u2666","\u2663"];
+function bjFace(c,opts){
+  const r=c.r===1?"A":c.r===11?"J":c.r===12?"Q":c.r===13?"K":c.r;
+  const red=c.s===1||c.s===2;
+  const cl="pcard"+(red?" redsuit":"")+(opts&&opts.anim?" "+opts.anim:"");
+  const dly=opts&&opts.delay?` style="animation-delay:${opts.delay}s"`:"";
+  return `<span class="${cl}"${dly}>${r}${SUITS[c.s]}</span>`;
+}
+function bjBack(){return `<span class="pcard deal" style="color:var(--vio)">\uD83C\uDCA0</span>`}
+function bjHTML(){
+  const pv=bjVal(BJ.ph),done=BJ.done;
+  const ph=BJ.ph.map((c,i)=>bjFace(c,{anim:i===BJ.ph.length-1&&BJ.justDrew?"deal":(BJ.fresh?"deal":""),delay:BJ.fresh?i*0.15:0})).join("");
+  const dh=done
+    ?BJ.dh.map((c,i)=>bjFace(c,{anim:"flip",delay:i*0.18})).join("")
+    :bjFace(BJ.dh[0],{anim:BJ.fresh?"deal":""})+bjBack();
+  BJ.fresh=false;BJ.justDrew=false;
+  return `<div class="mono" style="font-size:14px;line-height:1.6">
+    <div class="dim" style="font-size:11px;letter-spacing:.15em">DEALER${done?" ("+bjVal(BJ.dh)+")":""}</div>
+    <div>${dh}</div>
+    <div class="dim" style="font-size:11px;letter-spacing:.15em;margin-top:8px">YOU (${pv})</div>
+    <div>${ph}</div></div>
+   ${done?`<div class="disp" style="padding:12px 0;font-size:15px">
+     <span class="${BJ.delta>0?"win-flash":BJ.delta<0?"lose-shake":"dim"}" style="display:inline-block">${BJ.msg}</span></div>
+     <button class="btn vio" style="width:100%" onclick="BJ=null;renderTab()">NEW HAND</button>`
+   :`<div class="inline" style="margin-top:10px">
+     <button class="btn" onclick="bjHit()">HIT</button>
+     <button class="btn amber" onclick="bjStand()">STAND</button></div>`}`;
+}
+async function bjDeal(){
+  if(SPINNING)return;
+  const bet=betVal("#bj-bet");if(!bet)return toast("Enter a bet.",true);
+  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
+  await wager(-bet,"BLACKJACK");
+  BJ={bet,ph:[bjDraw(),bjDraw()],dh:[bjDraw(),bjDraw()],done:false,delta:-bet,msg:"",fresh:true,justDrew:false};
+  if(bjVal(BJ.ph)===21)return bjSettle(true);
+  $("#cas").innerHTML=bjHTML();
+}
+async function bjHit(){
+  BJ.ph.push(bjDraw());BJ.justDrew=true;
+  if(bjVal(BJ.ph)>21){BJ.done=true;BJ.msg="BUST — lose "+fmt(BJ.bet);$("#cas").innerHTML=bjHTML();return}
+  $("#cas").innerHTML=bjHTML();
+}
+async function bjStand(){return bjSettle(false)}
+async function bjSettle(natural){
+  while(bjVal(BJ.dh)<17)BJ.dh.push(bjDraw());
+  const pv=bjVal(BJ.ph),dv=bjVal(BJ.dh);let ret=0;
+  if(natural&&dv!==21){ret=BJ.bet*2.5;BJ.msg="BLACKJACK! +"+fmt(BJ.bet*1.5)}
+  else if(pv>21){ret=0;BJ.msg="BUST — lose "+fmt(BJ.bet)}
+  else if(dv>21||pv>dv){ret=BJ.bet*2;BJ.msg="WIN +"+fmt(BJ.bet)}
+  else if(pv===dv){ret=BJ.bet;BJ.msg="PUSH — bet returned"}
+  else{ret=0;BJ.msg="Dealer wins — lose "+fmt(BJ.bet)}
+  if(ret>0)await wager(ret,"BLACKJACK WIN");
+  BJ.done=true;BJ.delta=ret-BJ.bet;
+  $("#cas").innerHTML=bjHTML();
+}
+/* ── over/under: d100 tumbler ── */
+function hlMults(){
+  const L=Math.min(95,Math.max(5,parseInt($("#h-line").value)||50));
+  const po=(100-L)/100,pu=(L-1)/100;
+  $("#h-over").textContent="OVER "+L+" ("+(0.97/po).toFixed(2)+"\u00D7)";
+  $("#h-under").textContent="UNDER "+L+" ("+(0.97/pu).toFixed(2)+"\u00D7)";
+  $("#h-mult").textContent="d100 \u00B7 3% house edge";
+}
+async function hiloPlay(dir){
+  if(SPINNING)return;
+  const bet=betVal("#h-bet");if(!bet)return toast("Enter a bet.",true);
+  const L=Math.min(95,Math.max(5,parseInt($("#h-line").value)||50));
+  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
+  const roll=1+Math.floor(Math.random()*100);
+  const p=dir>0?(100-L)/100:(L-1)/100,mult=0.97/p;
+  const win=dir>0?roll>L:roll<L;
+  const delta=win?bet*(mult-1):-bet;
+  SPINNING=true;$("#h-over").disabled=true;$("#h-under").disabled=true;$("#h-res").textContent="";
+  await wager(delta,"OVER/UNDER");
+  const rollEl=$("#h-roll");
+  const finish=()=>{
+    SPINNING=false;
+    const o=$("#h-over"),u=$("#h-under");if(o)o.disabled=false;if(u)u.disabled=false;
+    if(rollEl){rollEl.textContent=roll;rollEl.className="h-roll-big "+(win?"up":"down")}
+    const res=$("#h-res");if(res)res.innerHTML=`<span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`;
+  };
+  if(!rollEl||RM()){finish();return}
+  rollEl.className="h-roll-big";
+  let t=0;const iv=setInterval(()=>{
+    t+=60;rollEl.textContent=1+Math.floor(Math.random()*100);
+    if(t>=1100){clearInterval(iv);finish()}
+  },60);
+}
+/* ── slots: vertical spinning reels with staggered stops ── */
+const SLOT_SYMS=["\uD83C\uDF0C","\uD83E\uDE90","\u2B50","\uD83D\uDE80","\uD83D\uDC7E","\uD83D\uDEF8","\uD83D\uDC8E"];
+const SLOT_W=[30,25,20,12,8,4,1],SLOT_PAY=[3,5,8,12,20,40,100];
+function slotPick(){let r=Math.random()*100,i=0;while(r>SLOT_W[i]){r-=SLOT_W[i];i++}return i}
+async function spinSlots(){
+  if(SPINNING)return;
+  const bet=betVal("#s-bet");if(!bet)return toast("Enter a bet.",true);
+  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
+  const r=[slotPick(),slotPick(),slotPick()];
+  let mult=0;
+  if(r[0]===r[1]&&r[1]===r[2])mult=SLOT_PAY[r[0]];
+  else if(r[0]===r[1]||r[1]===r[2]||r[0]===r[2])mult=1.35;
+  const delta=mult>0?bet*(mult-1):-bet;
+  SPINNING=true;$("#s-go").disabled=true;$("#s-res").textContent="";
+  await wager(delta,"SLOTS");
+  const finish=()=>{
+    SPINNING=false;const go=$("#s-go");if(go)go.disabled=false;
+    const res=$("#s-res");if(res)res.innerHTML=mult>0
+      ?`<span class="win-flash" style="display:inline-block">${mult===1.35?"PAIR":"TRIPLE"}! +${fmt(bet*(mult-1))}</span>`
+      :`<span class="lose-shake" style="display:inline-block">No match — lose ${fmt(bet)}</span>`;
+  };
+  if(RM()){
+    [0,1,2].forEach(i=>{const col=$("#s-r"+i);if(col){col.style.transition="none";col.style.transform="none";col.innerHTML=`<span>${SLOT_SYMS[r[i]]}</span>`}});
+    finish();return;
+  }
+  const H=66,LEN=16,DUR=[1.1,1.6,2.1];
+  [0,1,2].forEach(i=>{
+    const col=$("#s-r"+i);if(!col)return;
+    let spans="";
+    for(let k=0;k<LEN-1;k++)spans+=`<span>${SLOT_SYMS[slotPick()]}</span>`;
+    spans+=`<span>${SLOT_SYMS[r[i]]}</span>`;
+    col.style.transition="none";col.style.transform="translateY(0)";
+    col.innerHTML=spans;
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+      col.style.transition=`transform ${DUR[i]}s cubic-bezier(.15,.6,.1,1)`;
+      col.style.transform=`translateY(${-(LEN-1)*H}px)`;
+    })});
+  });
+  setTimeout(finish,DUR[2]*1000+150);
+}
+
+/* ---------- admin ---------- */
+function renderAdmin(v){
+  if(!ADMIN){
+    v.innerHTML=`<div class="auth" style="min-height:50vh"><div class="card">
+      <h1 style="font-size:15px;color:var(--amber)">GM OVERRIDE CONSOLE</h1>
+      <div class="sub">RESTRICTED — GAME MASTER ONLY</div>
+      <div class="field"><label>OVERRIDE CODE</label><input id="ad-pass" type="password"></div>
+      <button class="btn amber" style="width:100%" id="ad-go">AUTHENTICATE</button>
+      <div class="dim" style="font-size:11px;margin-top:12px;text-align:center">Default code: <span class="mono">gamemaster</span> — change it after first login.</div>
+    </div></div>`;
+    $("#ad-go").onclick=async()=>{
+      if(await sha($("#ad-pass").value)===CFG.adminHash){ADMIN=true;renderAdmin(v)}
+      else toast("Override code rejected.",true);
+    };
+    return;
+  }
+  const symOpts=ASSETS.map(a=>`<option value="${a.sym}">${a.sym} — ${esc(a.name)}</option>`).join("");
+  v.innerHTML=`
+  <div class="admin-grid" style="padding-top:16px">
+   <div class="card"><h3>MARKET REGIME</h3>
+     <div class="inline">${Object.keys(REGIME_DEFS).map(k=>
+       `<button class="btn ghost" style="border-color:${REGIME_DEFS[k].col};color:${REGIME_DEFS[k].col}" onclick="adRegime('${k}')">${REGIME_DEFS[k].label}</button>`).join("")}</div>
+   </div>
+   <div class="card"><h3>RIG A LISTING (PUMP / DUMP)</h3>
+     <div class="inline" style="margin-bottom:8px"><select id="ad-sym">${symOpts}</select></div>
+     <div class="inline">
+       <input id="ad-mag" type="number" inputmode="decimal" placeholder="% move (e.g. 80 or -60)">
+       <input id="ad-dur" type="number" inputmode="numeric" placeholder="over minutes" value="60">
+       <button class="btn vio" onclick="adPump()">EXECUTE</button>
+     </div>
+     <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer">
+         <input type="checkbox" id="ad-silent" style="width:auto">
+         Silent — no anomaly message in feed
+       </label>
+     </div>
+     <h3 style="margin-top:16px">RIG A WHOLE SECTOR</h3>
+     <div class="inline" style="margin-bottom:8px"><select id="ad-ssec">${[...new Set(ASSETS.map(a=>a.sector))].sort().map(x=>`<option>${esc(x)}</option>`).join("")}</select></div>
+     <div class="inline">
+       <input id="ad-smag" type="number" inputmode="decimal" placeholder="% move (e.g. 30 or -25)">
+       <input id="ad-sdur" type="number" inputmode="numeric" placeholder="over minutes" value="120">
+       <button class="btn vio" onclick="adSPump()">EXECUTE</button>
+     </div>
+     <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);cursor:pointer">
+         <input type="checkbox" id="ad-ssilent" style="width:auto">
+         Silent — no sector anomaly message in feed
+       </label>
+     </div>
+     <div class="dim" style="font-size:11px;margin-top:4px">Moves every listing in the sector by the same amount on top of their normal behavior.</div>
+   </div>
+   <div class="card"><h3>OPERATIVE ACCOUNTS</h3>
+     <div class="inline" style="margin-bottom:8px"><button class="btn ghost" onclick="adLoadUsers()">LOAD ACCOUNTS</button></div>
+     <div id="ad-users" class="dim" style="font-size:13px">Tap load to list accounts.</div>
+   </div>
+   <div class="card"><h3>LAUNCH CUSTOM IPO</h3>
+     <div class="inline" style="margin-bottom:8px">
+       <input id="ipo-sym" placeholder="SYMBOL (2-5)" maxlength="5" style="text-transform:uppercase">
+       <input id="ipo-name" placeholder="Company name" style="flex:2" maxlength="40">
+     </div>
+     <div class="inline" style="margin-bottom:8px">
+       <input id="ipo-sec" placeholder="Sector" maxlength="20">
+       <input id="ipo-px" type="number" step="any" inputmode="decimal" placeholder="Start price \u20A2">
+       <select id="ipo-vol"><option value="0.06">LOW VOL</option><option value="0.13" selected>MED VOL</option><option value="0.22">HIGH VOL</option><option value="0.4">INSANE VOL</option></select>
+     </div>
+     <div class="inline">
+       <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)"><input type="checkbox" id="ipo-bm" style="width:auto"> Black market listing</label>
+       <button class="btn vio" onclick="adIPO()">LAUNCH IPO</button>
+     </div>
+     <div id="ipo-list" class="dim" style="font-size:12px;margin-top:10px">${((CFG.ipos||[]).map(i=>
+       `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)">
+        <span>${i.sym} — ${esc(i.name)}${i.bm?" \u2620":""}</span>
+        <button class="btn red" style="padding:5px 9px;font-size:11px" onclick="adDelist('${i.sym}')">DELIST</button></div>`).join(""))||"No custom listings yet."}</div>
+   </div>
+   <div class="card"><h3>BLACK MARKET</h3>
+     <div class="inline">
+       <button class="btn ${CFG.bmOpen?"red":"vio"}" onclick="adBM()">${CFG.bmOpen?"CLOSE BLACK MARKET":"OPEN BLACK MARKET"}</button>
+     </div>
+     <div class="dim" style="font-size:11px;margin-top:8px">When open, players get a \u2620 Black Market tab with 6 contraband listings (plus any black-market IPOs) at extreme volatility. Positions survive closure — players just can't trade them.</div>
+   </div>
+   <div class="card"><h3>RENAME LISTING</h3>
+     <div class="inline" style="margin-bottom:8px"><select id="ad-rsym" onchange="adRenameFill()">${symOpts}</select></div>
+     <div class="inline">
+       <input id="ad-rname" placeholder="New company name" style="flex:2" maxlength="40">
+       <input id="ad-rsec" placeholder="Sector (optional)" maxlength="20">
+     </div>
+     <div class="inline" style="margin-top:8px">
+       <button class="btn vio" onclick="adRename()">RENAME</button>
+       <button class="btn ghost" onclick="adRenameReset()">RESET TO DEFAULT</button>
+     </div>
+     <div class="dim" style="font-size:11px;margin-top:8px">Ticker symbols and price history stay the same — only the display name changes for everyone.</div>
+   </div>
+   <div class="card"><h3>BROADCAST NEWSWIRE</h3>
+     <div class="inline"><input id="ad-news" placeholder="e.g. AbadarCorp announces drift-engine recall…" style="flex:3">
+     <button class="btn amber" onclick="adNews()">SEND</button></div>
+   </div>
+   <div class="card"><h3>EXCHANGE CONTROLS</h3>
+     <div class="inline">
+      <button class="btn red" onclick="adHalt(true)">HALT TRADING</button>
+      <button class="btn" onclick="adHalt(false)">RESUME TRADING</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <button class="btn vio" onclick="adPause()">${isPaused()?"▶ RESUME MARKET CLOCK":"⏸ PAUSE MARKET CLOCK"}</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      ${CFG?[1,4,12,48].map(x=>`<button class="btn ghost ${speedNow()===x?"on":""}" style="${speedNow()===x?"border-color:var(--cyan);color:var(--cyan)":""}" onclick="adSpeed(${x})">${x}× SPEED</button>`).join(""):""} 
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-spd" type="number" min="0.1" step="any" inputmode="decimal" placeholder="Custom speed (now ${speedNow()}×)">
+      <button class="btn ghost" onclick="adSpeed(parseFloat($('#ad-spd').value))">SET</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-cash" type="number" inputmode="decimal" placeholder="New-account credits (${CFG.startCash})">
+      <button class="btn ghost" onclick="adStartCash()">SET</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-fee" type="number" step="any" min="0" max="10" inputmode="decimal" placeholder="Broker fee % (now ${(CFG.fee!==undefined?CFG.fee:0.25)}%)">
+      <button class="btn ghost" onclick="adFee()">SET FEE</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <button class="btn ${CFG.casino!==false?"red":"vio"}" onclick="adCasino()">${CFG.casino!==false?"CLOSE CASINO":"OPEN CASINO"}</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <button class="btn ${CFG&&CFG.bots===false?"vio":"red"}" onclick="adBots()">${CFG&&CFG.bots===false?"SHOW SYNTHETIC TRADERS":"HIDE SYNTHETIC TRADERS"}</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-mrate" type="number" step="any" min="0" max="200" inputmode="decimal" placeholder="Margin rate % p.a. (now ${(CFG.marginRate!==undefined?CFG.marginRate:12)}%)">
+      <button class="btn ghost" onclick="adMarginRate()">SET RATE</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-mlev" type="number" step="any" min="1" max="10" inputmode="decimal" placeholder="Max leverage (now ${(CFG.maxLev!==undefined?CFG.maxLev:2)}×)">
+      <button class="btn ghost" onclick="adMarginLev()">SET LEVERAGE</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
+      <input id="ad-np" type="password" placeholder="New override code">
+      <button class="btn ghost" onclick="adPass()">CHANGE CODE</button>
+     </div>
+   </div>
+   <div class="card" style="border-color:var(--down)"><h3 style="color:var(--down)">DANGER ZONE</h3>
+     <div class="inline">
+      <button class="btn red" onclick="adResetMarket()">RESET MARKET PRICES</button>
+      <button class="btn ghost" onclick="adRebasePrices()">RE-BASELINE TO NOW</button>
+      <button class="btn red" onclick="adWipeUsers()">DELETE ALL ACCOUNTS</button>
+     </div>
+   </div>
+  </div>`;
+}
+async function adRegime(k){await pushEv({t:"regime",k});toast("Regime set: "+REGIME_DEFS[k].label);renderApp();TAB="admin";go("admin")}
+async function adPump(){
+  const sym=$("#ad-sym").value,pc=parseFloat($("#ad-mag").value),min=parseFloat($("#ad-dur").value)||60;
+  const silent=$("#ad-silent")&&$("#ad-silent").checked;
+  if(!pc)return toast("Enter a % move.",true);
+  await pushEv({t:"pump",sym,mag:Math.log(1+pc/100),dur:min*6e4,silent});
+  toast(sym+" rigged: "+(pc>0?"+":"")+pc+"% over "+min+" min"+(silent?" (silent)":""));
+}
+function adRenameFill(){const a=BYSYM[$("#ad-rsym").value];if(!a)return;
+  $("#ad-rname").value=a.name;$("#ad-rsec").value=a.sector}
+async function adRename(){
+  const sym=$("#ad-rsym").value,n=$("#ad-rname").value.trim(),sec=$("#ad-rsec").value.trim();
+  if(!n)return toast("Enter a name.",true);
+  CFG=(await SG.get("cfg"))||CFG;CFG.names=CFG.names||{};
+  CFG.names[sym]={n,s:sec||undefined};
+  if(!await SG.set("cfg",CFG))return toast("Save failed — try again.",true);
+  applyNames();toast(sym+" is now \""+n+"\"");
+}
+async function adRenameReset(){
+  const sym=$("#ad-rsym").value;
+  CFG=(await SG.get("cfg"))||CFG;
+  if(CFG.names)delete CFG.names[sym];
+  if(!await SG.set("cfg",CFG))return toast("Save failed — try again.",true);
+  applyNames();adRenameFill();toast(sym+" reset to "+BYSYM[sym].name0);
+}
+async function adIPO(){
+  const sym=$("#ipo-sym").value.trim().toUpperCase(),name=$("#ipo-name").value.trim(),
+    sec=$("#ipo-sec").value.trim()||"New Listing",base=parseFloat($("#ipo-px").value),
+    vol=parseFloat($("#ipo-vol").value),bm=$("#ipo-bm").checked;
+  if(!/^[A-Z0-9]{2,5}$/.test(sym))return toast("Symbol: 2-5 letters/numbers.",true);
+  if(!name)return toast("Enter a company name.",true);
+  if(!base||base<=0)return toast("Enter a start price.",true);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.ipos=CFG.ipos||[];
+  if(BYSYM[sym]||CFG.ipos.some(i=>i.sym===sym))return toast("Symbol already in use.",true);
+  CFG.ipos.push({sym,name,sec,base,vol,bm,at:gameNow()});
+  if(!await SG.set("cfg",CFG))return toast("Save failed.",true);
+  rebuildAssets();
+  if(!bm)await pushEv({t:"news",msg:"IPO: "+name+" ("+sym+") begins trading at "+fmt(base)});
+  toast(sym+" is now listed"+(bm?" on the black market.":"."));renderApp();go("admin");
+}
+async function adDelist(sym){
+  if(!await iconfirm("Delist "+sym+"? Player positions in it will stop being valued."))return;
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  CFG.ipos=(CFG.ipos||[]).filter(i=>i.sym!==sym);
+  await SG.set("cfg",CFG);rebuildAssets();toast(sym+" delisted.");renderApp();go("admin");
+}
+async function adBM(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.bmOpen=!CFG.bmOpen;
+  await SG.set("cfg",CFG);
+  if(CFG.bmOpen)await pushEv({t:"news",msg:"Rumor: smuggler routes are open. Ask around for the black market."});
+  toast(CFG.bmOpen?"Black market is open.":"Black market closed.");renderApp();go("admin");
+}
+async function adMarginRate(){
+  const n=parseFloat($("#ad-mrate").value);
+  if(isNaN(n)||n<0||n>200)return toast("Rate: 0–200% p.a.",true);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.marginRate=n;
+  await SG.set("cfg",CFG);toast("Margin rate set to "+n+"% per annum.");
+}
+async function adMarginLev(){
+  const n=parseFloat($("#ad-mlev").value);
+  if(isNaN(n)||n<1||n>10)return toast("Leverage: 1–10×.",true);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.maxLev=n;
+  await SG.set("cfg",CFG);toast("Max leverage set to "+n+"×. Set to 1× to disable margin.");
+}
+async function adFee(){
+  const n=parseFloat($("#ad-fee").value);
+  if(isNaN(n)||n<0||n>10)return toast("Fee: 0–10%.",true);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.fee=n;
+  await SG.set("cfg",CFG);toast("Broker fee set to "+n+"% per trade.");
+}
+async function adBots(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.bots=CFG.bots===false?true:false;
+  await SG.set("cfg",CFG);toast(CFG.bots!==false?"Synthetic traders visible.":"Synthetic traders hidden.");
+  renderApp();go("admin");
+}
+async function adCasino(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.casino=CFG.casino===false?true:false;
+  await SG.set("cfg",CFG);toast(CFG.casino?"Casino open.":"Casino closed.");renderApp();go("admin");
+}
+async function adSPump(){
+  const sec=$("#ad-ssec").value,pc=parseFloat($("#ad-smag").value),min=parseFloat($("#ad-sdur").value)||120;
+  const silent=$("#ad-ssilent")&&$("#ad-ssilent").checked;
+  if(!pc)return toast("Enter a % move.",true);
+  await pushEv({t:"spump",sec,mag:Math.log(1+pc/100),dur:min*6e4,silent});
+  toast(sec+" sector rigged: "+(pc>0?"+":"")+pc+"% over "+min+" min"+(silent?" (silent)":""));
+}
+async function adNews(){const m=$("#ad-news").value.trim();if(!m)return;
+  await pushEv({t:"news",msg:m.slice(0,140)});$("#ad-news").value="";buildTicker();toast("Broadcast sent.")}
+async function adPause(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  if(CFG.paused){CFG.anchorR=Date.now();CFG.paused=false;
+    await SG.set("cfg",CFG);toast("Market clock resumed.")}
+  else{CFG.anchorG=gameNow();CFG.anchorR=Date.now();CFG.paused=true;
+    await SG.set("cfg",CFG);toast("Market clock paused — prices frozen.")}
+  renderApp();go("admin");
+}
+async function adSpeed(x){
+  if(!x||x<=0||x>1000)return toast("Speed must be 0.1–1000.",true);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  CFG.anchorG=gameNow();CFG.anchorR=Date.now();CFG.speed=x;
+  await SG.set("cfg",CFG);toast("Market clock running at "+x+"× speed.");
+  renderApp();go("admin");
+}
+async function adHalt(on){await pushEv({t:"halt",on});renderApp();go("admin");toast(on?"Trading halted.":"Trading resumed.")}
+async function adStartCash(){const n=parseFloat($("#ad-cash").value);if(!n)return;
+  CFG.startCash=n;await SG.set("cfg",CFG);toast("New accounts start with "+fmt(n))}
+async function adPass(){const p=$("#ad-np").value;if(p.length<3)return toast("Too short.",true);
+  CFG.adminHash=await sha(p);await SG.set("cfg",CFG);toast("Override code changed.")}
+async function adRebasePrices(){
+  if(!await iconfirm("Re-baseline all prices to current values?\nThe base prices shown will become today\'s prices. Historical charts will recalculate from this new anchor."))return;
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  CFG.priceAnchor=gameNow();
+  clearLpRef();
+  await SG.set("cfg",CFG);
+  toast("Prices re-baselined to current values.");
+  renderApp();go("admin");
+}
+async function adResetMarket(){if(!await iconfirm("Reset all prices to baseline and clear events? Player accounts are kept."))return;
+  CFG.epoch=Date.now()-36e5;CFG.anchorG=Date.now();CFG.anchorR=Date.now();CFG.paused=false;await SG.set("cfg",CFG);EV=[];await SG.set("ev",EV);digestEvents();toast("Market reset.");renderApp();go("admin")}
+async function adWipeUsers(){if(!await iconfirm("Delete EVERY player account? This cannot be undone."))return;
+  const keys=await SG.list("u:");for(const k of keys)await SG.del(k);toast("All accounts deleted.");logout()}
+async function adLoadUsers(){
+  const keys=await SG.list("u:");const box=$("#ad-users");box.innerHTML="";
+  for(const k of keys){
+    const u=await SG.get(k);if(!u)continue;
+    const d=document.createElement("div");d.style.cssText="border-bottom:1px solid var(--line);padding:10px 0";
+    d.innerHTML=`<div style="display:flex;justify-content:space-between;color:var(--ink)"><b>${esc(u.n)}</b><span class="mono">${fmt(netWorth(u))}</span></div>
+      <div class="inline" style="margin-top:6px">
+        <input type="number" inputmode="decimal" placeholder="set credits" data-k="${k}" class="adcash">
+        <button class="btn ghost adset" data-k="${k}">SET ₢</button>
+        <button class="btn red addel" data-k="${k}">DELETE</button>
+      </div>
+      <div class="inline" style="margin-top:6px">
+        <select class="adgsym" data-k="${k}">${ASSETS.map(a=>`<option>${a.sym}</option>`).join("")}</select>
+        <input type="number" inputmode="decimal" placeholder="± shares" class="adgq" data-k="${k}">
+        <button class="btn ghost adgrant" data-k="${k}">GRANT</button>
+      </div>
+      <div class="inline" style="margin-top:6px">
+        <button class="btn ${u.l2?"amber":"ghost"} adspread" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
+      </div>`;
+    box.appendChild(d);
+  }
+  box.querySelectorAll(".adset").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,n=parseFloat(box.querySelector(`.adcash[data-k="${k}"]`).value);
+    if(isNaN(n))return toast("Enter an amount.",true);
+    const u=await SG.get(k);if(!u)return;
+    const delta=n-u.cash;u.cash=n;u.dep=(u.dep||0)+delta;
+    u.hist=u.hist||[];u.hist.push({at:Date.now(),g:gameNow(),side:"ADJ",d:delta});
+    await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();toast(u.n+" credits set to "+fmt(n));
+  });
+  box.querySelectorAll(".addel").forEach(b=>b.onclick=async()=>{
+    const u=await SG.get(b.dataset.k);
+    if(!await iconfirm("Delete account "+(u?u.n:"")+"?"))return;
+    await SG.del(b.dataset.k);toast("Account deleted.");adLoadUsers();
+  });
+  box.querySelectorAll(".adspread").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,u=await SG.get(k);if(!u)return;
+    u.l2=!u.l2;await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();
+    toast(u.n+(u.l2?" granted Level-2 market data access.":" Level-2 access revoked."));
+    adLoadUsers();
+  });
+  box.querySelectorAll(".adgrant").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,sym=box.querySelector(`.adgsym[data-k="${k}"]`).value,
+      q=parseFloat(box.querySelector(`.adgq[data-k="${k}"]`).value);
+    if(!q)return toast("Enter share count.",true);
+    const u=await SG.get(k);if(!u)return;
+    u.hold=u.hold||{};const pos=u.hold[sym]||{q:0,c:0},gp=px(sym);
+    pos.q+=q;pos.c=Math.max(0,pos.c+q*gp);
+    if(pos.q<=1e-9)delete u.hold[sym];else u.hold[sym]=pos;
+    u.dep=(u.dep||0)+q*gp;
+    u.hist=u.hist||[];u.hist.push({at:Date.now(),g:gameNow(),side:"GRANT",sym,q,p:gp});
+    await SG.set(k,u);if(k===MYKEY)await refreshMe();
+    toast((q>0?"Granted ":"Removed ")+Math.abs(q)+" "+sym+(q>0?" to ":" from ")+u.n);
+  });
+}
+
+/* ---------- live updates ---------- */
+const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function gdate(t,short){const d=new Date(t);
+  const dd=String(d.getDate()).padStart(2,"0"),hh=String(d.getHours()).padStart(2,"0"),mm=String(d.getMinutes()).padStart(2,"0");
+  return short?dd+" "+MONS[d.getMonth()]+" "+hh+":"+mm
+    :dd+" "+MONS[d.getMonth()]+" "+(d.getFullYear()-1709)+" AG \u00B7 "+hh+":"+mm+" GST"}
+function tick(){
+  if(!ME)return;
+  const gc=$("#gclock");if(gc)gc.textContent=gdate(gameNow())+(speedNow()!==1&&!isPaused()?" \u00B7 "+speedNow()+"\u00D7":"")+(isPaused()?" \u00B7 PAUSED":"");
+  document.querySelectorAll("[data-px]").forEach(el=>el.textContent=fmt(px(el.dataset.px)));
+  document.querySelectorAll("[data-chg]").forEach(el=>{const c=chg24(el.dataset.chg);
+    el.textContent=pct(c)+(el.classList.contains("mono")?" · 24H":"");el.classList.remove("up","down");el.classList.add(cls(c))});
+  document.querySelectorAll("[data-chgm]").forEach(el=>{const c=chgMs(el.dataset.chgm,MRANGE_MS[MRANGE]||864e5);
+    el.textContent=pct(c);el.classList.remove("up","down");el.classList.add(cls(c))});
+  const nw=$("#h-nw");if(nw)nw.textContent=fmt(netWorth(ME));
+}
+async function poll(){
+  if(!ME)return;
+  const oldHalt=HALTED, oldReg=curRegime().k, oldEvLen=EV.length, oldPause=isPaused(), oldSpd=speedNow();
+  const oldBM=!!(CFG&&CFG.bmOpen),oldCas=!(CFG&&CFG.casino===false);
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;rebuildAssets();
+  if(TAB==="market"&&$("#mlist"))paintList();
+  await loadEvents();await refreshMe();
+  await settleOptions();await housekeeping();
+  if(HALTED!==oldHalt||curRegime().k!==oldReg||isPaused()!==oldPause||speedNow()!==oldSpd||oldBM!==!!CFG.bmOpen||oldCas!==!(CFG.casino===false)){renderApp();go(TAB)}
+  else if(EV.length!==oldEvLen){buildTicker();if(TAB==="feed")renderTab()}
+  const rb=$("#regime-b");if(rb){const r=curRegime();rb.style.color=r.col;rb.textContent="◈ "+r.label+" ◈"}
+  snapshotEq();
+}
+
+/* ---------- boot ---------- */
+(async function(){
+  try{
+    await SG.probe();STORAGE_OK=SG_MODE!=="memory";await ensureCfg();rebuildAssets();await loadEvents();
+    renderAuth();
+    setInterval(tick,2000);
+    setInterval(poll,12000);
+    setInterval(()=>{if(OPEN&&$("#achart")){const a=BYSYM[OPEN];if(!a)return;
+      const pts=series(OPEN,RANGES[RANGE]),now=gameNow(),t0=Math.max(now-RANGES[RANGE],CFG.epoch,a.listed||0);
+      drawChart($("#achart"),pts);attachHover($("#achart"),pts,t0,now)}},10000);
+  }catch(e){
+    document.body.innerHTML='<div style="padding:40px;text-align:center;color:#FF5C7A;font-family:monospace">Exchange uplink failed: '+e.message+'</div>';
+  }
+})();
+</script>
+</body>
+</html>
