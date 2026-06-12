@@ -2829,8 +2829,22 @@ async function adRebasePrices(){
   toast("Prices re-baselined to current values.");
   renderApp();go("admin");
 }
-async function adResetMarket(){if(!await iconfirm("Reset all prices to baseline and clear events? Player accounts are kept."))return;
-  CFG.epoch=Date.now()-36e5;CFG.anchorG=Date.now();CFG.anchorR=Date.now();CFG.paused=false;await SG.set("cfg",CFG);EV=[];await SG.set("ev",EV);digestEvents();toast("Market reset.");renderApp();go("admin")}
+async function adResetMarket(){
+  if(!await iconfirm("Reset market to fresh launch with 1 year of simulated history? All events are cleared. Player accounts are kept."))return;
+  const now=Date.now();
+  const spd=CFG.speed||1;
+  // epoch 1 game-year behind current real time; anchorG set so gameNow=now+1yr
+  // giving exactly 1 year of price history in all chart ranges
+  CFG.epoch=now-31536e6;
+  CFG.priceAnchor=now;
+  CFG.anchorG=now;
+  CFG.anchorR=now;
+  CFG.paused=false;
+  clearLpRef();
+  await SG.set("cfg",CFG);
+  EV=[];await SG.set("ev",EV);
+  digestEvents();toast("Market reset — 1 year of history loaded.");renderApp();go("admin");
+}
 async function adWipeUsers(){if(!await iconfirm("Delete EVERY player account? This cannot be undone."))return;
   const keys=await SG.list("u:");for(const k of keys)await SG.del(k);toast("All accounts deleted.");logout()}
 async function adLoadUsers(){
