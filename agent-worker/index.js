@@ -15,7 +15,7 @@ async function supaGet(key, env) {
     `${SUPA_URL}/rest/v1/kv?key=eq.${encodeURIComponent(key)}&select=value`,
     { headers: {
       apikey: env.SUPA_ANON,
-      Authorization: "Bearer " + env.SUPA_SERVICE
+      Authorization: "Bearer " + env.SUPA_ANON
     }}
   );
   const d = await r.json();
@@ -28,7 +28,7 @@ async function supaSet(key, value, env) {
     headers: {
       "Content-Type": "application/json",
       apikey: env.SUPA_ANON,
-      Authorization: "Bearer " + env.SUPA_SERVICE,
+      Authorization: "Bearer " + env.SUPA_ANON,
       Prefer: "resolution=merge-duplicates"
     },
     body: JSON.stringify({ key, value, updated_at: new Date().toISOString() })
