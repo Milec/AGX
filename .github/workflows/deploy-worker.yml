@@ -17,12 +17,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: agent-worker
-          secrets: |
-            SUPA_ANON
-            SUPA_SERVICE
-            GEMINI_KEY
         env:
           CLOUDFLARE_ACCOUNT_ID: f9de2a9d86aabf96d354151dd006e5f8
-          SUPA_ANON: ${{ secrets.SUPA_ANON }}
-          SUPA_SERVICE: ${{ secrets.SUPA_SERVICE }}
-          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}

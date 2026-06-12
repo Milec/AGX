@@ -5,3 +5,6 @@ account_id = "f9de2a9d86aabf96d354151dd006e5f8"
 
 [triggers]
 crons = ["*/5 * * * *"]
+
+[vars]
+SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE"
