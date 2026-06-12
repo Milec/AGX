@@ -318,9 +318,10 @@ function applyNames(){
 }
 
 function digestEvents(){
-  const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>a.at-b.at);
-  REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:e.at,
-    end: regs[i+1]?regs[i+1].at:Infinity, seed:h32("rg"+e.at)}));
+  const gt=e=>e.g??e.at; // game time: use g if present (worker events), else at (legacy client events stored gameNow() there)
+  const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>gt(a)-gt(b));
+  REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:gt(e),
+    end: regs[i+1]?gt(regs[i+1]):Infinity, seed:h32("rg"+gt(e))}));
   PUMPS=EV.filter(e=>e.t==="pump");
   SPUMPS=EV.filter(e=>e.t==="spump");
   const halts=EV.filter(e=>e.t==="halt");
@@ -682,7 +683,7 @@ async function ensureCfg(){
   }
 }
 async function loadEvents(){EV=(await SG.get("ev"))||[];digestEvents()}
-async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||gameNow()});
+async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||Date.now(),g:e.g!=null?e.g:gameNow()});
   if(EV.length>250)EV=EV.slice(-250);await SG.set("ev",EV);digestEvents()}
 
 function feeFrac(){return ((CFG&&CFG.fee!==undefined)?CFG.fee:0.25)/100}
