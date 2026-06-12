@@ -2768,7 +2768,7 @@ async function adForceAgent(){
   const ev=agentGenerateEvent(regime);
   const gn=gameNow();
   if(ev.type==="news"){
-    await pushEv({t:"news",body:ev.headline});
+    await pushEv({t:"news",msg:ev.headline});
   }else if(ev.type==="pump"){
     await pushEv({t:"pump",sym:ev.sym,mag:ev.mag,dur:ev.duration_mins*6e4,silent:false,body:ev.headline});
   }else if(ev.type==="regime"){
