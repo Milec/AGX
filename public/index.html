@@ -318,9 +318,10 @@ function applyNames(){
 }
 
 function digestEvents(){
-  const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>a.at-b.at);
-  REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:e.at,
-    end: regs[i+1]?regs[i+1].at:Infinity, seed:h32("rg"+e.at)}));
+  const gt=e=>e.g??e.at; // game time: use g if present (worker events), else at (legacy client events stored gameNow() there)
+  const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>gt(a)-gt(b));
+  REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:gt(e),
+    end: regs[i+1]?gt(regs[i+1]):Infinity, seed:h32("rg"+gt(e))}));
   PUMPS=EV.filter(e=>e.t==="pump");
   SPUMPS=EV.filter(e=>e.t==="spump");
   const halts=EV.filter(e=>e.t==="halt");
@@ -392,10 +393,16 @@ function rawLp(a,tMs){
     }
   }
   for(const p of PUMPS){
-    if(p.sym===a.sym&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+    if(p.sym===a.sym&&tMs>p.at){
+      const t=(tMs-p.at)/p.dur; // 0=start, 1=peak, 2=fully reverted
+      lp+=p.mag*Math.max(0,t<1?t:2-t);
+    }
   }
   for(const p of SPUMPS){
-    if(p.sec===a.sector&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+    if(p.sec===a.sector&&tMs>p.at){
+      const t=(tMs-p.at)/p.dur;
+      lp+=p.mag*Math.max(0,t<1?t:2-t);
+    }
   }
   return lp;
 }
@@ -676,7 +683,7 @@ async function ensureCfg(){
   }
 }
 async function loadEvents(){EV=(await SG.get("ev"))||[];digestEvents()}
-async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||gameNow()});
+async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||Date.now(),g:e.g!=null?e.g:gameNow()});
   if(EV.length>250)EV=EV.slice(-250);await SG.set("ev",EV);digestEvents()}
 
 function feeFrac(){return ((CFG&&CFG.fee!==undefined)?CFG.fee:0.25)/100}
@@ -1912,8 +1919,9 @@ function renderAdmin(v){
      <button class="btn amber" onclick="adNews()">SEND</button></div>
      <div class="inline" style="margin-top:8px">
       <button class="btn ghost" onclick="adClearNews()">🗑 CLEAR NEWSFEED</button>
+      <button class="btn ghost" onclick="adClearPumps()">🗑 CLEAR PUMPS</button>
      </div>
-     <div class="dim" style="font-size:11px;margin-top:6px">Removes all newswire stories from the feed and ticker for everyone. Market effects (regimes, pumps, halts) are kept.</div>
+     <div class="dim" style="font-size:11px;margin-top:6px">CLEAR NEWSFEED removes all stories. CLEAR PUMPS removes all active pump/sector-pump events, letting prices recover to their natural level.</div>
    </div>
    <div class="card"><h3>EXCHANGE CONTROLS</h3>
      <div class="inline">
@@ -2063,6 +2071,12 @@ async function adClearNews(){
   EV=((await SG.get("ev"))||[]).filter(e=>e.t!=="news");
   if(!await SG.set("ev",EV))return toast("Save failed.",true);
   digestEvents();buildTicker();toast("Newsfeed cleared.");renderApp();go("admin");
+}
+async function adClearPumps(){
+  if(!await iconfirm("Remove all pump and sector-pump events? Prices will recover to their natural level. Regimes and halts are kept."))return;
+  EV=((await SG.get("ev"))||[]).filter(e=>e.t!=="pump"&&e.t!=="spump");
+  if(!await SG.set("ev",EV))return toast("Save failed.",true);
+  digestEvents();buildTicker();toast("All pump events cleared.");renderApp();go("admin");
 }
 async function adPause(){
   CFG=migrateCfg(await SG.get("cfg"))||CFG;
