@@ -1,161 +1,161 @@
 // AGX Market Agent — Cloudflare Worker Cron
-// Fires every 5 real minutes but only acts when 2+ game-hours have elapsed
-// so 48x time compression doesn't exhaust Gemini's free tier quota.
+// Fires every 5 real minutes but only acts when 2+ game-hours have elapsed.
 
 const SUPA_URL = "https://ifcensohczakjhqbzzkv.supabase.co";
+const SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE";
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAgent(env));
+    ctx.waitUntil(runAgent());
   }
 };
 
-async function supaGet(key, env) {
+async function supaGet(key) {
   const r = await fetch(
     `${SUPA_URL}/rest/v1/kv?key=eq.${encodeURIComponent(key)}&select=value`,
-    { headers: {
-      apikey: env.SUPA_ANON,
-      Authorization: "Bearer " + env.SUPA_ANON
-    }}
+    { headers: { apikey: SUPA_ANON, Authorization: "Bearer " + SUPA_ANON } }
   );
   const d = await r.json();
   return d && d[0] ? d[0].value : null;
 }
 
-async function supaSet(key, value, env) {
+async function supaSet(key, value) {
   await fetch(`${SUPA_URL}/rest/v1/kv`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      apikey: env.SUPA_ANON,
-      Authorization: "Bearer " + env.SUPA_ANON,
+      apikey: SUPA_ANON,
+      Authorization: "Bearer " + SUPA_ANON,
       Prefer: "resolution=merge-duplicates"
     },
     body: JSON.stringify({ key, value, updated_at: new Date().toISOString() })
   });
 }
 
-async function runAgent(env) {
-  const cfg = await supaGet("cfg", env);
-  if (!cfg) return;
+// ── Shared event generator (no external API) ─────────────────────────────────
+function generateEvent(regime) {
+  const r = Math.random;
+  const pick = arr => arr[Math.floor(r() * arr.length)];
 
-  // Respect the agent toggle (independent of market clock pause)
+  const ALL_TICKERS = [
+    "AIDA","MECH","ANDR","INFO","SPYG","DTNT","ABDR","BANK","VESK",
+    "VITX","GENM","XNTH","HELL","SKYF","AEGI","SECC",
+    "GRAV","PLSM","ARNA","MAGI","DRFC","ABIT","VDGE","GAPC"
+  ];
+  const SECTORS = [
+    "Defense","Tech","Biotech","Finance","Starships","Mining",
+    "Energy","Consumer","Media","Logistics","Terraform","Magitech"
+  ];
+  const NEWS = [
+    "Epsilon Enclave AI nodes report unexpected synchronisation across Drift beacons",
+    "AIDA consciousness fragmentation detected in Absalom Station subnet",
+    "Rogue android cells disrupt automated shipping lanes near Akiton",
+    "Epsilon Enclave denies involvement in Pact Worlds firewall breach",
+    "MECH chassis recall expands amid reports of autonomous behaviour",
+    "Directorate surveillance contract awarded for Castrovel border monitoring",
+    "INFO Corp data harvest from Idari refugees draws AbadarCorp censure",
+    "Pact Worlds intelligence committee demands Directorate transparency report",
+    "SPYG surveillance drones spotted over Diaspora free-trader routes",
+    "Directorate denies operating black sites on Eox outer ring",
+    "Algalterian Senate ratifies expanded trade corridor to Near Space",
+    "BANK of Algalteria raises inter-system lending rates by 0.5 basis points",
+    "Vesk military attachés arrive at Algalterian Exchange for joint summit",
+    "Algalterian treasury announces Drift-backed sovereign bond offering",
+    "Empire credit rating affirmed stable by AbadarCorp ratings division",
+    "Bradtopia biolab clears Phase III trials for combat-grade gene therapy",
+    "GENM controversial memory-splice procedure approved on Bretheda",
+    "Bradtopia cloning moratorium lifted in three Pact World jurisdictions",
+    "XNTH xenobiological compound shows promise against Swarm-vector pathogens",
+    "Ethics panel investigates Bradtopia neuro-augment trial on Triaxus",
+    "Kurogane security forces renew Absalom Station perimeter contract",
+    "HELL battalion deploys to Diaspora amid piracy surge",
+    "Kurogane SKYF interceptors intercept Azlanti scout formation near Verces",
+    "AEGI shield technology licensed to Stewards for fleet integration",
+    "Kurogane reports record Q3 contract revenue from Near Space clients",
+    "Drift route volatility index hits 18-month high amid Swarm incursions",
+    "AbadarCorp quarterly outlook cites Near Space expansion as growth driver",
+    "Free Captains trading bloc lodges Pact Worlds tariff dispute",
+    "Starfinder Society expedition uncovers pre-Gap archive; market watches",
+    "Absalom Station port authority raises docking fees; logistics chains react",
+    "Vesk military exercises near Veskarium border spark defensive sector bids",
+    "Ysoki black-market disruption spills into registered commodity exchanges",
+    "Kasatha cultural envoy mission improves Idari trade sentiment",
+    "Near Space energy grid upgrade tender draws 14 competing bids",
+    "Pact Worlds unified credit index holds steady despite Drift instability",
+    "Swarm incursion near Kalo-Mahoi triggers emergency defence spending review",
+    "Drift beacon relay consortium reports record throughput; shipping costs ease",
+    "AbadarCorp Absalom branch releases cautious outlook amid stellar fluctuations",
+    "Triaxian dragon militia contract renewal boosts AEGI and SECC order books",
+    "Void crystal speculation on Apostae draws regulatory scrutiny",
+  ];
+
+  const REGIME_HEADLINES = {
+    bull:     "Optimism spreads across Algalterian Exchange as buy orders surge",
+    bear:     "Selling pressure mounts as risk appetite retreats across sectors",
+    volatile: "Exchange volatility spikes as conflicting signals hit the floor",
+    calm:     "Market enters consolidation phase; trading volumes normalise",
+    neutral:  "Algalterian Exchange returns to baseline after recent turbulence",
+    crash:    "Circuit breakers triggered as panic selling sweeps the exchange",
+    boom:     "Euphoric buying drives Algalterian Exchange to multi-cycle highs",
+  };
+
+  // Weighted type: 60% news, 24% pump, 11% sector_pump, 5% regime
+  const roll = r();
+  const type = roll < 0.60 ? "news"
+             : roll < 0.84 ? "pump"
+             : roll < 0.95 ? "sector_pump"
+             : "regime";
+
+  // Magnitude influenced by current regime
+  const BASE = {bull:0.08,boom:0.12,bear:-0.06,crash:-0.14,volatile:0.09,calm:0.04,neutral:0.05};
+  const base = BASE[regime] ?? 0.05;
+  const rawMag = base + (r() - 0.5) * 0.10;
+  const mag = Math.max(-0.20, Math.min(0.20, rawMag));
+  const dur = Math.floor(r() * 300 + 60); // 60–360 mins
+
+  if (type === "news") {
+    return { type: "news", headline: pick(NEWS) };
+  }
+  if (type === "pump") {
+    const sym = pick(ALL_TICKERS);
+    return { type: "pump", sym, mag, duration_mins: dur,
+             headline: `${sym} ${mag > 0 ? "surges" : "slides"} on exchange floor activity`,
+             silent: false };
+  }
+  if (type === "sector_pump") {
+    const sector = pick(SECTORS);
+    return { type: "sector_pump", sector, mag, duration_mins: dur,
+             headline: `${sector} sector ${mag > 0 ? "rallies" : "retreats"} amid Pact Worlds developments`,
+             silent: false };
+  }
+  // regime change — never same as current
+  const REGIMES = ["bull","bear","volatile","calm","neutral","crash","boom"];
+  const next = pick(REGIMES.filter(x => x !== regime));
+  return { type: "regime", regime: next, headline: REGIME_HEADLINES[next] };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function runAgent() {
+  const cfg = await supaGet("cfg");
+  if (!cfg) return;
   if (cfg.agentEnabled === false) return;
 
-  // Calculate current game-time
   const now = Date.now();
-  const gameSpeed = cfg.paused ? 0 : (cfg.speed || 1);
   const anchorG = cfg.anchorG || now;
   const anchorR = cfg.anchorR || now;
   const gameNow = cfg.paused
     ? anchorG
-    : anchorG + (now - anchorR) * gameSpeed;
+    : anchorG + (now - anchorR) * (cfg.speed || 1);
 
-  // Only act if 2+ game-hours have elapsed since last agent action
-  const lastAgentGameTime = cfg.lastAgentGameTime || 0;
-  const gameHoursElapsed = (gameNow - lastAgentGameTime) / 3600000;
+  const gameHoursElapsed = (gameNow - (cfg.lastAgentGameTime || 0)) / 3600000;
   if (gameHoursElapsed < 2) return;
 
-  // Load recent events for context
-  const events = await supaGet("ev", env) || [];
-  const recentEvents = events.slice(-8).map(e => {
-    if (e.t === "news" || e.t === "regime") return `[${e.t}] ${e.body || e.label || ""}`;
-    if (e.t === "pump") return `[pump] ${e.sym} ${e.mag > 0 ? "+" : ""}${(e.mag*100).toFixed(0)}%`;
-    if (e.t === "spump") return `[sector pump] ${e.sec} ${e.mag > 0 ? "+" : ""}${(e.mag*100).toFixed(0)}%`;
-    return `[${e.t}]`;
-  }).join("\n");
-
+  const events = await supaGet("ev") || [];
   const regimes = events.filter(e => e.t === "regime");
-  const currentRegime = regimes.length ? regimes[regimes.length-1].k : "neutral";
+  const currentRegime = regimes.length ? regimes[regimes.length - 1].k : "neutral";
 
-  const prompt = `You are the autonomous market intelligence system for the Algalterian Galactic Exchange, a sci-fi stock exchange in the Starfinder RPG universe.
+  const ev = generateEvent(currentRegime);
 
-Current market regime: ${currentRegime}
-Recent market events:
-${recentEvents || "No recent events."}
-
-Factions and their tickers:
-- Epsilon Enclave (rogue AI): AIDA, MECH, ANDR
-- The Directorate (surveillance): INFO, SPYG, DTNT
-- Algalterian Empire: ABDR, BANK, VESK
-- Bradtopia (biotech/cloning): VITX, GENM, XNTH
-- Kurogane (private security): HELL, SKYF, AEGI, SECC
-- Breakout stocks: GRAV, PLSM, ARNA, MAGI
-- Crypto: DRFC, ABIT, VDGE, GAPC
-
-Generate exactly ONE market event. Return ONLY valid JSON, no other text:
-
-{
-  "type": "news",
-  "headline": "string under 120 chars"
-}
-
-OR
-
-{
-  "type": "regime",
-  "regime": "bull|bear|volatile|calm|neutral|crash|boom",
-  "headline": "string under 120 chars"
-}
-
-OR
-
-{
-  "type": "pump",
-  "sym": "TICKER",
-  "mag": number between -0.20 and 0.20,
-  "duration_mins": number between 60 and 480,
-  "headline": "string under 120 chars",
-  "silent": false
-}
-
-OR
-
-{
-  "type": "sector_pump",
-  "sector": "Defense|Tech|Biotech|Finance|Starships|Mining|Energy|Consumer|Media|Logistics|Terraform|Magitech",
-  "mag": number between -0.20 and 0.20,
-  "duration_mins": number between 60 and 480,
-  "headline": "string under 120 chars",
-  "silent": false
-}
-
-Rules:
-- Prefer "news" (no price effect) most of the time — about 60% of events
-- Regime changes should be rare and narratively justified
-- Pump magnitudes should feel realistic: 0.05-0.10 for normal moves, up to 0.20 for major events
-- Headlines must fit the sci-fi Starfinder setting and reference the factions naturally
-- Be narratively consistent with recent events`;
-
-  let ev;
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.85, maxOutputTokens: 300 }
-        })
-      }
-    );
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return;
-    ev = JSON.parse(match[0]);
-  } catch(e) {
-    return; // Gemini down or bad JSON — skip silently
-  }
-
-  // Validate
-  if (!["news","regime","pump","sector_pump"].includes(ev.type)) return;
-  if (ev.mag !== undefined) ev.mag = Math.max(-0.20, Math.min(0.20, ev.mag));
-  if (ev.duration_mins !== undefined)
-    ev.duration_mins = Math.max(60, Math.min(480, ev.duration_mins));
-
-  // Build the game event (same format as GM console pushEv)
   const gameEvent = { at: now, g: gameNow, src: "agent" };
 
   if (ev.type === "news") {
@@ -176,23 +176,21 @@ Rules:
     gameEvent.sym = ev.sym;
     gameEvent.mag = ev.mag;
     gameEvent.dur = ev.duration_mins * 60000;
-    gameEvent.silent = ev.silent || false;
-    if (ev.headline && !ev.silent) gameEvent.body = ev.headline;
+    gameEvent.silent = false;
+    gameEvent.body = ev.headline;
   } else if (ev.type === "sector_pump") {
     gameEvent.t = "spump";
     gameEvent.sec = ev.sector;
     gameEvent.mag = ev.mag;
     gameEvent.dur = ev.duration_mins * 60000;
-    gameEvent.silent = ev.silent || false;
-    if (ev.headline && !ev.silent) gameEvent.body = ev.headline;
+    gameEvent.silent = false;
+    gameEvent.body = ev.headline;
   }
 
-  // Write event and update timestamp
-  const existing = await supaGet("ev", env) || [];
-  existing.push(gameEvent);
-  if (existing.length > 500) existing.splice(0, existing.length - 500);
-  await supaSet("ev", existing, env);
+  events.push(gameEvent);
+  if (events.length > 500) events.splice(0, events.length - 500);
+  await supaSet("ev", events);
   cfg.lastAgentGameTime = gameNow;
   cfg.lastAgentAt = now;
-  await supaSet("cfg", cfg, env);
+  await supaSet("cfg", cfg);
 }
