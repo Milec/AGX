@@ -778,7 +778,7 @@ async function runAgent() {
 
   if (ev.type === "news") {
     gameEvent.t = "news";
-    gameEvent.body = ev.headline;
+    gameEvent.msg = ev.headline;
   } else if (ev.type === "regime") {
     gameEvent.t = "regime";
     gameEvent.k = ev.regime;
