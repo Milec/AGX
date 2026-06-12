@@ -1920,7 +1920,7 @@ function renderAdmin(v){
      </div>
      <div class="inline" style="margin-top:8px">
       <button class="btn ${CFG.agentEnabled!==false?"amber":"ghost"}" onclick="adToggleAgent()">${CFG.agentEnabled!==false?"🤖 AGENT ON":"🤖 AGENT OFF"}</button>
-      <button class="btn ghost" onclick="adForceAgent()" style="margin-left:8px">⚡ FORCE TICK</button>
+      <button class="btn ghost" onclick="adForceAgent()" style="margin-left:8px">⚡ FORCE EVENT</button>
      </div>
      <div class="inline" style="margin-top:8px">
       ${CFG?[1,4,12,48].map(x=>`<button class="btn ghost ${speedNow()===x?"on":""}" style="${speedNow()===x?"border-color:var(--cyan);color:var(--cyan)":""}" onclick="adSpeed(${x})">${x}× SPEED</button>`).join(""):""} 
@@ -2069,10 +2069,52 @@ async function adToggleAgent(){
   renderApp();go("admin");
 }
 async function adForceAgent(){
-  CFG=migrateCfg(await SG.get("cfg"))||CFG;
-  CFG.lastAgentGameTime=0;
-  await SG.set("cfg",CFG);
-  toast("Agent timer reset — event will fire on next cron tick (≤5 min).");
+  let gkey=localStorage.getItem("agx-gkey");
+  if(!gkey){
+    gkey=prompt("Paste your Gemini API key (stored in this browser only, never uploaded):");
+    if(!gkey)return;
+    localStorage.setItem("agx-gkey",gkey.trim());
+    gkey=gkey.trim();
+  }
+  toast("Generating market event…");
+  try{
+    const evs=(await SG.get("ev"))||[];
+    const recent=evs.slice(-8).map(e=>{
+      if(e.t==="news"||e.t==="regime")return`[${e.t}] ${e.body||e.label||""}`;
+      if(e.t==="pump")return`[pump] ${e.sym} ${e.mag>0?"+":""}${(e.mag*100).toFixed(0)}%`;
+      if(e.t==="spump")return`[sector pump] ${e.sec} ${e.mag>0?"+":""}${(e.mag*100).toFixed(0)}%`;
+      return`[${e.t}]`;
+    }).join("\n");
+    const regs=evs.filter(e=>e.t==="regime");
+    const regime=regs.length?regs[regs.length-1].k:"neutral";
+    const p=`You are the autonomous market intelligence system for the Algalterian Galactic Exchange, a sci-fi stock exchange in the Starfinder RPG universe.\n\nCurrent market regime: ${regime}\nRecent events:\n${recent||"None."}\n\nGenerate ONE market event. Return ONLY valid JSON:\n{"type":"news","headline":"string under 120 chars"}\nOR {"type":"pump","sym":"TICKER","mag":number -0.20 to 0.20,"duration_mins":60-480,"headline":"string","silent":false}\nOR {"type":"regime","regime":"bull|bear|volatile|calm|neutral|crash|boom","headline":"string"}\nOR {"type":"sector_pump","sector":"Defense|Tech|Biotech|Finance|Starships|Mining|Energy|Consumer|Media|Logistics|Terraform|Magitech","mag":number -0.20 to 0.20,"duration_mins":60-480,"headline":"string","silent":false}\n\nTickers: AIDA MECH ANDR INFO SPYG DTNT ABDR BANK VESK VITX GENM XNTH HELL SKYF AEGI SECC GRAV PLSM ARNA MAGI DRFC ABIT VDGE GAPC\nPrefer "news" ~60% of events. Headlines must fit the sci-fi Starfinder setting.`;
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${gkey}`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:{temperature:0.85,maxOutputTokens:300}})
+    });
+    if(!res.ok){localStorage.removeItem("agx-gkey");return toast("Gemini error (key cleared — try again).",true);}
+    const data=await res.json();
+    const text=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+    const match=text.match(/\{[\s\S]*\}/);
+    if(!match)return toast("Gemini returned no valid JSON.",true);
+    const ev=JSON.parse(match[0]);
+    const gn=gameNow();
+    if(ev.type==="news"){
+      await pushEv({t:"news",body:ev.headline});
+    }else if(ev.type==="pump"){
+      await pushEv({t:"pump",sym:ev.sym,mag:Math.max(-0.2,Math.min(0.2,ev.mag)),dur:(ev.duration_mins||120)*6e4,silent:false,body:ev.headline});
+    }else if(ev.type==="regime"){
+      await pushEv({t:"regime",k:ev.regime,d:["bull","boom"].includes(ev.regime)?0.15:-0.15,xv:["volatile","crash"].includes(ev.regime)?0.3:0,
+        start:gn,end:gn+864e5*7,seed:Math.floor(Math.random()*0xFFFFFF),
+        label:ev.regime.charAt(0).toUpperCase()+ev.regime.slice(1),body:ev.headline});
+    }else if(ev.type==="sector_pump"){
+      await pushEv({t:"spump",sec:ev.sector,mag:Math.max(-0.2,Math.min(0.2,ev.mag)),dur:(ev.duration_mins||120)*6e4,silent:false,body:ev.headline});
+    }else{return toast("Unknown event type from Gemini.",true);}
+    CFG=migrateCfg(await SG.get("cfg"))||CFG;
+    CFG.lastAgentGameTime=gn;
+    await SG.set("cfg",CFG);
+    buildTicker();toast("Agent event generated!");renderApp();go("admin");
+  }catch(e){toast("Agent error: "+e.message,true);}
 }
 async function adSpeed(x){
   if(!x||x<=0||x>1000)return toast("Speed must be 0.1–1000.",true);
