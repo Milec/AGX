@@ -392,10 +392,16 @@ function rawLp(a,tMs){
     }
   }
   for(const p of PUMPS){
-    if(p.sym===a.sym&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+    if(p.sym===a.sym&&tMs>p.at){
+      const t=(tMs-p.at)/p.dur; // 0=start, 1=peak, 2=fully reverted
+      lp+=p.mag*Math.max(0,t<1?t:2-t);
+    }
   }
   for(const p of SPUMPS){
-    if(p.sec===a.sector&&tMs>p.at) lp+=p.mag*Math.min(1,(tMs-p.at)/p.dur);
+    if(p.sec===a.sector&&tMs>p.at){
+      const t=(tMs-p.at)/p.dur;
+      lp+=p.mag*Math.max(0,t<1?t:2-t);
+    }
   }
   return lp;
 }
@@ -1912,8 +1918,9 @@ function renderAdmin(v){
      <button class="btn amber" onclick="adNews()">SEND</button></div>
      <div class="inline" style="margin-top:8px">
       <button class="btn ghost" onclick="adClearNews()">🗑 CLEAR NEWSFEED</button>
+      <button class="btn ghost" onclick="adClearPumps()">🗑 CLEAR PUMPS</button>
      </div>
-     <div class="dim" style="font-size:11px;margin-top:6px">Removes all newswire stories from the feed and ticker for everyone. Market effects (regimes, pumps, halts) are kept.</div>
+     <div class="dim" style="font-size:11px;margin-top:6px">CLEAR NEWSFEED removes all stories. CLEAR PUMPS removes all active pump/sector-pump events, letting prices recover to their natural level.</div>
    </div>
    <div class="card"><h3>EXCHANGE CONTROLS</h3>
      <div class="inline">
@@ -2063,6 +2070,12 @@ async function adClearNews(){
   EV=((await SG.get("ev"))||[]).filter(e=>e.t!=="news");
   if(!await SG.set("ev",EV))return toast("Save failed.",true);
   digestEvents();buildTicker();toast("Newsfeed cleared.");renderApp();go("admin");
+}
+async function adClearPumps(){
+  if(!await iconfirm("Remove all pump and sector-pump events? Prices will recover to their natural level. Regimes and halts are kept."))return;
+  EV=((await SG.get("ev"))||[]).filter(e=>e.t!=="pump"&&e.t!=="spump");
+  if(!await SG.set("ev",EV))return toast("Save failed.",true);
+  digestEvents();buildTicker();toast("All pump events cleared.");renderApp();go("admin");
 }
 async function adPause(){
   CFG=migrateCfg(await SG.get("cfg"))||CFG;
