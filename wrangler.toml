@@ -1,0 +1,8 @@
+name = "algalterian-galactic-exchange"
+compatibility_date = "2024-01-01"
+account_id = "f9de2a9d86aabf96d354151dd006e5f8"
+
+# Static-site Worker: serves the AGX terminal from ./public.
+# `npx wrangler deploy` (the Cloudflare Git build command) picks this up.
+[assets]
+directory = "./public"
