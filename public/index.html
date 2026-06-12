@@ -2092,7 +2092,7 @@ async function adForceAgent(){
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:{temperature:0.85,maxOutputTokens:300}})
     });
-    if(!res.ok){localStorage.removeItem("agx-gkey");return toast("Gemini error (key cleared — try again).",true);}
+    if(!res.ok){const err=await res.json().catch(()=>({}));localStorage.removeItem("agx-gkey");return toast("Gemini error: "+(err?.error?.message||res.status)+" (key cleared)",true);}
     const data=await res.json();
     const text=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
     const match=text.match(/\{[\s\S]*\}/);
