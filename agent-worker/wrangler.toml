@@ -1,0 +1,7 @@
+name = "agx-market-agent"
+main = "index.js"
+compatibility_date = "2024-01-01"
+account_id = "f9de2a9d86aabf96d354151dd006e5f8"
+
+[triggers]
+crons = ["*/5 * * * *"]

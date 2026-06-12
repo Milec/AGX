@@ -269,6 +269,8 @@ function migrateCfg(c){
     c.anchorR=Date.now();c.speed=1;c.paused=!!c.pauseStart;
     delete c.pauseStart;delete c.offset;
   }
+  if(c&&c.agentEnabled===undefined)c.agentEnabled=true;
+  if(c&&!c.lastAgentGameTime)c.lastAgentGameTime=0;
   return c;
 }
 function gameNow(){if(!CFG||CFG.anchorR===undefined)return Date.now();
@@ -595,62 +597,57 @@ function toast(msg,err){const t=document.createElement("div");t.className="toast
 function ago(t){const s=(Date.now()-t)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";
   if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"}
 
-/* ---------- storage ---------- */
-/* ── storage layer: tries window.storage (shared/web), then localStorage (local), then memory ── */
-let SG_MODE="unknown"; // "shared" | "local" | "memory"
-const MEM={};
-const SG={
-  /* ── tier detection ── */
-  hasWS(){return typeof window!=="undefined"&&typeof window.storage==="object"&&!!window.storage},
-  hasLS(){try{localStorage.setItem("_t","1");localStorage.removeItem("_t");return true}catch(e){return false}},
-  async probe(){
-    // try window.storage first (claude.ai web — shared across users)
-    if(this.hasWS()){
-      try{const k="_p"+Date.now(),v="ok";
-        const w=await window.storage.set(k,JSON.stringify(v),true);
-        if(w){const r=await window.storage.get(k,true);await window.storage.delete(k,true);
-          if(r&&JSON.parse(r.value)===v){SG_MODE="shared";return true}}}
-      catch(e){}
-    }
-    // fall back to localStorage (published URL in Safari/Chrome — device-local)
-    if(this.hasLS()){SG_MODE="local";return true}
-    // last resort: in-memory (lost on page close)
-    SG_MODE="memory";return false;
-  },
-  /* ── unified get/set/del/list that dispatch to the active tier ── */
-  async get(k){
-    if(SG_MODE==="shared"||SG_MODE==="unknown"){
-      if(this.hasWS()){try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null}catch(e){}}
-    }
-    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
-      const v=localStorage.getItem("pwx:"+k);return v?JSON.parse(v):null}
-    return MEM[k]!==undefined?JSON.parse(JSON.stringify(MEM[k])):null;
-  },
-  async set(k,v,att=0){
-    if(SG_MODE==="shared"||SG_MODE==="unknown"){
-      if(this.hasWS()){
-        try{const r=await window.storage.set(k,JSON.stringify(v),true);
-          if(r&&(r.key!==undefined||r.value!==undefined))return true;throw 0}
-        catch(e){if(att<3){await new Promise(r=>setTimeout(r,Math.min(300*Math.pow(2,att),2000)));return this.set(k,v,att+1)}}
-      }
-    }
-    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
-      try{localStorage.setItem("pwx:"+k,JSON.stringify(v));return true}catch(e){}}
-    MEM[k]=JSON.parse(JSON.stringify(v));return true; // memory always succeeds
-  },
-  async del(k){
-    if(this.hasWS()&&SG_MODE==="shared")try{await window.storage.delete(k,true)}catch(e){}
-    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS()))try{localStorage.removeItem("pwx:"+k)}catch(e){}
-    delete MEM[k];
-  },
-  async list(p){
-    if(this.hasWS()&&SG_MODE==="shared"){
-      try{const r=await window.storage.list(p,true);return r?r.keys:[]}catch(e){}}
-    if(SG_MODE==="local"||(!this.hasWS()&&this.hasLS())){
-      const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
-        if(k&&k.startsWith("pwx:"+p))keys.push(k.slice(4));}return keys;}
-    return Object.keys(MEM).filter(k=>k.startsWith(p));
+// ── SUPABASE STORAGE ─────────────────────────────────────────────────────
+const SUPA_URL = "https://ifcensohczakjhqbzzkv.supabase.co";
+const SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE";
+
+async function supaReq(method, key, value) {
+  const h = {
+    "Content-Type": "application/json",
+    "apikey": SUPA_ANON,
+    "Authorization": "Bearer " + SUPA_ANON
+  };
+  if (method === "GET") {
+    const r = await fetch(
+      SUPA_URL + "/rest/v1/kv?key=eq." + encodeURIComponent(key) + "&select=value",
+      { headers: h }
+    );
+    const d = await r.json();
+    return d && d[0] ? d[0].value : null;
   }
+  if (method === "SET") {
+    await fetch(SUPA_URL + "/rest/v1/kv", {
+      method: "POST",
+      headers: { ...h, "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ key, value, updated_at: new Date().toISOString() })
+    });
+    return true;
+  }
+  if (method === "DEL") {
+    await fetch(
+      SUPA_URL + "/rest/v1/kv?key=eq." + encodeURIComponent(key),
+      { method: "DELETE", headers: h }
+    );
+    return true;
+  }
+  if (method === "LIST") {
+    const r = await fetch(
+      SUPA_URL + "/rest/v1/kv?key=like=" + encodeURIComponent(key + "%") + "&select=key&limit=200",
+      { headers: h }
+    );
+    const d = await r.json();
+    return Array.isArray(d) ? d.map(x => x.key) : [];
+  }
+}
+
+let SG_MODE = "shared";
+const SG = {
+  async get(k)   { try { return await supaReq("GET", k); }      catch(e) { return null; } },
+  async set(k,v) { try { return await supaReq("SET", k, v); }   catch(e) { return false; } },
+  async del(k)   { try { return await supaReq("DEL", k); }      catch(e) {} },
+  async list(p)  { try { return await supaReq("LIST", p); }     catch(e) { return []; } },
+  async probe()  { SG_MODE = "shared"; STORAGE_OK = true; return true; },
+  ok()           { return STORAGE_OK; }
 };
 
 /* ---------- iOS-safe confirm shim ---------- */
@@ -673,7 +670,7 @@ async function ensureCfg(){
   CFG=migrateCfg(await SG.get("cfg"));
   if(!CFG){
     CFG={epoch:Date.now()-31536e6, priceAnchor:Date.now(), startCash:10000, fee:0.25, marginRate:12, maxLev:2, casino:true, bmOpen:false, ipos:[],
-      adminHash:await sha("gamemaster"), created:Date.now()};
+      adminHash:await sha("gamemaster"), created:Date.now(), agentEnabled:true, lastAgentGameTime:0};
     const ok=await SG.set("cfg",CFG);
     if(!ok&&!SG.ok())toast("Server storage unavailable — running in local demo mode.",true);
   }
@@ -708,12 +705,7 @@ function renderAuth(msg,isErr){
   <div class="auth"><div class="card">
     <h1>ALGALTERIAN<br>GALACTIC EXCHANGE</h1>
     <div class="sub">ALGALTERIAN GALACTIC EXCHANGE · SECURITIES TERMINAL</div>
-    ${SG_MODE==="local"?`<div style="background:rgba(255,180,84,.12);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:var(--amber);text-align:center;margin-bottom:14px">
-      📱 Running in local mode — accounts are saved on this device only. For shared multiplayer, open the published link in Safari.</div>`
-    :SG_MODE==="memory"?`<div style="background:rgba(255,92,122,.15);border:1px solid var(--down);border-radius:8px;padding:10px;font-size:12px;color:var(--down);text-align:center;margin-bottom:14px">
-      ⚠ No storage available — data will be lost when you close this page.</div>`
-    :!STORAGE_OK?`<div style="background:rgba(255,180,84,.12);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:var(--amber);text-align:center;margin-bottom:14px">
-      ⚠ Connecting to exchange — tap button again if login fails.</div>`:""}
+    ${!STORAGE_OK?`<div style="background:rgba(255,180,84,.12);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:var(--amber);text-align:center;margin-bottom:14px">⟳ Connecting to exchange server…</div>`:""}
     ${msg?`<div style="color:${isErr?"var(--down)":"var(--up)"};font-size:13px;text-align:center;margin-bottom:12px">${esc(msg)}</div>`:""}
     <div class="field"><label>OPERATIVE CALLSIGN</label><input id="a-user" maxlength="20" autocomplete="off" placeholder="e.g. Navasi_7" value="${esc(_lastUser)}"></div>
     <div class="field"><label>ACCESS CODE</label><input id="a-pass" type="password" placeholder="passphrase"></div>
@@ -1927,6 +1919,9 @@ function renderAdmin(v){
       <button class="btn vio" onclick="adPause()">${isPaused()?"▶ RESUME MARKET CLOCK":"⏸ PAUSE MARKET CLOCK"}</button>
      </div>
      <div class="inline" style="margin-top:8px">
+      <button class="btn ${CFG.agentEnabled!==false?"amber":"ghost"}" onclick="adToggleAgent()">${CFG.agentEnabled!==false?"🤖 AGENT ON":"🤖 AGENT OFF"}</button>
+     </div>
+     <div class="inline" style="margin-top:8px">
       ${CFG?[1,4,12,48].map(x=>`<button class="btn ghost ${speedNow()===x?"on":""}" style="${speedNow()===x?"border-color:var(--cyan);color:var(--cyan)":""}" onclick="adSpeed(${x})">${x}× SPEED</button>`).join(""):""} 
      </div>
      <div class="inline" style="margin-top:8px">
@@ -2063,6 +2058,13 @@ async function adPause(){
     await SG.set("cfg",CFG);toast("Market clock resumed.")}
   else{CFG.anchorG=gameNow();CFG.anchorR=Date.now();CFG.paused=true;
     await SG.set("cfg",CFG);toast("Market clock paused — prices frozen.")}
+  renderApp();go("admin");
+}
+async function adToggleAgent(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  CFG.agentEnabled=CFG.agentEnabled===false?true:false;
+  await SG.set("cfg",CFG);
+  toast(CFG.agentEnabled!==false?"Market agent enabled.":"Market agent paused.");
   renderApp();go("admin");
 }
 async function adSpeed(x){
