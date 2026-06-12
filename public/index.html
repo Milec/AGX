@@ -1910,6 +1910,10 @@ function renderAdmin(v){
    <div class="card"><h3>BROADCAST NEWSWIRE</h3>
      <div class="inline"><input id="ad-news" placeholder="e.g. AbadarCorp announces drift-engine recall…" style="flex:3">
      <button class="btn amber" onclick="adNews()">SEND</button></div>
+     <div class="inline" style="margin-top:8px">
+      <button class="btn ghost" onclick="adClearNews()">🗑 CLEAR NEWSFEED</button>
+     </div>
+     <div class="dim" style="font-size:11px;margin-top:6px">Removes all newswire stories from the feed and ticker for everyone. Market effects (regimes, pumps, halts) are kept.</div>
    </div>
    <div class="card"><h3>EXCHANGE CONTROLS</h3>
      <div class="inline">
@@ -2054,6 +2058,12 @@ async function adSPump(){
 }
 async function adNews(){const m=$("#ad-news").value.trim();if(!m)return;
   await pushEv({t:"news",msg:m.slice(0,140)});$("#ad-news").value="";buildTicker();toast("Broadcast sent.")}
+async function adClearNews(){
+  if(!await iconfirm("Clear every newswire story from the feed? Price-moving events (regimes, pumps, halts) are kept."))return;
+  EV=((await SG.get("ev"))||[]).filter(e=>e.t!=="news");
+  if(!await SG.set("ev",EV))return toast("Save failed.",true);
+  digestEvents();buildTicker();toast("Newsfeed cleared.");renderApp();go("admin");
+}
 async function adPause(){
   CFG=migrateCfg(await SG.get("cfg"))||CFG;
   if(CFG.paused){CFG.anchorR=Date.now();CFG.paused=false;
