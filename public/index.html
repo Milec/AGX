@@ -1920,6 +1920,7 @@ function renderAdmin(v){
      </div>
      <div class="inline" style="margin-top:8px">
       <button class="btn ${CFG.agentEnabled!==false?"amber":"ghost"}" onclick="adToggleAgent()">${CFG.agentEnabled!==false?"🤖 AGENT ON":"🤖 AGENT OFF"}</button>
+      <button class="btn ghost" onclick="adForceAgent()" style="margin-left:8px">⚡ FORCE TICK</button>
      </div>
      <div class="inline" style="margin-top:8px">
       ${CFG?[1,4,12,48].map(x=>`<button class="btn ghost ${speedNow()===x?"on":""}" style="${speedNow()===x?"border-color:var(--cyan);color:var(--cyan)":""}" onclick="adSpeed(${x})">${x}× SPEED</button>`).join(""):""} 
@@ -2066,6 +2067,12 @@ async function adToggleAgent(){
   await SG.set("cfg",CFG);
   toast(CFG.agentEnabled!==false?"Market agent enabled.":"Market agent paused.");
   renderApp();go("admin");
+}
+async function adForceAgent(){
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  CFG.lastAgentGameTime=0;
+  await SG.set("cfg",CFG);
+  toast("Agent timer reset — event will fire on next cron tick (≤5 min).");
 }
 async function adSpeed(x){
   if(!x||x<=0||x>1000)return toast("Speed must be 0.1–1000.",true);
