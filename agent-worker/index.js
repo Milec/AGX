@@ -2,25 +2,32 @@
 // Fires every 5 real minutes but only acts when 2+ game-hours have elapsed.
 
 const SUPA_URL = "https://ifcensohczakjhqbzzkv.supabase.co";
-const SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE";
+let SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE";
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(runAgent());
+    if (env && env.SUPA_ANON) SUPA_ANON = env.SUPA_ANON;
+    ctx.waitUntil(runAgent().catch(e => console.log("agent: tick failed:", e.message)));
   }
 };
 
+// Throws on any non-OK response so a transient Supabase failure aborts the
+// tick instead of being mistaken for "key not found" (which would let the
+// caller overwrite real state with defaults). Returns null only for a
+// genuinely missing key.
 async function supaGet(key) {
   const r = await fetch(
     `${SUPA_URL}/rest/v1/kv?key=eq.${encodeURIComponent(key)}&select=value`,
     { headers: { apikey: SUPA_ANON, Authorization: "Bearer " + SUPA_ANON } }
   );
+  if (!r.ok) throw new Error(`supaGet ${key}: HTTP ${r.status}`);
   const d = await r.json();
-  return d && d[0] ? d[0].value : null;
+  if (!Array.isArray(d)) throw new Error(`supaGet ${key}: unexpected response shape`);
+  return d[0] ? d[0].value : null;
 }
 
 async function supaSet(key, value) {
-  await fetch(`${SUPA_URL}/rest/v1/kv`, {
+  const r = await fetch(`${SUPA_URL}/rest/v1/kv`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -30,6 +37,7 @@ async function supaSet(key, value) {
     },
     body: JSON.stringify({ key, value, updated_at: new Date().toISOString() })
   });
+  if (!r.ok) throw new Error(`supaSet ${key}: HTTP ${r.status}`);
 }
 
 // ── Shared event generator (no external API) ─────────────────────────────────
@@ -755,8 +763,8 @@ function generateEvent(regime) {
 
 async function runAgent() {
   const cfg = await supaGet("cfg");
-  if (!cfg) return;
-  if (cfg.agentEnabled === false) return;
+  if (!cfg) { console.log("agent: no cfg row, skipping"); return; }
+  if (cfg.agentEnabled === false) { console.log("agent: disabled"); return; }
 
   const now = Date.now();
   const anchorG = cfg.anchorG || now;
@@ -765,11 +773,23 @@ async function runAgent() {
     ? anchorG
     : anchorG + (now - anchorR) * (cfg.speed || 1);
 
-  const gameHoursElapsed = (gameNow - (cfg.lastAgentGameTime || 0)) / 3600000;
-  if (gameHoursElapsed < 2) return;
+  // A market reset or speed change can rewind the game clock, leaving
+  // lastAgentGameTime in the future — which would stall the agent forever.
+  // Persist a clamp so the next tick's throttle math works again.
+  if ((cfg.lastAgentGameTime || 0) > gameNow) {
+    console.log("agent: lastAgentGameTime ahead of game clock, clamping");
+    cfg.lastAgentGameTime = gameNow;
+    await supaSet("cfg", cfg);
+    return;
+  }
 
-  const events = await supaGet("ev") || [];
-  const regimes = events.filter(e => e.t === "regime");
+  const gameHoursElapsed = (gameNow - (cfg.lastAgentGameTime || 0)) / 3600000;
+  if (gameHoursElapsed < 2) { console.log(`agent: only ${gameHoursElapsed.toFixed(2)} game-hours elapsed, waiting`); return; }
+
+  const stored = await supaGet("ev");
+  const events = Array.isArray(stored) ? stored : [];
+  const regimes = events.filter(e => e.t === "regime")
+    .sort((a, b) => (a.g ?? a.at) - (b.g ?? b.at));
   const currentRegime = regimes.length ? regimes[regimes.length - 1].k : "neutral";
 
   const ev = generateEvent(currentRegime);
@@ -806,9 +826,17 @@ async function runAgent() {
   }
 
   events.push(gameEvent);
-  if (events.length > 500) events.splice(0, events.length - 500);
+  // keep the trim cap identical to the client's pushEv (250) so whichever
+  // writer runs last doesn't change how much history survives
+  if (events.length > 250) events.splice(0, events.length - 250);
   await supaSet("ev", events);
-  cfg.lastAgentGameTime = gameNow;
-  cfg.lastAgentAt = now;
-  await supaSet("cfg", cfg);
+
+  // Re-read cfg before the final write: generation took real time, and an
+  // admin may have changed speed/pause/agentEnabled meanwhile. Writing the
+  // stale object back would silently revert their change.
+  const freshCfg = await supaGet("cfg") || cfg;
+  freshCfg.lastAgentGameTime = gameNow;
+  freshCfg.lastAgentAt = now;
+  await supaSet("cfg", freshCfg);
+  console.log(`agent: published ${gameEvent.t} event (regime=${currentRegime})`);
 }

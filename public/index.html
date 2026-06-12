@@ -322,8 +322,10 @@ function digestEvents(){
   const regs=EV.filter(e=>e.t==="regime").sort((a,b)=>gt(a)-gt(b));
   REGIMES=regs.map((e,i)=>({...REGIME_DEFS[e.k], k:e.k, start:gt(e),
     end: regs[i+1]?gt(regs[i+1]):Infinity, seed:h32("rg"+gt(e))}));
-  PUMPS=EV.filter(e=>e.t==="pump");
-  SPUMPS=EV.filter(e=>e.t==="spump");
+  // normalize at→game time so the price engine compares like with like
+  // (events store at=real time for display, g=game time for the model)
+  PUMPS=EV.filter(e=>e.t==="pump").map(e=>({...e,at:gt(e)}));
+  SPUMPS=EV.filter(e=>e.t==="spump").map(e=>({...e,at:gt(e)}));
   const halts=EV.filter(e=>e.t==="halt");
   HALTED=halts.length?halts[halts.length-1].on:false;
 }
@@ -2832,14 +2834,15 @@ async function adRebasePrices(){
 async function adResetMarket(){
   if(!await iconfirm("Reset market to fresh launch with 1 year of simulated history? All events are cleared. Player accounts are kept."))return;
   const now=Date.now();
-  const spd=CFG.speed||1;
-  // epoch 1 game-year behind current real time; anchorG set so gameNow=now+1yr
-  // giving exactly 1 year of price history in all chart ranges
+  // epoch 1 game-year behind current real time, giving exactly 1 year of
+  // price history in all chart ranges
   CFG.epoch=now-31536e6;
   CFG.priceAnchor=now;
   CFG.anchorG=now;
   CFG.anchorR=now;
   CFG.paused=false;
+  // rewind the agent throttle too — a future lastAgentGameTime would stall the cron
+  CFG.lastAgentGameTime=now;
   clearLpRef();
   await SG.set("cfg",CFG);
   EV=[];await SG.set("ev",EV);
