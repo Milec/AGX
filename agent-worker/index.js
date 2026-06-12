@@ -788,21 +788,21 @@ async function runAgent() {
     gameEvent.end = gameNow + 864e5 * 7;
     gameEvent.seed = Math.floor(Math.random() * 0xFFFFFF);
     gameEvent.label = ev.regime.charAt(0).toUpperCase() + ev.regime.slice(1);
-    gameEvent.body = ev.headline;
+    gameEvent.msg = ev.headline;
   } else if (ev.type === "pump") {
     gameEvent.t = "pump";
     gameEvent.sym = ev.sym;
     gameEvent.mag = ev.mag;
     gameEvent.dur = ev.duration_mins * 60000;
     gameEvent.silent = false;
-    gameEvent.body = ev.headline;
+    gameEvent.msg = ev.headline;
   } else if (ev.type === "sector_pump") {
     gameEvent.t = "spump";
     gameEvent.sec = ev.sector;
     gameEvent.mag = ev.mag;
     gameEvent.dur = ev.duration_mins * 60000;
     gameEvent.silent = false;
-    gameEvent.body = ev.headline;
+    gameEvent.msg = ev.headline;
   }
 
   events.push(gameEvent);

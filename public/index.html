@@ -769,7 +769,7 @@ function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;renderAuth()}
 function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab()}
 function buildTicker(){
   const movers=ASSETS.filter(a=>!a.bm||CFG.bmOpen).map(a=>({s:a.sym,c:chg24(a.sym)})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,8);
-  const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg)}</b>`);
+  const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg||e.body||"")}</b>`);
   $("#ticker").innerHTML=[...news,...movers.map(m=>`${m.s} <span class="${cls(m.c)}">${pct(m.c)}</span>`)].join(" &nbsp;·&nbsp; ");
 }
 function renderTab(){
@@ -1561,11 +1561,12 @@ function renderFeed(v){
   v.innerHTML=`<div class="sect" style="margin-top:18px">INFOSPHERE FEED</div>`+
    (items.map(e=>{
      let body="";
-     if(e.t==="news")body=`<b class="amber">⬢ NEWSWIRE:</b> ${esc(e.msg)}`;
+     const hl=e.msg||e.body||"";
+     if(e.t==="news")body=`<b class="amber">⬢ NEWSWIRE:</b> ${esc(hl)}`;
      else if(e.t==="regime")body=`<b style="color:${REGIME_DEFS[e.k].col}">◈ MARKET REGIME:</b> ${REGIME_DEFS[e.k].label}`;
      else if(e.t==="halt")body=e.on?`<b class="down">⛔ Exchange authority has HALTED all trading.</b>`:`<b class="up">▶ Trading has RESUMED.</b>`;
-     else if(e.t==="pump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ ANOMALY:</b> Unusual order flow detected in <b>${e.sym}</b>. Analysts are baffled.`;
-     else if(e.t==="spump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ SECTOR ANOMALY:</b> Correlated order flow sweeping the <b>${esc(e.sec)}</b> sector.`;
+     else if(e.t==="pump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ ANOMALY:</b> ${hl?esc(hl):`Unusual order flow detected in <b>${e.sym}</b>. Analysts are baffled.`}`;
+     else if(e.t==="spump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ SECTOR ANOMALY:</b> ${hl?esc(hl):`Correlated order flow sweeping the <b>${esc(e.sec)}</b> sector.`}`;
      return `<div class="feed-item"><div>${body}</div><div class="t">${ago(e.at)}</div></div>`;
    }).join("")||`<div class="dim" style="padding:24px;text-align:center">All quiet on the infosphere.</div>`);
 }
@@ -2770,13 +2771,13 @@ async function adForceAgent(){
   if(ev.type==="news"){
     await pushEv({t:"news",msg:ev.headline});
   }else if(ev.type==="pump"){
-    await pushEv({t:"pump",sym:ev.sym,mag:ev.mag,dur:ev.duration_mins*6e4,silent:false,body:ev.headline});
+    await pushEv({t:"pump",sym:ev.sym,mag:ev.mag,dur:ev.duration_mins*6e4,silent:false,msg:ev.headline});
   }else if(ev.type==="regime"){
     await pushEv({t:"regime",k:ev.regime,d:["bull","boom"].includes(ev.regime)?0.15:-0.15,xv:["volatile","crash"].includes(ev.regime)?0.3:0,
       start:gn,end:gn+864e5*7,seed:Math.floor(Math.random()*0xFFFFFF),
-      label:ev.regime.charAt(0).toUpperCase()+ev.regime.slice(1),body:ev.headline});
+      label:ev.regime.charAt(0).toUpperCase()+ev.regime.slice(1),msg:ev.headline});
   }else if(ev.type==="sector_pump"){
-    await pushEv({t:"spump",sec:ev.sector,mag:ev.mag,dur:ev.duration_mins*6e4,silent:false,body:ev.headline});
+    await pushEv({t:"spump",sec:ev.sector,mag:ev.mag,dur:ev.duration_mins*6e4,silent:false,msg:ev.headline});
   }
   CFG=migrateCfg(await SG.get("cfg"))||CFG;
   CFG.lastAgentGameTime=gn;
