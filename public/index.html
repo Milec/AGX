@@ -1745,7 +1745,7 @@ async function spinRoulette(){
 function bjDraw(){return {r:1+Math.floor(Math.random()*13),s:Math.floor(Math.random()*4)}}
 function bjVal(h){let v=0,a=0;for(const c of h){if(c.r===1){a++;v+=11}else v+=Math.min(c.r,10)}
   while(v>21&&a>0){v-=10;a--}return v}
-const SUITS=["\u2660","\u2665","\u2666","\u2663"];
+const SUITS=["♠","♥","♦","♣"];
 function bjFace(c,opts){
   const r=c.r===1?"A":c.r===11?"J":c.r===12?"Q":c.r===13?"K":c.r;
   const red=c.s===1||c.s===2;
@@ -1753,25 +1753,45 @@ function bjFace(c,opts){
   const dly=opts&&opts.delay?` style="animation-delay:${opts.delay}s"`:"";
   return `<span class="${cl}"${dly}>${r}${SUITS[c.s]}</span>`;
 }
-function bjBack(){return `<span class="pcard deal" style="color:var(--vio)">\uD83C\uDCA0</span>`}
+function bjBack(){return `<span class="pcard deal" style="color:var(--vio)">🂠</span>`}
 function bjHTML(){
-  const pv=bjVal(BJ.ph),done=BJ.done;
-  const ph=BJ.ph.map((c,i)=>bjFace(c,{anim:i===BJ.ph.length-1&&BJ.justDrew?"deal":(BJ.fresh?"deal":""),delay:BJ.fresh?i*0.15:0})).join("");
-  const dh=done
+  const allDone=BJ.hands.every(h=>h.done);
+  const dv=bjVal(BJ.dh);
+  const dh=allDone
     ?BJ.dh.map((c,i)=>bjFace(c,{anim:"flip",delay:i*0.18})).join("")
     :bjFace(BJ.dh[0],{anim:BJ.fresh?"deal":""})+bjBack();
+  let handsHTML="";
+  BJ.hands.forEach((hand,i)=>{
+    const isActive=!allDone&&i===BJ.active;
+    const pv=bjVal(hand.ph);
+    const phCards=hand.ph.map((c,j)=>bjFace(c,{anim:j===hand.ph.length-1&&BJ.justDrew&&isActive?"deal":(BJ.fresh?"deal":""),delay:BJ.fresh?j*0.15:0})).join("");
+    let label=BJ.hands.length>1?(isActive?"▶ ":"  ")+"HAND "+(i+1)+" ":"";
+    if(hand.doubled)label+="[2×] ";
+    if(hand.fromSplit)label+="[SPLIT] ";
+    let resultStr="";
+    if(allDone){const delta=(hand.ret||0)-hand.bet;resultStr=`<span class="${delta>0?"up":delta<0?"down":"dim"}" style="font-size:12px"> — ${hand.msg||""}</span>`;}
+    handsHTML+=`<div style="margin-bottom:8px;${isActive?"border-left:2px solid var(--cyan);padding-left:6px":"opacity:.65"}">
+      <div class="dim" style="font-size:11px;letter-spacing:.15em">${label}(${pv})${resultStr}</div>
+      <div>${phCards}</div></div>`;
+  });
   BJ.fresh=false;BJ.justDrew=false;
+  const activeHand=BJ.hands[BJ.active]||BJ.hands[0];
+  const canDouble=!allDone&&activeHand.ph.length===2;
+  const canSplit=!allDone&&activeHand.ph.length===2&&BJ.hands.length<4
+    &&Math.min(activeHand.ph[0].r,10)===Math.min(activeHand.ph[1].r,10);
+  const totalDelta=allDone?BJ.hands.reduce((s,h)=>(h.ret||0)-h.bet+s,0):0;
   return `<div class="mono" style="font-size:14px;line-height:1.6">
-    <div class="dim" style="font-size:11px;letter-spacing:.15em">DEALER${done?" ("+bjVal(BJ.dh)+")":""}</div>
-    <div>${dh}</div>
-    <div class="dim" style="font-size:11px;letter-spacing:.15em;margin-top:8px">YOU (${pv})</div>
-    <div>${ph}</div></div>
-   ${done?`<div class="disp" style="padding:12px 0;font-size:15px">
-     <span class="${BJ.delta>0?"win-flash":BJ.delta<0?"lose-shake":"dim"}" style="display:inline-block">${BJ.msg}</span></div>
+    <div class="dim" style="font-size:11px;letter-spacing:.15em">DEALER${allDone?" ("+dv+")":""}</div>
+    <div style="margin-bottom:12px">${dh}</div>
+    ${handsHTML}</div>
+   ${allDone?`<div class="disp" style="padding:12px 0;font-size:15px">
+     <span class="${totalDelta>0?"win-flash":totalDelta<0?"lose-shake":"dim"}" style="display:inline-block">${BJ.finalMsg||""}</span></div>
      <button class="btn vio" style="width:100%" onclick="BJ=null;renderTab()">NEW HAND</button>`
-   :`<div class="inline" style="margin-top:10px">
+   :`<div class="inline" style="margin-top:10px;flex-wrap:wrap;gap:6px">
      <button class="btn" onclick="bjHit()">HIT</button>
-     <button class="btn amber" onclick="bjStand()">STAND</button></div>`}`;
+     <button class="btn amber" onclick="bjStand()">STAND</button>
+     ${canDouble?`<button class="btn" style="background:var(--vio)" onclick="bjDouble()">DOUBLE</button>`:""}
+     ${canSplit?`<button class="btn" style="background:var(--amber);color:#000" onclick="bjSplit()">SPLIT</button>`:""}</div>`}`;
 }
 async function bjDeal(){
   if(SPINNING)return;
@@ -1780,28 +1800,69 @@ async function bjDeal(){
     const bet=betVal("#bj-bet");if(!bet){SPINNING=false;return toast("Enter a bet.",true);}
     await refreshMe();if(bet>ME.cash){SPINNING=false;return toast("Insufficient credits.",true);}
     await wager(-bet,"BLACKJACK");
-    BJ={bet,ph:[bjDraw(),bjDraw()],dh:[bjDraw(),bjDraw()],done:false,delta:-bet,msg:"",fresh:true,justDrew:false};
-    if(bjVal(BJ.ph)===21){SPINNING=false;return bjSettle(true);}
+    const hand={ph:[bjDraw(),bjDraw()],bet,done:false,msg:"",ret:0,doubled:false,fromSplit:false};
+    BJ={hands:[hand],dh:[bjDraw(),bjDraw()],active:0,fresh:true,justDrew:false};
+    if(bjVal(hand.ph)===21){SPINNING=false;return bjSettleAll(true);}
     SPINNING=false;
     $("#cas").innerHTML=bjHTML();
   }catch(e){SPINNING=false;throw e;}
 }
 async function bjHit(){
-  BJ.ph.push(bjDraw());BJ.justDrew=true;
-  if(bjVal(BJ.ph)>21){BJ.done=true;BJ.msg="BUST — lose "+fmt(BJ.bet);$("#cas").innerHTML=bjHTML();return}
+  const hand=BJ.hands[BJ.active];
+  hand.ph.push(bjDraw());BJ.justDrew=true;
+  if(bjVal(hand.ph)>21){hand.done=true;hand.msg="BUST";hand.ret=0;return bjNext();}
   $("#cas").innerHTML=bjHTML();
 }
-async function bjStand(){return bjSettle(false)}
-async function bjSettle(natural){
+async function bjStand(){
+  BJ.hands[BJ.active].done=true;
+  return bjNext();
+}
+async function bjDouble(){
+  const hand=BJ.hands[BJ.active];
+  await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits.",true);
+  await wager(-hand.bet,"BLACKJACK DOUBLE");
+  hand.bet*=2;hand.doubled=true;
+  hand.ph.push(bjDraw());BJ.justDrew=true;
+  hand.done=true;
+  return bjNext();
+}
+async function bjSplit(){
+  const hand=BJ.hands[BJ.active];
+  await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits for split.",true);
+  await wager(-hand.bet,"BLACKJACK SPLIT");
+  const c2=hand.ph.pop();
+  const newHand={ph:[c2,bjDraw()],bet:hand.bet,done:false,msg:"",ret:0,doubled:false,fromSplit:true};
+  hand.ph.push(bjDraw());hand.fromSplit=true;
+  BJ.hands.splice(BJ.active+1,0,newHand);
+  if(hand.ph[0].r===1){hand.done=true;}
+  if(newHand.ph[0].r===1){newHand.done=true;}
+  BJ.fresh=false;BJ.justDrew=true;
+  if(hand.done)return bjNext();
+  $("#cas").innerHTML=bjHTML();
+}
+async function bjNext(){
+  let idx=BJ.active+1;
+  while(idx<BJ.hands.length&&BJ.hands[idx].done)idx++;
+  if(idx<BJ.hands.length){BJ.active=idx;BJ.justDrew=false;$("#cas").innerHTML=bjHTML();}
+  else return bjSettleAll(false);
+}
+async function bjSettleAll(natural){
   while(bjVal(BJ.dh)<17)BJ.dh.push(bjDraw());
-  const pv=bjVal(BJ.ph),dv=bjVal(BJ.dh);let ret=0;
-  if(natural&&dv!==21){ret=BJ.bet*2.5;BJ.msg="BLACKJACK! +"+fmt(BJ.bet*1.5)}
-  else if(pv>21){ret=0;BJ.msg="BUST — lose "+fmt(BJ.bet)}
-  else if(dv>21||pv>dv){ret=BJ.bet*2;BJ.msg="WIN +"+fmt(BJ.bet)}
-  else if(pv===dv){ret=BJ.bet;BJ.msg="PUSH — bet returned"}
-  else{ret=0;BJ.msg="Dealer wins — lose "+fmt(BJ.bet)}
-  if(ret>0)await wager(ret,"BLACKJACK WIN");
-  BJ.done=true;BJ.delta=ret-BJ.bet;
+  const dv=bjVal(BJ.dh);
+  let totalRet=0,totalBet=0;
+  for(const hand of BJ.hands){
+    const pv=bjVal(hand.ph);totalBet+=hand.bet;
+    if(natural&&pv===21&&dv!==21){hand.ret=hand.bet*2.5;hand.msg="BLACKJACK! +"+fmt(hand.bet*1.5);}
+    else if(pv>21){hand.ret=0;hand.msg="BUST";}
+    else if(dv>21||pv>dv){hand.ret=hand.bet*2;hand.msg="WIN +"+fmt(hand.bet);}
+    else if(pv===dv){hand.ret=hand.bet;hand.msg="PUSH";}
+    else{hand.ret=0;hand.msg="Dealer wins";}
+    totalRet+=hand.ret;
+  }
+  if(totalRet>0)await wager(totalRet,"BLACKJACK WIN");
+  const delta=totalRet-totalBet;
+  BJ.finalMsg=delta>0?"NET WIN +"+fmt(delta):delta<0?"NET LOSS "+fmt(-delta):"PUSH — bets returned";
+  BJ.hands.forEach(h=>{h.done=true;});
   $("#cas").innerHTML=bjHTML();
 }
 /* ── over/under: d100 tumbler ── */
