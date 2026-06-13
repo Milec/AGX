@@ -621,16 +621,20 @@ async function supaReq(method, key, value) {
       SUPA_URL + "/rest/v1/kv?key=eq." + encodeURIComponent(key) + "&select=value",
       { headers: h }
     );
+    // throw on HTTP errors so callers can't mistake a server failure for
+    // "key not found" — that confusion can overwrite shared state with defaults
+    if (!r.ok) throw new Error("GET " + key + ": HTTP " + r.status);
     const d = await r.json();
-    return d && d[0] ? d[0].value : null;
+    if (!Array.isArray(d)) throw new Error("GET " + key + ": bad response");
+    return d[0] ? d[0].value : null;
   }
   if (method === "SET") {
-    await fetch(SUPA_URL + "/rest/v1/kv", {
+    const r = await fetch(SUPA_URL + "/rest/v1/kv", {
       method: "POST",
       headers: { ...h, "Prefer": "resolution=merge-duplicates" },
       body: JSON.stringify({ key, value, updated_at: new Date().toISOString() })
     });
-    return true;
+    return r.ok;
   }
   if (method === "DEL") {
     await fetch(
@@ -672,20 +676,28 @@ function iconfirm(msg){return new Promise(resolve=>{
   bg.querySelector('#ic-no').onclick=()=>{bg.remove();resolve(false)};
 })}
 /* ---------- app state ---------- */
-let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="";
+let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="", _assetSig="";
 const RANGES={"1D":864e5,"1W":6048e5,"1M":2592e6,"3M":7776e6,"ALL":1/0};
 
 async function ensureCfg(){
-  CFG=migrateCfg(await SG.get("cfg"));
+  // Use supaReq directly so HTTP errors throw and bubble to the boot catch,
+  // rather than being swallowed and mistaken for "no config row yet" — which
+  // would overwrite a live game's config with fresh defaults.
+  CFG=migrateCfg(await supaReq("GET","cfg"));
   if(!CFG){
     CFG={epoch:Date.now()-31536e6, priceAnchor:Date.now(), startCash:10000, fee:0.25, marginRate:12, maxLev:2, casino:true, bmOpen:false, ipos:[],
       adminHash:await sha("gamemaster"), created:Date.now(), agentEnabled:true, lastAgentGameTime:0};
     const ok=await SG.set("cfg",CFG);
-    if(!ok&&!SG.ok())toast("Server storage unavailable — running in local demo mode.",true);
+    if(!ok)toast("Server storage unavailable.",true);
   }
 }
 async function loadEvents(){EV=(await SG.get("ev"))||[];digestEvents()}
-async function pushEv(e){EV=(await SG.get("ev"))||[];EV.push({...e,at:e.at||Date.now(),g:e.g!=null?e.g:gameNow()});
+async function pushEv(e){
+  // Fall back to the in-memory EV rather than [] when the fetch fails — a
+  // transient error must not silently wipe the shared event history.
+  const stored=await SG.get("ev");
+  if(Array.isArray(stored))EV=stored;
+  EV.push({...e,at:e.at||Date.now(),g:e.g!=null?e.g:gameNow()});
   if(EV.length>250)EV=EV.slice(-250);await SG.set("ev",EV);digestEvents()}
 
 function feeFrac(){return ((CFG&&CFG.fee!==undefined)?CFG.fee:0.25)/100}
@@ -747,7 +759,10 @@ async function auth(isNew){
 }
 function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
   const last=ME.eq[ME.eq.length-1];
-  if(!last||Date.now()-last[0]>3e5||Math.abs(nw-last[1])>.01){ME.eq.push([Date.now(),nw]);if(ME.eq.length>400)ME.eq=ME.eq.slice(-400);saveMe()}}
+  // only write when enough has changed (≥0.2% or ≥10cr) and at least 5 min elapsed
+  const threshold=Math.max(10,Math.abs(last?last[1]:nw)*0.002);
+  if(!last||Date.now()-last[0]>3e5&&Math.abs(nw-(last?last[1]:0))>threshold){
+    ME.eq.push([Date.now(),nw]);if(ME.eq.length>400)ME.eq=ME.eq.slice(-400);saveMe()}}
 
 /* ---------- app shell ---------- */
 function renderApp(){
@@ -1210,7 +1225,8 @@ async function settleOptions(){
   for(let i=ME.opts.length-1;i>=0;i--){
     const o=ME.opts[i];
     if(now>=o.exp){
-      const a=BYSYM[o.sym],S=priceAt(a,o.exp),
+      const a=BYSYM[o.sym];if(!a){ME.opts.splice(i,1);changed=true;continue}
+      const S=priceAt(a,o.exp),
         v=Math.max(0,o.type==="C"?S-o.K:o.K-S);
       ME.cash+=v*o.q;
       ME.hist.push({at:Date.now(),g:o.exp,sym:o.sym,side:"OEXP",q:o.q,p:v,o:o.type+" "+fmt(o.K)});
@@ -1314,7 +1330,7 @@ async function trade(sym,dir){
       if((ME.margin||0)<=0.01&&borrowed>0)ME.lastInt=gameNow(); // start interest clock
       ME.cash-=fromCash;ME.margin=(ME.margin||0)+borrowed;
       // check maintenance: equity must be >= 30% of total long exposure
-      const longVal=Object.keys(ME.hold||{}).reduce((v,sm)=>v+(BYSYM[sm]?(ME.hold[sm].q+(sm===sym?q:0))*px(sm):0),0)+q*p;
+      const longVal=Object.keys(ME.hold||{}).reduce((v,sm)=>v+(BYSYM[sm]?ME.hold[sm].q*px(sm):0),0)+q*pEff;
       if(netWorth(ME)<0.3*longVal&&netWorth(ME)<0){ME.cash+=fromCash;ME.margin-=borrowed;
         return toast("Insufficient margin — net equity too low.",true)}
     }else{
@@ -1328,9 +1344,8 @@ async function trade(sym,dir){
     const repay=Math.min(ME.margin||0,cost);
     ME.margin=(ME.margin||0)-repay;ME.cash+=cost-repay;
     pos.c-=pos.c*(q/pos.q);pos.q-=q;
-    if(pos.q<1e-9){delete ME.hold[sym]}
   }
-  if(pos.q>0)ME.hold[sym]=pos;
+  if(pos.q>1e-9)ME.hold[sym]=pos;else delete ME.hold[sym];
   ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),sym,side:dir>0?"BUY":"SELL",q,p:pEff});
   if(ME.hist.length>500)ME.hist=ME.hist.slice(-500);
   snapshotEq();
@@ -1372,7 +1387,7 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER CANCELED","dim"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
@@ -1469,7 +1484,8 @@ async function renderLeaders(v){
   v.innerHTML=`<div class="dim" style="padding:30px;text-align:center">Scanning operative accounts…</div>`;
   const keys=await SG.list("u:");
   const entries=[];
-  for(const k of keys.slice(0,60)){const u=await SG.get(k);if(u)
+  const users=await Promise.all(keys.slice(0,60).map(k=>SG.get(k)));
+  for(const u of users){if(u)
     entries.push({n:u.n,nw:netWorth(u),ret:trueRet(u),pos:Object.keys(u.hold||{}).length,joined:u.created||Date.now(),me:u.n===ME.n})}
   for(const b of botEntries())entries.push(b);
   entries.sort((a,b)=>{const x=a.ret,y=b.ret;return (isNaN(y)?-1e9:y)-(isNaN(x)?-1e9:x)});
@@ -1725,12 +1741,16 @@ function bjHTML(){
 }
 async function bjDeal(){
   if(SPINNING)return;
-  const bet=betVal("#bj-bet");if(!bet)return toast("Enter a bet.",true);
-  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
-  await wager(-bet,"BLACKJACK");
-  BJ={bet,ph:[bjDraw(),bjDraw()],dh:[bjDraw(),bjDraw()],done:false,delta:-bet,msg:"",fresh:true,justDrew:false};
-  if(bjVal(BJ.ph)===21)return bjSettle(true);
-  $("#cas").innerHTML=bjHTML();
+  SPINNING=true;
+  try{
+    const bet=betVal("#bj-bet");if(!bet){SPINNING=false;return toast("Enter a bet.",true);}
+    await refreshMe();if(bet>ME.cash){SPINNING=false;return toast("Insufficient credits.",true);}
+    await wager(-bet,"BLACKJACK");
+    BJ={bet,ph:[bjDraw(),bjDraw()],dh:[bjDraw(),bjDraw()],done:false,delta:-bet,msg:"",fresh:true,justDrew:false};
+    if(bjVal(BJ.ph)===21){SPINNING=false;return bjSettle(true);}
+    SPINNING=false;
+    $("#cas").innerHTML=bjHTML();
+  }catch(e){SPINNING=false;throw e;}
 }
 async function bjHit(){
   BJ.ph.push(bjDraw());BJ.justDrew=true;
@@ -1985,6 +2005,7 @@ async function adPump(){
   const sym=$("#ad-sym").value,pc=parseFloat($("#ad-mag").value),min=parseFloat($("#ad-dur").value)||60;
   const silent=$("#ad-silent")&&$("#ad-silent").checked;
   if(!pc)return toast("Enter a % move.",true);
+  if(pc<=-99)return toast("Move must be greater than −99%.",true);
   await pushEv({t:"pump",sym,mag:Math.log(1+pc/100),dur:min*6e4,silent});
   toast(sym+" rigged: "+(pc>0?"+":"")+pc+"% over "+min+" min"+(silent?" (silent)":""));
 }
@@ -2927,7 +2948,9 @@ async function poll(){
   if(!ME)return;
   const oldHalt=HALTED, oldReg=curRegime().k, oldEvLen=EV.length, oldPause=isPaused(), oldSpd=speedNow();
   const oldBM=!!(CFG&&CFG.bmOpen),oldCas=!(CFG&&CFG.casino===false);
-  CFG=migrateCfg(await SG.get("cfg"))||CFG;rebuildAssets();
+  CFG=migrateCfg(await SG.get("cfg"))||CFG;
+  // only rebuild (which clears the price-ref cache) when the asset universe changed
+  const _sig=JSON.stringify([CFG.ipos,CFG.names]);if(_sig!==_assetSig){_assetSig=_sig;rebuildAssets();}
   if(TAB==="market"&&$("#mlist"))paintList();
   await loadEvents();await refreshMe();
   await settleOptions();await housekeeping();
