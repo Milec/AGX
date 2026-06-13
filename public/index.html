@@ -103,7 +103,7 @@ nav button.on{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 
 .ranges{display:flex;gap:4px;margin:10px 0}
 .ranges button{background:var(--panel2);color:var(--dim);padding:6px 12px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line2)}
 .ranges button.on{color:#001410;background:var(--cyan);font-weight:700;border-color:var(--cyan)}
-canvas{width:100%;height:180px;display:block;touch-action:none}
+canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .tradebox{display:flex;gap:8px;margin-top:10px}
 .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
 .kv b{font-family:'IBM Plex Mono'}
@@ -594,9 +594,6 @@ function fillThroughBook(sym,side,qty){
   return {avgPx,filled:qty,slip:(avgPx/mid-1)*100*side};
 }
 // Execution price for a trade of `qty` shares (slippage-aware).
-function tradePxQty(sym,side,qty){
-  return fillThroughBook(sym,side,qty).avgPx;
-}
 // Top-of-book single-share price (used for quotes/estimates).
 function tradePx(sym,side){
   const a=BYSYM[sym],mid=px(sym);
@@ -610,7 +607,8 @@ function fmtCap(c){if(!c)return"—";if(c>=1e12)return "\u20A2"+(c/1e12).toFixed
   if(c>=1e9)return "\u20A2"+(c/1e9).toFixed(2)+"B";if(c>=1e6)return "\u20A2"+(c/1e6).toFixed(1)+"M";return "\u20A2"+c.toFixed(0);}
 const MRANGE_MS={"1D":864e5,"1W":6048e5,"1M":2592e6,"1Y":31536e6,"ALL":1/0};
 function chgMs(sym,ms){const a=BYSYM[sym],n=gameNow(),p1=priceAt(a,n),ep=CFG?CFG.epoch:0;const t0=!isFinite(ms)?Math.max(ep,a.listed||0):Math.max(n-ms,ep,a.listed||0);const p0=priceAt(a,t0);return p0>0?(p1/p0-1)*100:0}
-const chg24=s=>{const a=BYSYM[s],n=gameNow();const p1=priceAt(a,n),p0=priceAt(a,n-864e5);return (p1/p0-1)*100};
+const chg24=s=>{const a=BYSYM[s],n=gameNow(),ep=CFG?CFG.epoch:0;
+  const p1=priceAt(a,n),p0=priceAt(a,Math.max(n-864e5,ep,a.listed||0));return p0>0?(p1/p0-1)*100:0};
 
 function series(sym,ms,n=140){
   const a=BYSYM[sym],now=gameNow(),t0=Math.max(now-ms,CFG.epoch,a.listed||0),pts=[];
@@ -630,8 +628,13 @@ const cls=n=>n>=0?"up":"down";
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("pwx:"+s));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-function toast(msg,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=msg;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const _toasts=[];
+function toast(msg,err){
+  const el=document.createElement("div");el.className="toast"+(err?" err":"");el.textContent=msg;
+  _toasts.push(el);document.body.appendChild(el);_stackToasts();
+  setTimeout(()=>{el.remove();_toasts.splice(_toasts.indexOf(el),1);_stackToasts()},3000);
+}
+function _stackToasts(){_toasts.forEach((t,i)=>{t.style.bottom=(82+i*54)+"px";t.style.zIndex=99+i})}
 function ago(t){const s=(Date.now()-t)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";
   if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"}
 
@@ -913,33 +916,35 @@ function drawChart(canvas,pts,color){
   if(!pts||pts.length<2)return;
   let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
   const pad=10,X=i=>pad+(w-2*pad)*i/(pts.length-1),Y=p=>h-pad-(h-2*pad)*(p-mn)/(mx-mn);
-  const col=color||(pts[pts.length-1]>=pts[0]?"#42E596":"#FF5C7A");
-  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+"55");g.addColorStop(1,col+"00");
+  const col=color||(pts[pts.length-1]>=pts[0]?"#00E07A":"#FF2D55");
+  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+"44");g.addColorStop(1,col+"00");
   x.beginPath();x.moveTo(X(0),Y(pts[0]));for(let i=1;i<pts.length;i++)x.lineTo(X(i),Y(pts[i]));
-  x.strokeStyle=col;x.lineWidth=2;x.stroke();
+  x.strokeStyle=col;x.lineWidth=1.5;x.stroke();
   x.lineTo(X(pts.length-1),h);x.lineTo(X(0),h);x.closePath();x.fillStyle=g;x.fill();
-  x.fillStyle="#8A97B8";x.font="10px IBM Plex Mono";
+  x.fillStyle="#4E6580";x.font="10px IBM Plex Mono";
   x.fillText(fmt(mx),pad,12);x.fillText(fmt(mn),pad,h-3);
 }
 
 function attachHover(cv,pts,t0,t1,color){
   const redraw=()=>drawChart(cv,pts,color);
+  cv.onpointerenter=()=>{cv._hov=true};
   cv.onpointermove=e=>{
+    cv._hov=true;
     const r=cv.getBoundingClientRect(),fr=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
     const i=Math.round(fr*(pts.length-1)),t=t0+(t1-t0)*i/(pts.length-1),p=pts[i];
     redraw();
     const ctx=cv.getContext("2d"),w=cv.clientWidth,h=cv.clientHeight,pad=10;
     let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
     const X=pad+(w-2*pad)*i/(pts.length-1),Y=h-pad-(h-2*pad)*(p-mn)/(mx-mn);
-    ctx.strokeStyle="#8A97B8";ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle="#E8EEFF";ctx.beginPath();ctx.arc(X,Y,3.5,0,7);ctx.fill();
+    ctx.strokeStyle="#1A2840";ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="#C8DCFF";ctx.beginPath();ctx.arc(X,Y,3,0,7);ctx.fill();
     const lbl=fmt(p)+"  "+gdate(t,true);
     ctx.font="11px IBM Plex Mono";const tw=ctx.measureText(lbl).width;
     const tx=Math.min(Math.max(X-tw/2,4),w-tw-8);
-    ctx.fillStyle="rgba(6,8,15,.88)";ctx.fillRect(tx-4,2,tw+8,16);
-    ctx.fillStyle="#3FE0D0";ctx.fillText(lbl,tx,14);
+    ctx.fillStyle="rgba(3,5,8,.92)";ctx.fillRect(tx-4,2,tw+8,16);
+    ctx.fillStyle="#00F0D0";ctx.fillText(lbl,tx,14);
   };
-  cv.onpointerleave=redraw;
+  cv.onpointerleave=()=>{cv._hov=false;redraw()};
 }
 /* ---------- asset modal & trading ---------- */
 function openAsset(sym){OPEN=sym;RANGE="1D";paintModal()}
@@ -1175,18 +1180,18 @@ async function housekeeping(){
   if((ME.orders||[]).length){
     for(let i=ME.orders.length-1;i>=0;i--){
       const o=ME.orders[i],a=BYSYM[o.sym];if(!a){ME.orders.splice(i,1);dirty=true;continue}
-      const t0=o.pg,steps=40;let hit=false;
+      const t0=o.pg,steps=40;let hit=false,fillPx=o.trig;
       if(now>t0)for(let k=0;k<=steps;k++){
         const pp=priceAt(a,t0+(now-t0)*k/steps);
-        if(o.side==="B"&&o.kind==="L"&&pp<=o.trig){hit=true;break}
-        if(o.side==="B"&&o.kind==="T"&&pp>=o.trig){hit=true;break}
-        if(o.side==="S"&&o.kind==="L"&&pp>=o.trig){hit=true;break}
-        if(o.side==="S"&&o.kind==="T"&&pp<=o.trig){hit=true;break}
+        if(o.side==="B"&&o.kind==="L"&&pp<=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="B"&&o.kind==="T"&&pp>=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="S"&&o.kind==="L"&&pp>=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="S"&&o.kind==="T"&&pp<=o.trig){hit=true;fillPx=pp;break}
       }
       if(!hit)continue;
       const lbl=(o.kind==="L"?"LIMIT":"STOP")+" FILL";
       if(o.side==="B"){
-        const pEff=o.trig*(1+f);let q=o.q;
+        const pEff=fillPx*(1+f);let q=o.q;
         if(q*pEff>ME.cash)q=Math.floor(ME.cash/pEff*1e6)/1e6;
         if(q>1e-9){
           ME.cash-=q*pEff;ME.hold=ME.hold||{};const pos=ME.hold[o.sym]||{q:0,c:0};
@@ -1195,7 +1200,7 @@ async function housekeeping(){
           toast(lbl+": bought "+(+q.toFixed(4))+" "+o.sym+" @ "+fmt(pEff));
         }else ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"OFAIL",q:o.q,p:o.trig,o:"NO CREDITS"});
       }else{
-        const pEff=o.trig*(1-f),held=(ME.hold&&ME.hold[o.sym])?ME.hold[o.sym].q:0,q=Math.min(o.q,held);
+        const pEff=fillPx*(1-f),held=(ME.hold&&ME.hold[o.sym])?ME.hold[o.sym].q:0,q=Math.min(o.q,held);
         if(q>1e-9){
           const pos=ME.hold[o.sym];ME.cash+=q*pEff;pos.c-=pos.c*(q/pos.q);pos.q-=q;
           if(pos.q<=1e-9)delete ME.hold[o.sym];
@@ -1437,7 +1442,7 @@ function renderPortfolio(v){
      <div class="stat"><div class="l">NET WORTH</div><div class="v" id="h-nw2">${fmt(nw)}</div></div>
      <div class="stat"><div class="l">TRUE RETURN <span style="letter-spacing:0">(excl. GM money)</span></div><div class="v ${isNaN(tr)?"dim":cls(tr)}">${isNaN(tr)?"—":pct(tr)}</div></div>
      <div class="stat"><div class="l">CREDITS (CASH)</div><div class="v">${fmt(ME.cash)}</div></div>
-     <div class="stat"><div class="l">24H P&amp;L</div><div class="v ${cls(dayPL)}">${(dayPL>=0?"+":"")+fmt(dayPL)}</div></div>
+     <div class="stat"><div class="l">24H P&amp;L</div><div class="v ${cls(dayPL)}" id="h-pl24">${(dayPL>=0?"+":"")+fmt(dayPL)}</div></div>
      <div class="stat"><div class="l">OPTIONS VALUE</div><div class="v">${fmt(ov)}</div></div>
      <div class="stat"><div class="l">MARGIN DEBT</div><div class="v ${marginDebt(ME)>0?"down":"dim"}">${marginDebt(ME)>0?"-"+fmt(marginDebt(ME)):"—"}</div></div>
      <div class="stat"><div class="l">MARGIN POWER</div><div class="v cyan">${fmt(marginBuyingPower(ME))}</div></div>
@@ -1488,7 +1493,7 @@ function renderPortfolio(v){
   const ms={"1D":864e5,"1W":6048e5,"1M":2592e6,"ALL":1/0}[PRANGE];
   {const now=gameNow(),g0=ME.g0!==undefined?ME.g0:(ME.created||now),
     t0=Math.max(isFinite(ms)?now-ms:g0,g0),pts=portfolioSeries(ms);
-   drawChart($("#pchart"),pts,"#3FE0D0");attachHover($("#pchart"),pts,t0,now,"#3FE0D0")}
+   drawChart($("#pchart"),pts,"#00F0D0");attachHover($("#pchart"),pts,t0,now,"#00F0D0")}
 }
 
 /* ---------- leaderboard ---------- */
@@ -2884,8 +2889,7 @@ async function adRebasePrices(){
 async function adResetMarket(){
   if(!await iconfirm("Reset market to fresh launch with 1 year of simulated history? All events are cleared. Player accounts are kept."))return;
   const now=Date.now();
-  // epoch 1 game-year behind current real time, giving exactly 1 year of
-  // price history in all chart ranges
+  // epoch 1 year behind now; history spans a full year in all chart ranges
   CFG.epoch=now-31536e6;
   CFG.priceAnchor=now;
   CFG.anchorG=now;
@@ -2971,7 +2975,15 @@ function tick(){
     el.textContent=pct(c)+(el.classList.contains("mono")?" · 24H":"");el.classList.remove("up","down");el.classList.add(cls(c))});
   document.querySelectorAll("[data-chgm]").forEach(el=>{const c=chgMs(el.dataset.chgm,MRANGE_MS[MRANGE]||864e5);
     el.textContent=pct(c);el.classList.remove("up","down");el.classList.add(cls(c))});
-  const nw=$("#h-nw");if(nw)nw.textContent=fmt(netWorth(ME));
+  const nw=netWorth(ME);
+  const nwEl=$("#h-nw");if(nwEl)nwEl.textContent=fmt(nw);
+  const nw2=$("#h-nw2");if(nw2)nw2.textContent=fmt(nw);
+  const pl24El=$("#h-pl24");
+  if(pl24El&&ME.hold){
+    let dayPL=0;const n=gameNow();
+    Object.keys(ME.hold).forEach(s=>{const a=BYSYM[s];if(a)dayPL+=ME.hold[s].q*(priceAt(a,n)-priceAt(a,Math.max(n-864e5,a.listed||0)))});
+    pl24El.textContent=(dayPL>=0?"+":"")+fmt(dayPL);pl24El.className="v "+(dayPL>=0?"up":"down");
+  }
 }
 async function poll(){
   if(!ME)return;
@@ -2997,8 +3009,9 @@ async function poll(){
     setInterval(tick,2000);
     setInterval(poll,12000);
     setInterval(()=>{if(OPEN&&$("#achart")){const a=BYSYM[OPEN];if(!a)return;
+      const cv=$("#achart");if(cv._hov)return; // don't wipe the hover crosshair
       const pts=series(OPEN,RANGES[RANGE]),now=gameNow(),t0=Math.max(now-RANGES[RANGE],CFG.epoch,a.listed||0);
-      drawChart($("#achart"),pts);attachHover($("#achart"),pts,t0,now)}},10000);
+      drawChart(cv,pts);attachHover(cv,pts,t0,now)}},10000);
   }catch(e){
     document.body.innerHTML='<div style="padding:40px;text-align:center;color:#FF5C7A;font-family:monospace">Exchange uplink failed: '+e.message+'</div>';
   }
