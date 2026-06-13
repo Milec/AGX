@@ -103,7 +103,7 @@ nav button.on{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 
 .ranges{display:flex;gap:4px;margin:10px 0}
 .ranges button{background:var(--panel2);color:var(--dim);padding:6px 12px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line2)}
 .ranges button.on{color:#001410;background:var(--cyan);font-weight:700;border-color:var(--cyan)}
-canvas{width:100%;height:180px;display:block;touch-action:none}
+canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .tradebox{display:flex;gap:8px;margin-top:10px}
 .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
 .kv b{font-family:'IBM Plex Mono'}
@@ -594,9 +594,6 @@ function fillThroughBook(sym,side,qty){
   return {avgPx,filled:qty,slip:(avgPx/mid-1)*100*side};
 }
 // Execution price for a trade of `qty` shares (slippage-aware).
-function tradePxQty(sym,side,qty){
-  return fillThroughBook(sym,side,qty).avgPx;
-}
 // Top-of-book single-share price (used for quotes/estimates).
 function tradePx(sym,side){
   const a=BYSYM[sym],mid=px(sym);
@@ -610,7 +607,8 @@ function fmtCap(c){if(!c)return"—";if(c>=1e12)return "\u20A2"+(c/1e12).toFixed
   if(c>=1e9)return "\u20A2"+(c/1e9).toFixed(2)+"B";if(c>=1e6)return "\u20A2"+(c/1e6).toFixed(1)+"M";return "\u20A2"+c.toFixed(0);}
 const MRANGE_MS={"1D":864e5,"1W":6048e5,"1M":2592e6,"1Y":31536e6,"ALL":1/0};
 function chgMs(sym,ms){const a=BYSYM[sym],n=gameNow(),p1=priceAt(a,n),ep=CFG?CFG.epoch:0;const t0=!isFinite(ms)?Math.max(ep,a.listed||0):Math.max(n-ms,ep,a.listed||0);const p0=priceAt(a,t0);return p0>0?(p1/p0-1)*100:0}
-const chg24=s=>{const a=BYSYM[s],n=gameNow();const p1=priceAt(a,n),p0=priceAt(a,n-864e5);return (p1/p0-1)*100};
+const chg24=s=>{const a=BYSYM[s],n=gameNow(),ep=CFG?CFG.epoch:0;
+  const p1=priceAt(a,n),p0=priceAt(a,Math.max(n-864e5,ep,a.listed||0));return p0>0?(p1/p0-1)*100:0};
 
 function series(sym,ms,n=140){
   const a=BYSYM[sym],now=gameNow(),t0=Math.max(now-ms,CFG.epoch,a.listed||0),pts=[];
@@ -630,8 +628,13 @@ const cls=n=>n>=0?"up":"down";
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("pwx:"+s));
   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
-function toast(msg,err){const t=document.createElement("div");t.className="toast"+(err?" err":"");t.textContent=msg;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+const _toasts=[];
+function toast(msg,err){
+  const el=document.createElement("div");el.className="toast"+(err?" err":"");el.textContent=msg;
+  _toasts.push(el);document.body.appendChild(el);_stackToasts();
+  setTimeout(()=>{el.remove();_toasts.splice(_toasts.indexOf(el),1);_stackToasts()},3000);
+}
+function _stackToasts(){_toasts.forEach((t,i)=>{t.style.bottom=(82+i*54)+"px";t.style.zIndex=99+i})}
 function ago(t){const s=(Date.now()-t)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";
   if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"}
 
@@ -913,33 +916,35 @@ function drawChart(canvas,pts,color){
   if(!pts||pts.length<2)return;
   let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
   const pad=10,X=i=>pad+(w-2*pad)*i/(pts.length-1),Y=p=>h-pad-(h-2*pad)*(p-mn)/(mx-mn);
-  const col=color||(pts[pts.length-1]>=pts[0]?"#42E596":"#FF5C7A");
-  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+"55");g.addColorStop(1,col+"00");
+  const col=color||(pts[pts.length-1]>=pts[0]?"#00E07A":"#FF2D55");
+  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,col+"44");g.addColorStop(1,col+"00");
   x.beginPath();x.moveTo(X(0),Y(pts[0]));for(let i=1;i<pts.length;i++)x.lineTo(X(i),Y(pts[i]));
-  x.strokeStyle=col;x.lineWidth=2;x.stroke();
+  x.strokeStyle=col;x.lineWidth=1.5;x.stroke();
   x.lineTo(X(pts.length-1),h);x.lineTo(X(0),h);x.closePath();x.fillStyle=g;x.fill();
-  x.fillStyle="#8A97B8";x.font="10px IBM Plex Mono";
+  x.fillStyle="#4E6580";x.font="10px IBM Plex Mono";
   x.fillText(fmt(mx),pad,12);x.fillText(fmt(mn),pad,h-3);
 }
 
 function attachHover(cv,pts,t0,t1,color){
   const redraw=()=>drawChart(cv,pts,color);
+  cv.onpointerenter=()=>{cv._hov=true};
   cv.onpointermove=e=>{
+    cv._hov=true;
     const r=cv.getBoundingClientRect(),fr=Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));
     const i=Math.round(fr*(pts.length-1)),t=t0+(t1-t0)*i/(pts.length-1),p=pts[i];
     redraw();
     const ctx=cv.getContext("2d"),w=cv.clientWidth,h=cv.clientHeight,pad=10;
     let mn=Math.min(...pts),mx=Math.max(...pts);if(mx-mn<1e-9){mx+=1;mn-=1}
     const X=pad+(w-2*pad)*i/(pts.length-1),Y=h-pad-(h-2*pad)*(p-mn)/(mx-mn);
-    ctx.strokeStyle="#8A97B8";ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle="#E8EEFF";ctx.beginPath();ctx.arc(X,Y,3.5,0,7);ctx.fill();
+    ctx.strokeStyle="#1A2840";ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="#C8DCFF";ctx.beginPath();ctx.arc(X,Y,3,0,7);ctx.fill();
     const lbl=fmt(p)+"  "+gdate(t,true);
     ctx.font="11px IBM Plex Mono";const tw=ctx.measureText(lbl).width;
     const tx=Math.min(Math.max(X-tw/2,4),w-tw-8);
-    ctx.fillStyle="rgba(6,8,15,.88)";ctx.fillRect(tx-4,2,tw+8,16);
-    ctx.fillStyle="#3FE0D0";ctx.fillText(lbl,tx,14);
+    ctx.fillStyle="rgba(3,5,8,.92)";ctx.fillRect(tx-4,2,tw+8,16);
+    ctx.fillStyle="#00F0D0";ctx.fillText(lbl,tx,14);
   };
-  cv.onpointerleave=redraw;
+  cv.onpointerleave=()=>{cv._hov=false;redraw()};
 }
 /* ---------- asset modal & trading ---------- */
 function openAsset(sym){OPEN=sym;RANGE="1D";paintModal()}
@@ -1175,18 +1180,18 @@ async function housekeeping(){
   if((ME.orders||[]).length){
     for(let i=ME.orders.length-1;i>=0;i--){
       const o=ME.orders[i],a=BYSYM[o.sym];if(!a){ME.orders.splice(i,1);dirty=true;continue}
-      const t0=o.pg,steps=40;let hit=false;
+      const t0=o.pg,steps=40;let hit=false,fillPx=o.trig;
       if(now>t0)for(let k=0;k<=steps;k++){
         const pp=priceAt(a,t0+(now-t0)*k/steps);
-        if(o.side==="B"&&o.kind==="L"&&pp<=o.trig){hit=true;break}
-        if(o.side==="B"&&o.kind==="T"&&pp>=o.trig){hit=true;break}
-        if(o.side==="S"&&o.kind==="L"&&pp>=o.trig){hit=true;break}
-        if(o.side==="S"&&o.kind==="T"&&pp<=o.trig){hit=true;break}
+        if(o.side==="B"&&o.kind==="L"&&pp<=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="B"&&o.kind==="T"&&pp>=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="S"&&o.kind==="L"&&pp>=o.trig){hit=true;fillPx=pp;break}
+        if(o.side==="S"&&o.kind==="T"&&pp<=o.trig){hit=true;fillPx=pp;break}
       }
       if(!hit)continue;
       const lbl=(o.kind==="L"?"LIMIT":"STOP")+" FILL";
       if(o.side==="B"){
-        const pEff=o.trig*(1+f);let q=o.q;
+        const pEff=fillPx*(1+f);let q=o.q;
         if(q*pEff>ME.cash)q=Math.floor(ME.cash/pEff*1e6)/1e6;
         if(q>1e-9){
           ME.cash-=q*pEff;ME.hold=ME.hold||{};const pos=ME.hold[o.sym]||{q:0,c:0};
@@ -1195,7 +1200,7 @@ async function housekeeping(){
           toast(lbl+": bought "+(+q.toFixed(4))+" "+o.sym+" @ "+fmt(pEff));
         }else ME.hist.push({at:Date.now(),g:now,sym:o.sym,side:"OFAIL",q:o.q,p:o.trig,o:"NO CREDITS"});
       }else{
-        const pEff=o.trig*(1-f),held=(ME.hold&&ME.hold[o.sym])?ME.hold[o.sym].q:0,q=Math.min(o.q,held);
+        const pEff=fillPx*(1-f),held=(ME.hold&&ME.hold[o.sym])?ME.hold[o.sym].q:0,q=Math.min(o.q,held);
         if(q>1e-9){
           const pos=ME.hold[o.sym];ME.cash+=q*pEff;pos.c-=pos.c*(q/pos.q);pos.q-=q;
           if(pos.q<=1e-9)delete ME.hold[o.sym];
@@ -1437,7 +1442,7 @@ function renderPortfolio(v){
      <div class="stat"><div class="l">NET WORTH</div><div class="v" id="h-nw2">${fmt(nw)}</div></div>
      <div class="stat"><div class="l">TRUE RETURN <span style="letter-spacing:0">(excl. GM money)</span></div><div class="v ${isNaN(tr)?"dim":cls(tr)}">${isNaN(tr)?"—":pct(tr)}</div></div>
      <div class="stat"><div class="l">CREDITS (CASH)</div><div class="v">${fmt(ME.cash)}</div></div>
-     <div class="stat"><div class="l">24H P&amp;L</div><div class="v ${cls(dayPL)}">${(dayPL>=0?"+":"")+fmt(dayPL)}</div></div>
+     <div class="stat"><div class="l">24H P&amp;L</div><div class="v ${cls(dayPL)}" id="h-pl24">${(dayPL>=0?"+":"")+fmt(dayPL)}</div></div>
      <div class="stat"><div class="l">OPTIONS VALUE</div><div class="v">${fmt(ov)}</div></div>
      <div class="stat"><div class="l">MARGIN DEBT</div><div class="v ${marginDebt(ME)>0?"down":"dim"}">${marginDebt(ME)>0?"-"+fmt(marginDebt(ME)):"—"}</div></div>
      <div class="stat"><div class="l">MARGIN POWER</div><div class="v cyan">${fmt(marginBuyingPower(ME))}</div></div>
@@ -1488,7 +1493,7 @@ function renderPortfolio(v){
   const ms={"1D":864e5,"1W":6048e5,"1M":2592e6,"ALL":1/0}[PRANGE];
   {const now=gameNow(),g0=ME.g0!==undefined?ME.g0:(ME.created||now),
     t0=Math.max(isFinite(ms)?now-ms:g0,g0),pts=portfolioSeries(ms);
-   drawChart($("#pchart"),pts,"#3FE0D0");attachHover($("#pchart"),pts,t0,now,"#3FE0D0")}
+   drawChart($("#pchart"),pts,"#00F0D0");attachHover($("#pchart"),pts,t0,now,"#00F0D0")}
 }
 
 /* ---------- leaderboard ---------- */
@@ -1740,7 +1745,7 @@ async function spinRoulette(){
 function bjDraw(){return {r:1+Math.floor(Math.random()*13),s:Math.floor(Math.random()*4)}}
 function bjVal(h){let v=0,a=0;for(const c of h){if(c.r===1){a++;v+=11}else v+=Math.min(c.r,10)}
   while(v>21&&a>0){v-=10;a--}return v}
-const SUITS=["\u2660","\u2665","\u2666","\u2663"];
+const SUITS=["♠","♥","♦","♣"];
 function bjFace(c,opts){
   const r=c.r===1?"A":c.r===11?"J":c.r===12?"Q":c.r===13?"K":c.r;
   const red=c.s===1||c.s===2;
@@ -1748,25 +1753,45 @@ function bjFace(c,opts){
   const dly=opts&&opts.delay?` style="animation-delay:${opts.delay}s"`:"";
   return `<span class="${cl}"${dly}>${r}${SUITS[c.s]}</span>`;
 }
-function bjBack(){return `<span class="pcard deal" style="color:var(--vio)">\uD83C\uDCA0</span>`}
+function bjBack(){return `<span class="pcard deal" style="color:var(--vio)">🂠</span>`}
 function bjHTML(){
-  const pv=bjVal(BJ.ph),done=BJ.done;
-  const ph=BJ.ph.map((c,i)=>bjFace(c,{anim:i===BJ.ph.length-1&&BJ.justDrew?"deal":(BJ.fresh?"deal":""),delay:BJ.fresh?i*0.15:0})).join("");
-  const dh=done
+  const allDone=BJ.hands.every(h=>h.done);
+  const dv=bjVal(BJ.dh);
+  const dh=allDone
     ?BJ.dh.map((c,i)=>bjFace(c,{anim:"flip",delay:i*0.18})).join("")
     :bjFace(BJ.dh[0],{anim:BJ.fresh?"deal":""})+bjBack();
+  let handsHTML="";
+  BJ.hands.forEach((hand,i)=>{
+    const isActive=!allDone&&i===BJ.active;
+    const pv=bjVal(hand.ph);
+    const phCards=hand.ph.map((c,j)=>bjFace(c,{anim:j===hand.ph.length-1&&BJ.justDrew&&isActive?"deal":(BJ.fresh?"deal":""),delay:BJ.fresh?j*0.15:0})).join("");
+    let label=BJ.hands.length>1?(isActive?"▶ ":"  ")+"HAND "+(i+1)+" ":"";
+    if(hand.doubled)label+="[2×] ";
+    if(hand.fromSplit)label+="[SPLIT] ";
+    let resultStr="";
+    if(allDone){const delta=(hand.ret||0)-hand.bet;resultStr=`<span class="${delta>0?"up":delta<0?"down":"dim"}" style="font-size:12px"> — ${hand.msg||""}</span>`;}
+    handsHTML+=`<div style="margin-bottom:8px;${isActive?"border-left:2px solid var(--cyan);padding-left:6px":"opacity:.65"}">
+      <div class="dim" style="font-size:11px;letter-spacing:.15em">${label}(${pv})${resultStr}</div>
+      <div>${phCards}</div></div>`;
+  });
   BJ.fresh=false;BJ.justDrew=false;
+  const activeHand=BJ.hands[BJ.active]||BJ.hands[0];
+  const canDouble=!allDone&&activeHand.ph.length===2;
+  const canSplit=!allDone&&activeHand.ph.length===2&&BJ.hands.length<4
+    &&Math.min(activeHand.ph[0].r,10)===Math.min(activeHand.ph[1].r,10);
+  const totalDelta=allDone?BJ.hands.reduce((s,h)=>(h.ret||0)-h.bet+s,0):0;
   return `<div class="mono" style="font-size:14px;line-height:1.6">
-    <div class="dim" style="font-size:11px;letter-spacing:.15em">DEALER${done?" ("+bjVal(BJ.dh)+")":""}</div>
-    <div>${dh}</div>
-    <div class="dim" style="font-size:11px;letter-spacing:.15em;margin-top:8px">YOU (${pv})</div>
-    <div>${ph}</div></div>
-   ${done?`<div class="disp" style="padding:12px 0;font-size:15px">
-     <span class="${BJ.delta>0?"win-flash":BJ.delta<0?"lose-shake":"dim"}" style="display:inline-block">${BJ.msg}</span></div>
+    <div class="dim" style="font-size:11px;letter-spacing:.15em">DEALER${allDone?" ("+dv+")":""}</div>
+    <div style="margin-bottom:12px">${dh}</div>
+    ${handsHTML}</div>
+   ${allDone?`<div class="disp" style="padding:12px 0;font-size:15px">
+     <span class="${totalDelta>0?"win-flash":totalDelta<0?"lose-shake":"dim"}" style="display:inline-block">${BJ.finalMsg||""}</span></div>
      <button class="btn vio" style="width:100%" onclick="BJ=null;renderTab()">NEW HAND</button>`
-   :`<div class="inline" style="margin-top:10px">
+   :`<div class="inline" style="margin-top:10px;flex-wrap:wrap;gap:6px">
      <button class="btn" onclick="bjHit()">HIT</button>
-     <button class="btn amber" onclick="bjStand()">STAND</button></div>`}`;
+     <button class="btn amber" onclick="bjStand()">STAND</button>
+     ${canDouble?`<button class="btn" style="background:var(--vio)" onclick="bjDouble()">DOUBLE</button>`:""}
+     ${canSplit?`<button class="btn" style="background:var(--amber);color:#000" onclick="bjSplit()">SPLIT</button>`:""}</div>`}`;
 }
 async function bjDeal(){
   if(SPINNING)return;
@@ -1775,28 +1800,69 @@ async function bjDeal(){
     const bet=betVal("#bj-bet");if(!bet){SPINNING=false;return toast("Enter a bet.",true);}
     await refreshMe();if(bet>ME.cash){SPINNING=false;return toast("Insufficient credits.",true);}
     await wager(-bet,"BLACKJACK");
-    BJ={bet,ph:[bjDraw(),bjDraw()],dh:[bjDraw(),bjDraw()],done:false,delta:-bet,msg:"",fresh:true,justDrew:false};
-    if(bjVal(BJ.ph)===21){SPINNING=false;return bjSettle(true);}
+    const hand={ph:[bjDraw(),bjDraw()],bet,done:false,msg:"",ret:0,doubled:false,fromSplit:false};
+    BJ={hands:[hand],dh:[bjDraw(),bjDraw()],active:0,fresh:true,justDrew:false};
+    if(bjVal(hand.ph)===21){SPINNING=false;return bjSettleAll(true);}
     SPINNING=false;
     $("#cas").innerHTML=bjHTML();
   }catch(e){SPINNING=false;throw e;}
 }
 async function bjHit(){
-  BJ.ph.push(bjDraw());BJ.justDrew=true;
-  if(bjVal(BJ.ph)>21){BJ.done=true;BJ.msg="BUST — lose "+fmt(BJ.bet);$("#cas").innerHTML=bjHTML();return}
+  const hand=BJ.hands[BJ.active];
+  hand.ph.push(bjDraw());BJ.justDrew=true;
+  if(bjVal(hand.ph)>21){hand.done=true;hand.msg="BUST";hand.ret=0;return bjNext();}
   $("#cas").innerHTML=bjHTML();
 }
-async function bjStand(){return bjSettle(false)}
-async function bjSettle(natural){
+async function bjStand(){
+  BJ.hands[BJ.active].done=true;
+  return bjNext();
+}
+async function bjDouble(){
+  const hand=BJ.hands[BJ.active];
+  await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits.",true);
+  await wager(-hand.bet,"BLACKJACK DOUBLE");
+  hand.bet*=2;hand.doubled=true;
+  hand.ph.push(bjDraw());BJ.justDrew=true;
+  hand.done=true;
+  return bjNext();
+}
+async function bjSplit(){
+  const hand=BJ.hands[BJ.active];
+  await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits for split.",true);
+  await wager(-hand.bet,"BLACKJACK SPLIT");
+  const c2=hand.ph.pop();
+  const newHand={ph:[c2,bjDraw()],bet:hand.bet,done:false,msg:"",ret:0,doubled:false,fromSplit:true};
+  hand.ph.push(bjDraw());hand.fromSplit=true;
+  BJ.hands.splice(BJ.active+1,0,newHand);
+  if(hand.ph[0].r===1){hand.done=true;}
+  if(newHand.ph[0].r===1){newHand.done=true;}
+  BJ.fresh=false;BJ.justDrew=true;
+  if(hand.done)return bjNext();
+  $("#cas").innerHTML=bjHTML();
+}
+async function bjNext(){
+  let idx=BJ.active+1;
+  while(idx<BJ.hands.length&&BJ.hands[idx].done)idx++;
+  if(idx<BJ.hands.length){BJ.active=idx;BJ.justDrew=false;$("#cas").innerHTML=bjHTML();}
+  else return bjSettleAll(false);
+}
+async function bjSettleAll(natural){
   while(bjVal(BJ.dh)<17)BJ.dh.push(bjDraw());
-  const pv=bjVal(BJ.ph),dv=bjVal(BJ.dh);let ret=0;
-  if(natural&&dv!==21){ret=BJ.bet*2.5;BJ.msg="BLACKJACK! +"+fmt(BJ.bet*1.5)}
-  else if(pv>21){ret=0;BJ.msg="BUST — lose "+fmt(BJ.bet)}
-  else if(dv>21||pv>dv){ret=BJ.bet*2;BJ.msg="WIN +"+fmt(BJ.bet)}
-  else if(pv===dv){ret=BJ.bet;BJ.msg="PUSH — bet returned"}
-  else{ret=0;BJ.msg="Dealer wins — lose "+fmt(BJ.bet)}
-  if(ret>0)await wager(ret,"BLACKJACK WIN");
-  BJ.done=true;BJ.delta=ret-BJ.bet;
+  const dv=bjVal(BJ.dh);
+  let totalRet=0,totalBet=0;
+  for(const hand of BJ.hands){
+    const pv=bjVal(hand.ph);totalBet+=hand.bet;
+    if(natural&&pv===21&&dv!==21){hand.ret=hand.bet*2.5;hand.msg="BLACKJACK! +"+fmt(hand.bet*1.5);}
+    else if(pv>21){hand.ret=0;hand.msg="BUST";}
+    else if(dv>21||pv>dv){hand.ret=hand.bet*2;hand.msg="WIN +"+fmt(hand.bet);}
+    else if(pv===dv){hand.ret=hand.bet;hand.msg="PUSH";}
+    else{hand.ret=0;hand.msg="Dealer wins";}
+    totalRet+=hand.ret;
+  }
+  if(totalRet>0)await wager(totalRet,"BLACKJACK WIN");
+  const delta=totalRet-totalBet;
+  BJ.finalMsg=delta>0?"NET WIN +"+fmt(delta):delta<0?"NET LOSS "+fmt(-delta):"PUSH — bets returned";
+  BJ.hands.forEach(h=>{h.done=true;});
   $("#cas").innerHTML=bjHTML();
 }
 /* ── over/under: d100 tumbler ── */
@@ -2884,8 +2950,7 @@ async function adRebasePrices(){
 async function adResetMarket(){
   if(!await iconfirm("Reset market to fresh launch with 1 year of simulated history? All events are cleared. Player accounts are kept."))return;
   const now=Date.now();
-  // epoch 1 game-year behind current real time, giving exactly 1 year of
-  // price history in all chart ranges
+  // epoch 1 year behind now; history spans a full year in all chart ranges
   CFG.epoch=now-31536e6;
   CFG.priceAnchor=now;
   CFG.anchorG=now;
@@ -2971,7 +3036,15 @@ function tick(){
     el.textContent=pct(c)+(el.classList.contains("mono")?" · 24H":"");el.classList.remove("up","down");el.classList.add(cls(c))});
   document.querySelectorAll("[data-chgm]").forEach(el=>{const c=chgMs(el.dataset.chgm,MRANGE_MS[MRANGE]||864e5);
     el.textContent=pct(c);el.classList.remove("up","down");el.classList.add(cls(c))});
-  const nw=$("#h-nw");if(nw)nw.textContent=fmt(netWorth(ME));
+  const nw=netWorth(ME);
+  const nwEl=$("#h-nw");if(nwEl)nwEl.textContent=fmt(nw);
+  const nw2=$("#h-nw2");if(nw2)nw2.textContent=fmt(nw);
+  const pl24El=$("#h-pl24");
+  if(pl24El&&ME.hold){
+    let dayPL=0;const n=gameNow();
+    Object.keys(ME.hold).forEach(s=>{const a=BYSYM[s];if(a)dayPL+=ME.hold[s].q*(priceAt(a,n)-priceAt(a,Math.max(n-864e5,a.listed||0)))});
+    pl24El.textContent=(dayPL>=0?"+":"")+fmt(dayPL);pl24El.className="v "+(dayPL>=0?"up":"down");
+  }
 }
 async function poll(){
   if(!ME)return;
@@ -2997,8 +3070,9 @@ async function poll(){
     setInterval(tick,2000);
     setInterval(poll,12000);
     setInterval(()=>{if(OPEN&&$("#achart")){const a=BYSYM[OPEN];if(!a)return;
+      const cv=$("#achart");if(cv._hov)return; // don't wipe the hover crosshair
       const pts=series(OPEN,RANGES[RANGE]),now=gameNow(),t0=Math.max(now-RANGES[RANGE],CFG.epoch,a.listed||0);
-      drawChart($("#achart"),pts);attachHover($("#achart"),pts,t0,now)}},10000);
+      drawChart(cv,pts);attachHover(cv,pts,t0,now)}},10000);
   }catch(e){
     document.body.innerHTML='<div style="padding:40px;text-align:center;color:#FF5C7A;font-family:monospace">Exchange uplink failed: '+e.message+'</div>';
   }
