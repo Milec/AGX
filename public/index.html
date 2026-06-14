@@ -1399,7 +1399,7 @@ function portfolioSeries(ms,n=110){
     if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
     else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
     else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
-    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"){cash+=e.d}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"){cash+=e.d}
     else if(e.side==="OBUY"){cash-=e.q*e.p}
     else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
     else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
@@ -1421,13 +1421,14 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
     h.side==="DIV"?(h.d>=0?"+":"")+fmt(h.d)+" payout":
     h.side==="INT"?fmt(h.d)+" interest":
     h.side==="BET"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
+    h.side==="XFER"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
   return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
    <div class="t">${ago(h.at)}</div></div>`;
@@ -1446,7 +1447,7 @@ function renderPortfolio(v){
      <div class="stat"><div class="l">OPTIONS VALUE</div><div class="v">${fmt(ov)}</div></div>
      <div class="stat"><div class="l">MARGIN DEBT</div><div class="v ${marginDebt(ME)>0?"down":"dim"}">${marginDebt(ME)>0?"-"+fmt(marginDebt(ME)):"—"}</div></div>
      <div class="stat"><div class="l">MARGIN POWER</div><div class="v cyan">${fmt(marginBuyingPower(ME))}</div></div>
-     <div class="stat"><div class="l">GM DEPOSITS</div><div class="v ${ME.dep?"amber":"dim"}">${fmt(ME.dep||0)}</div></div>
+     <div class="stat"><div class="l">DEPOSITS</div><div class="v ${ME.dep?"amber":"dim"}">${fmt(ME.dep||0)}</div></div>
    </div>
    <div class="card" style="margin-bottom:14px">
      <div style="display:flex;align-items:center;justify-content:space-between">

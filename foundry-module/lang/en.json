@@ -1,0 +1,34 @@
+{
+  "AGX.dlg.title": "AGX — Credit Transfer",
+  "AGX.dlg.sheet": "On sheet",
+  "AGX.dlg.agx": "On exchange",
+  "AGX.dlg.amount": "Amount (credits)",
+  "AGX.dlg.hint": "Deposit moves credits from your sheet to your AGX balance. Withdraw pulls them back. Whole credits only.",
+  "AGX.dlg.deposit": "Deposit to AGX",
+  "AGX.dlg.withdraw": "Withdraw to sheet",
+  "AGX.dlg.close": "Close",
+
+  "AGX.msg.deposited": "Deposited {amount} to AGX account '{callsign}'.",
+  "AGX.msg.withdrew": "Withdrew {amount} from AGX account '{callsign}' to your sheet.",
+
+  "AGX.err.notLinked": "Set your AGX callsign and access code in the module settings first.",
+  "AGX.err.noAccount": "No AGX account found for callsign '{callsign}'. Create it on the website first.",
+  "AGX.err.badCode": "AGX access code does not match that callsign.",
+  "AGX.err.amount": "Enter a whole credit amount greater than zero.",
+  "AGX.err.sheetFunds": "Not enough credits on the character sheet.",
+  "AGX.err.agxFunds": "Not enough credits in the AGX balance.",
+  "AGX.err.noActor": "No character selected.",
+  "AGX.err.noInventory": "That actor has no credit inventory.",
+
+  "AGX.set.callsign.name": "AGX Callsign",
+  "AGX.set.callsign.hint": "Your operative callsign on the Algalterian Galactic Exchange website.",
+  "AGX.set.accessCode.name": "AGX Access Code",
+  "AGX.set.accessCode.hint": "Your AGX access code (passphrase). Used to verify the account before any transfer.",
+  "AGX.set.url.name": "Supabase URL",
+  "AGX.set.url.hint": "Base URL of the AGX Supabase project. Leave the default unless your GM is self-hosting.",
+  "AGX.set.key.name": "Supabase Anon Key",
+  "AGX.set.key.hint": "Public anon key for the AGX Supabase project. Leave the default unless your GM is self-hosting.",
+  "AGX.set.denom.name": "Credit Denomination",
+  "AGX.set.denom.hint": "Which coin denomination represents Credits on the sheet. Starfinder 2e uses gp.",
+  "AGX.set.denom.credits": "gp (Credits)"
+}
