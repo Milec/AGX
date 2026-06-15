@@ -1,0 +1,30 @@
+name: Release Foundry module
+
+# Packages the AGX Foundry module into agx-link.zip and attaches it to the
+# GitHub release whenever a v* tag is pushed. The zip has module.json at its
+# root, as Foundry requires.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build agx-link.zip
+        run: |
+          cd foundry-module
+          zip -r ../agx-link.zip . -x '*.DS_Store'
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            agx-link.zip
+            foundry-module/module.json

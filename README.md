@@ -15,6 +15,10 @@ treasury bonds) on their phones while the GM rigs the market from an admin panel
   and player accounts all live in one key/value table accessed via PostgREST
   with the public anon key (RLS policy is fully open by design — it's a game
   among friends, not a bank).
+- **`foundry-module/`** — a Foundry VTT module for Starfinder 2e that links a
+  character sheet to a player's AGX balance, so credits can be moved between
+  the sheet's inventory and the exchange in either direction. See
+  [`foundry-module/README.md`](foundry-module/README.md).
 
 ### Price engine
 

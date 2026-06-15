@@ -1,0 +1,91 @@
+/* AGX — Galactic Exchange Link
+   Cyberpunk-leaning styling for the transfer dialog, matching the AGX site. */
+
+.agx-link.dialog .window-content {
+  background: #07090f;
+  color: #c7d3e0;
+}
+
+.agx-dialog {
+  font-family: "Consolas", "SFMono-Regular", ui-monospace, monospace;
+  padding: 2px 2px 6px;
+}
+
+.agx-balances {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.agx-bal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-left: 2px solid #00f0d0;
+  padding: 7px 10px;
+  background: rgba(0, 240, 208, 0.05);
+}
+
+.agx-bal-l {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4e6580;
+}
+
+.agx-bal-v {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00f0d0;
+}
+
+.agx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.agx-field label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4e6580;
+}
+
+.agx-field input {
+  background: #030508;
+  border: 1px solid #1a2330;
+  border-left: 2px solid #00f0d0;
+  border-radius: 0;
+  color: #e7eef7;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.agx-field input:focus {
+  outline: none;
+  border-color: #00f0d0;
+  box-shadow: 0 0 6px rgba(0, 240, 208, 0.4);
+}
+
+.agx-hint {
+  font-size: 11px;
+  color: #4e6580;
+  line-height: 1.4;
+  margin: 6px 0 0;
+}
+
+.agx-link.dialog .dialog-buttons button {
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+}
+
+/* sheet header control */
+a.agx-link-btn i {
+  margin-right: 3px;
+}
