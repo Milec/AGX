@@ -23,5 +23,5 @@
   },
   "url": "https://github.com/Milec/AGX",
   "manifest": "https://raw.githubusercontent.com/Milec/AGX/main/foundry-module/module.json",
-  "download": "https://github.com/Milec/AGX/releases/latest/download/agx-link.zip"
+  "download": "https://github.com/Milec/AGX/archive/refs/tags/1.zip"
 }
