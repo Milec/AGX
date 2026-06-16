@@ -17,7 +17,7 @@ the module also works on `pf2e` worlds using Starfinder content. Credits are the
 **By manifest** (Foundry → Add-on Modules → Install Module → Manifest URL):
 
 ```
-https://raw.githubusercontent.com/Milec/AGX/main/foundry-module/module.json
+https://github.com/Milec/AGX/blob/main/foundry-module/module.json
 ```
 
 **Manually** — copy the `foundry-module` folder into your Foundry
