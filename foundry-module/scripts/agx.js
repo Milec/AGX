@@ -14,7 +14,7 @@
  * balance.
  */
 
-import crypto from 'crypto';
+import { sha256 } from './sha256.js';
 
 const MOD = "agx-link";
 
@@ -23,13 +23,6 @@ const MOD = "agx-link";
 const t = (k) => game.i18n.localize(`AGX.${k}`);
 const setting = (k) => game.settings.get(MOD, k);
 const notify = (msg, type = "info") => ui.notifications.notify(msg, type);
-
-/** SHA-256("pwx:"+s) as lowercase hex — must match AGX's sha() exactly. */
-function sha256(s) {
-  const hash = crypto.createHash('sha256');
-  hash.update('pwx:' + s);
-  return hash.digest('hex');
-}
 
 /** Normalise a callsign into the AGX account key the same way the site does. */
 function accountKey(callsign) {
@@ -92,7 +85,7 @@ async function authedAccount() {
   const key = accountKey(callsign);
   const acct = await supaGet(key);
   if (!acct) throw new Error(game.i18n.format("AGX.err.noAccount", { callsign }));
-  if (acct.p !== sha256(code)) throw new Error(t("err.badCode"));
+  if (acct.p !== sha256("pwx:" + code)) throw new Error(t("err.badCode"));
   return { key, acct };
 }
 
