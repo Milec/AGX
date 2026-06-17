@@ -207,49 +207,47 @@ async function openTransfer(actor) {
       <p class="agx-hint">${t("dlg.hint")}</p>
     </div>`;
 
-  const run = async (fn, html) => {
-    const root = html?.[0] ?? html;
-    const amount = Number(root?.querySelector('input[name="amount"]')?.value);
+  // Run a transfer from a DialogV2 callback. `dialogApp` is the DialogV2 instance;
+  // `.element` is its outermost HTMLElement in V13 ApplicationV2.
+  const run = async (fn, dialogApp) => {
+    const amount = Number(dialogApp.element.querySelector('input[name="amount"]')?.value ?? 0);
     try {
       await fn(actor, amount);
-      const label = fn === depositToAGX ? "msg.deposited" : "msg.withdrew";
-      notify(
-        game.i18n.format(`AGX.${label}`, { amount: fmt(Math.floor(amount)), callsign }),
-        "info"
-      );
+      const msgKey = fn === depositToAGX ? "msg.deposited" : "msg.withdrew";
+      notify(game.i18n.format(`AGX.${msgKey}`, { amount: fmt(Math.floor(amount)), callsign }));
     } catch (err) {
       console.error(`${MOD} | transfer failed`, err);
       notify(err.message, "error");
     }
   };
 
-  const buttons = {
-    deposit: {
-      icon: '<i class="fas fa-arrow-up"></i>',
-      label: t("dlg.deposit"),
-      callback: (html) => run(depositToAGX, html),
-    },
-    withdraw: {
-      icon: '<i class="fas fa-arrow-down"></i>',
-      label: t("dlg.withdraw"),
-      callback: (html) => run(withdrawToSheet, html),
-    },
-    close: { icon: '<i class="fas fa-times"></i>', label: t("dlg.close") },
-  };
-
-  new Dialog(
-    {
-      title: t("dlg.title"),
-      content,
-      buttons,
-      default: "deposit",
-      render: (html) => {
-        const root = html[0] ?? html;
-        root.querySelector('input[name="amount"]')?.focus();
+  // DialogV2 is the V13 replacement for the deprecated Dialog class.
+  await foundry.applications.api.DialogV2.wait({
+    window: { title: t("dlg.title"), width: 380 },
+    content,
+    rejectClose: false,
+    classes: ["agx-link"],
+    buttons: [
+      {
+        action: "deposit",
+        label: t("dlg.deposit"),
+        icon: "fas fa-arrow-up",
+        default: true,
+        callback: (ev, btn, dialog) => run(depositToAGX, dialog),
       },
-    },
-    { classes: ["agx-link", "dialog"], width: 380 }
-  ).render(true);
+      {
+        action: "withdraw",
+        label: t("dlg.withdraw"),
+        icon: "fas fa-arrow-down",
+        callback: (ev, btn, dialog) => run(withdrawToSheet, dialog),
+      },
+      {
+        action: "close",
+        label: t("dlg.close"),
+        icon: "fas fa-times",
+      },
+    ],
+  });
 }
 
 /* ── settings ───────────────────────────────────────────────────────────── */
@@ -314,8 +312,8 @@ Hooks.once("ready", () => {
 
 /* ── sheet button ───────────────────────────────────────────────────────── */
 
-// Adds an "AGX" control to the character sheet window header. Works for the
-// v1 ActorSheet headers PF2e/SF2e use.
+// PF2e/SF2e on Foundry V13 still fires getActorSheetHeaderButtons for module
+// compatibility. The hook injects the AGX button at the left end of the header.
 Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
   const actor = sheet.actor;
   if (!actor?.isOwner || !actor.inventory?.coins) return;
