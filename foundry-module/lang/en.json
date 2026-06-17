@@ -29,6 +29,7 @@
   "AGX.set.key.name": "Supabase Anon Key",
   "AGX.set.key.hint": "Public anon key for the AGX Supabase project. Leave the default unless your GM is self-hosting.",
   "AGX.set.denom.name": "Credit Denomination",
-  "AGX.set.denom.hint": "Which coin denomination represents Credits on the sheet. Starfinder 2e uses gp.",
-  "AGX.set.denom.credits": "gp (Credits)"
+  "AGX.set.denom.hint": "Which coin denomination represents Credits on the sheet. Try 'cr' for SF2e; fall back to 'gp' if balances show as 0.",
+  "AGX.set.denom.cr": "cr (Credits — SF2e)",
+  "AGX.set.denom.gp": "gp (Gold / Credits — PF2e)"
 }

@@ -68,9 +68,11 @@ async function supaSet(key, value) {
 /** Whole credits currently on a character sheet (the configured coin denom). */
 function sheetCredits(actor) {
   const denom = setting("denomination");
-  const coins = actor?.inventory?.coins;
-  if (!coins) return 0;
-  return Math.floor(Number(coins[denom]) || 0);
+  // Read from system.currency directly — inventory.coins may be a class instance
+  // in SF2e/PF2e v6+ whose properties don't coerce to plain numbers reliably.
+  const currency = actor?.system?.currency;
+  if (!currency) return 0;
+  return Math.floor(Number(currency[denom]) || 0);
 }
 
 /* ── account access ─────────────────────────────────────────────────────── */
@@ -173,7 +175,7 @@ function fmt(n) {
 
 async function openTransfer(actor) {
   if (!actor) return notify(t("err.noActor"), "warn");
-  if (!actor.inventory?.coins) return notify(t("err.noInventory"), "warn");
+  if (!actor.system?.currency) return notify(t("err.noInventory"), "warn");
   if (!setting("callsign") || !setting("accessCode")) {
     return notify(t("err.notLinked"), "warn");
   }
@@ -298,8 +300,8 @@ Hooks.once("init", () => {
     scope: "world",
     config: true,
     type: String,
-    choices: { pp: "pp", gp: "AGX.set.denom.credits", sp: "sp", cp: "cp" },
-    default: "gp",
+    choices: { cr: "AGX.set.denom.cr", pp: "pp", gp: "AGX.set.denom.gp", sp: "sp", cp: "cp" },
+    default: "cr",
   });
 });
 
