@@ -1,6 +1,8 @@
 /* AGX — Galactic Exchange Link
    Cyberpunk-leaning styling for the transfer dialog, matching the AGX site. */
 
+/* V13 ApplicationV2 uses .application; target both for safety */
+.agx-link.application .window-content,
 .agx-link.dialog .window-content {
   background: #07090f;
   color: #c7d3e0;
@@ -78,6 +80,8 @@
   margin: 6px 0 0;
 }
 
+/* V13 DialogV2 uses .form-footer > button; keep .dialog-buttons for compat */
+.agx-link .form-footer button,
 .agx-link.dialog .dialog-buttons button {
   border-radius: 0;
   text-transform: uppercase;
