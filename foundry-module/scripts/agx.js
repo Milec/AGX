@@ -14,6 +14,8 @@
  * balance.
  */
 
+import crypto from 'crypto';
+
 const MOD = "agx-link";
 
 /* ── tiny helpers ───────────────────────────────────────────────────────── */
@@ -23,9 +25,10 @@ const setting = (k) => game.settings.get(MOD, k);
 const notify = (msg, type = "info") => ui.notifications.notify(msg, type);
 
 /** SHA-256("pwx:"+s) as lowercase hex — must match AGX's sha() exactly. */
-async function sha256(s) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pwx:" + s));
-  return [...new Uint8Array(buf)].map((x) => x.toString(16).padStart(2, "0")).join("");
+function sha256(s) {
+  const hash = crypto.createHash('sha256');
+  hash.update('pwx:' + s);
+  return hash.digest('hex');
 }
 
 /** Normalise a callsign into the AGX account key the same way the site does. */
@@ -89,7 +92,7 @@ async function authedAccount() {
   const key = accountKey(callsign);
   const acct = await supaGet(key);
   if (!acct) throw new Error(game.i18n.format("AGX.err.noAccount", { callsign }));
-  if (acct.p !== (await sha256(code))) throw new Error(t("err.badCode"));
+  if (acct.p !== sha256(code)) throw new Error(t("err.badCode"));
   return { key, acct };
 }
 
@@ -250,7 +253,7 @@ async function openTransfer(actor) {
   });
 }
 
-/* ── settings ───────────────────────────────────────────────────────────── */
+/* ── settings ──────────────────────────────────────────────────────────── */
 
 Hooks.once("init", () => {
   // NOTE: the `init` hook fires before translations are loaded, so we pass
