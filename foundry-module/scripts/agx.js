@@ -102,8 +102,9 @@ async function depositToAGX(actor, amount) {
   if (sheetCredits(actor) < amount) throw new Error(t("err.sheetFunds"));
 
   const denom = setting("denomination");
-  const removed = await actor.inventory.removeCoins({ [denom]: amount });
-  if (!removed) throw new Error(t("err.sheetFunds"));
+  const current = sheetCredits(actor);
+  // Direct update avoids SF2e's compendium item lookup inside addCoins/removeCoins
+  await actor.update({ [`system.currency.${denom}`]: current - amount });
 
   try {
     const { key, acct } = await authedAccount();
@@ -114,7 +115,8 @@ async function depositToAGX(actor, amount) {
     return acct.cash;
   } catch (err) {
     // roll the coins back onto the sheet — the website never took them
-    await actor.inventory.addCoins({ [denom]: amount });
+    const restored = sheetCredits(actor);
+    await actor.update({ [`system.currency.${denom}`]: restored + amount });
     throw err;
   }
 }
@@ -137,7 +139,9 @@ async function withdrawToSheet(actor, amount) {
   await supaSet(key, acct);
 
   try {
-    await actor.inventory.addCoins({ [setting("denomination")]: amount });
+    const denom = setting("denomination");
+    const current = sheetCredits(actor);
+    await actor.update({ [`system.currency.${denom}`]: current + amount });
     return acct.cash;
   } catch (err) {
     // refund the website debit — the sheet never received the credits
