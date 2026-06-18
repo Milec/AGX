@@ -17,8 +17,7 @@
   ],
   "relationships": {
     "systems": [
-      { "id": "sf2e", "type": "system", "compatibility": {} },
-      { "id": "pf2e", "type": "system", "compatibility": {} }
+      { "id": "sf2e", "type": "system", "compatibility": {} }
     ]
   },
   "url": "https://github.com/Milec/AGX",

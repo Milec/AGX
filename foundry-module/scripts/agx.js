@@ -1,17 +1,13 @@
 /**
  * AGX — Galactic Exchange Link
  * ----------------------------------------------------------------------------
- * Bridges a Starfinder 2e (PF2e engine) character sheet to a player's balance
- * on the Algalterian Galactic Exchange website. Credits can be pushed from the
- * sheet's inventory to the AGX trading balance and pulled back the other way.
+ * Bridges a Starfinder 2e character sheet to a player's balance on the
+ * Algalterian Galactic Exchange website. Credits can be pushed from the
+ * sheet's credstick to the AGX trading balance and pulled back the other way.
  *
- * The AGX site stores everything in a single Supabase `kv` table. A player
- * account lives at key `u:<callsign>` and looks like:
- *   { n, p:sha256("pwx:"+pass), cash, sc, dep, hist:[...], ... }
- * RLS is fully open with the public anon key (it's a game among friends), so
- * the only thing we need to act on an account is the callsign; we additionally
- * verify the access code so a player can't accidentally drain someone else's
- * balance.
+ * SF2e stores credits as an inventory item with slug "credstick"; quantity
+ * equals the credit balance. The AGX site stores everything in a Supabase
+ * `kv` table keyed as `u:<callsign>`.
  */
 
 import { sha256 } from './sha256.js';
@@ -65,43 +61,28 @@ async function supaSet(key, value) {
 
 /* ── sheet credit access ────────────────────────────────────────────────── */
 
-/** SF2e stores credits as a credstick inventory item (slug "credstick").
- *  PF2e stores them as a coin denomination in system.currency. */
+/** Returns the actor's credstick item, or null if they don't have one. */
 function credstick(actor) {
   return actor.items?.find(i => i.slug === "credstick") ?? null;
 }
 
+/** Current credit balance from the character's credstick quantity. */
 function sheetCredits(actor) {
-  if (game.system.id === "sf2e") {
-    const stick = credstick(actor);
-    return stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
-  }
-  const denom = setting("denomination");
-  return Math.floor(Number(actor?.system?.currency?.[denom]) || 0);
+  const stick = credstick(actor);
+  return stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
 }
 
 async function addSheetCredits(actor, amount) {
-  if (game.system.id === "sf2e") {
-    const stick = credstick(actor);
-    if (!stick) throw new Error(t("err.noInventory"));
-    await stick.update({ "system.quantity": (Number(stick.system.quantity) || 0) + amount });
-    return;
-  }
-  const denom = setting("denomination");
-  await actor.update({ [`system.currency.${denom}`]: sheetCredits(actor) + amount });
+  const stick = credstick(actor);
+  if (!stick) throw new Error(t("err.noInventory"));
+  await stick.update({ "system.quantity": (Number(stick.system.quantity) || 0) + amount });
 }
 
 async function removeSheetCredits(actor, amount) {
-  if (game.system.id === "sf2e") {
-    const stick = credstick(actor);
-    const qty = stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
-    if (qty < amount) throw new Error(t("err.sheetFunds"));
-    await stick.update({ "system.quantity": qty - amount });
-    return;
-  }
-  const denom = setting("denomination");
-  if (sheetCredits(actor) < amount) throw new Error(t("err.sheetFunds"));
-  await actor.update({ [`system.currency.${denom}`]: sheetCredits(actor) - amount });
+  const stick = credstick(actor);
+  const qty = stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
+  if (qty < amount) throw new Error(t("err.sheetFunds"));
+  await stick.update({ "system.quantity": qty - amount });
 }
 
 /* ── account access ─────────────────────────────────────────────────────── */
@@ -124,8 +105,8 @@ async function authedAccount() {
 
 /**
  * Move `amount` whole credits from the character sheet to the AGX balance.
- * Removes coins first; if the website write fails the coins are refunded so the
- * two ledgers never silently diverge.
+ * Debits the credstick first; if the website write fails the credits are
+ * refunded so the two ledgers never silently diverge.
  */
 async function depositToAGX(actor, amount) {
   amount = Math.floor(Number(amount));
@@ -198,8 +179,7 @@ function fmt(n) {
 
 async function openTransfer(actor) {
   if (!actor) return notify(t("err.noActor"), "warn");
-  const hasCurrency = game.system.id === "sf2e" ? !!credstick(actor) : !!actor.system?.currency;
-  if (!hasCurrency) return notify(t("err.noInventory"), "warn");
+  if (!credstick(actor)) return notify(t("err.noInventory"), "warn");
   if (!setting("callsign") || !setting("accessCode")) {
     return notify(t("err.notLinked"), "warn");
   }
@@ -233,8 +213,6 @@ async function openTransfer(actor) {
       <p class="agx-hint">${t("dlg.hint")}</p>
     </div>`;
 
-  // Run a transfer from a DialogV2 callback. `dialogApp` is the DialogV2 instance;
-  // `.element` is its outermost HTMLElement in V13 ApplicationV2.
   const run = async (fn, dialogApp) => {
     const amount = Number(dialogApp.element.querySelector('input[name="amount"]')?.value ?? 0);
     try {
@@ -279,10 +257,6 @@ async function openTransfer(actor) {
 /* ── settings ──────────────────────────────────────────────────────────── */
 
 Hooks.once("init", () => {
-  // NOTE: the `init` hook fires before translations are loaded, so we pass
-  // localization *keys* — Foundry localizes setting name/hint/choices itself
-  // when it renders the settings menu.
-
   // Per-player link credentials (client scope: each player sets their own).
   game.settings.register(MOD, "callsign", {
     name: "AGX.set.callsign.name",
@@ -318,15 +292,6 @@ Hooks.once("init", () => {
     type: String,
     default: "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE",
   });
-  game.settings.register(MOD, "denomination", {
-    name: "AGX.set.denom.name",
-    hint: "AGX.set.denom.hint",
-    scope: "world",
-    config: true,
-    type: String,
-    choices: { cr: "AGX.set.denom.cr", pp: "pp", gp: "AGX.set.denom.gp", sp: "sp", cp: "cp" },
-    default: "cr",
-  });
 });
 
 Hooks.once("ready", () => {
@@ -338,11 +303,11 @@ Hooks.once("ready", () => {
 
 /* ── sheet button ───────────────────────────────────────────────────────── */
 
-// PF2e/SF2e on Foundry V13 still fires getActorSheetHeaderButtons for module
+// SF2e on Foundry V13 still fires getActorSheetHeaderButtons for module
 // compatibility. The hook injects the AGX button at the left end of the header.
 Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
   const actor = sheet.actor;
-  if (!actor?.isOwner || !actor.inventory?.coins) return;
+  if (!actor?.isOwner || !credstick(actor)) return;
   buttons.unshift({
     label: "AGX",
     class: "agx-link-btn",

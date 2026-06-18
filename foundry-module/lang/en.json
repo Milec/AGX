@@ -18,7 +18,7 @@
   "AGX.err.sheetFunds": "Not enough credits on the character sheet.",
   "AGX.err.agxFunds": "Not enough credits in the AGX balance.",
   "AGX.err.noActor": "No character selected.",
-  "AGX.err.noInventory": "That actor has no credit inventory.",
+  "AGX.err.noInventory": "No credstick found on that character. Add a credstick item to their inventory first.",
 
   "AGX.set.callsign.name": "AGX Callsign",
   "AGX.set.callsign.hint": "Your operative callsign on the Algalterian Galactic Exchange website.",
@@ -27,9 +27,5 @@
   "AGX.set.url.name": "Supabase URL",
   "AGX.set.url.hint": "Base URL of the AGX Supabase project. Leave the default unless your GM is self-hosting.",
   "AGX.set.key.name": "Supabase Anon Key",
-  "AGX.set.key.hint": "Public anon key for the AGX Supabase project. Leave the default unless your GM is self-hosting.",
-  "AGX.set.denom.name": "Credit Denomination",
-  "AGX.set.denom.hint": "Which coin denomination represents Credits on the sheet. Try 'cr' for SF2e; fall back to 'gp' if balances show as 0.",
-  "AGX.set.denom.cr": "cr (Credits — SF2e)",
-  "AGX.set.denom.gp": "gp (Gold / Credits — PF2e)"
+  "AGX.set.key.hint": "Public anon key for the AGX Supabase project. Leave the default unless your GM is self-hosting."
 }
