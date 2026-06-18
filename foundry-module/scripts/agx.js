@@ -65,14 +65,43 @@ async function supaSet(key, value) {
 
 /* ── sheet credit access ────────────────────────────────────────────────── */
 
-/** Whole credits currently on a character sheet (the configured coin denom). */
+/** SF2e stores credits as a credstick inventory item (slug "credstick").
+ *  PF2e stores them as a coin denomination in system.currency. */
+function credstick(actor) {
+  return actor.items?.find(i => i.slug === "credstick") ?? null;
+}
+
 function sheetCredits(actor) {
+  if (game.system.id === "sf2e") {
+    const stick = credstick(actor);
+    return stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
+  }
   const denom = setting("denomination");
-  // Read from system.currency directly — inventory.coins may be a class instance
-  // in SF2e/PF2e v6+ whose properties don't coerce to plain numbers reliably.
-  const currency = actor?.system?.currency;
-  if (!currency) return 0;
-  return Math.floor(Number(currency[denom]) || 0);
+  return Math.floor(Number(actor?.system?.currency?.[denom]) || 0);
+}
+
+async function addSheetCredits(actor, amount) {
+  if (game.system.id === "sf2e") {
+    const stick = credstick(actor);
+    if (!stick) throw new Error(t("err.noInventory"));
+    await stick.update({ "system.quantity": (Number(stick.system.quantity) || 0) + amount });
+    return;
+  }
+  const denom = setting("denomination");
+  await actor.update({ [`system.currency.${denom}`]: sheetCredits(actor) + amount });
+}
+
+async function removeSheetCredits(actor, amount) {
+  if (game.system.id === "sf2e") {
+    const stick = credstick(actor);
+    const qty = stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
+    if (qty < amount) throw new Error(t("err.sheetFunds"));
+    await stick.update({ "system.quantity": qty - amount });
+    return;
+  }
+  const denom = setting("denomination");
+  if (sheetCredits(actor) < amount) throw new Error(t("err.sheetFunds"));
+  await actor.update({ [`system.currency.${denom}`]: sheetCredits(actor) - amount });
 }
 
 /* ── account access ─────────────────────────────────────────────────────── */
@@ -103,10 +132,7 @@ async function depositToAGX(actor, amount) {
   if (!(amount > 0)) throw new Error(t("err.amount"));
   if (sheetCredits(actor) < amount) throw new Error(t("err.sheetFunds"));
 
-  const denom = setting("denomination");
-  const current = sheetCredits(actor);
-  // Direct update avoids SF2e's compendium item lookup inside addCoins/removeCoins
-  await actor.update({ [`system.currency.${denom}`]: current - amount });
+  await removeSheetCredits(actor, amount);
 
   try {
     const { key, acct } = await authedAccount();
@@ -116,9 +142,8 @@ async function depositToAGX(actor, amount) {
     await supaSet(key, acct);
     return acct.cash;
   } catch (err) {
-    // roll the coins back onto the sheet — the website never took them
-    const restored = sheetCredits(actor);
-    await actor.update({ [`system.currency.${denom}`]: restored + amount });
+    // roll the credits back onto the sheet — the website never took them
+    await addSheetCredits(actor, amount).catch(() => {});
     throw err;
   }
 }
@@ -141,9 +166,7 @@ async function withdrawToSheet(actor, amount) {
   await supaSet(key, acct);
 
   try {
-    const denom = setting("denomination");
-    const current = sheetCredits(actor);
-    await actor.update({ [`system.currency.${denom}`]: current + amount });
+    await addSheetCredits(actor, amount);
     return acct.cash;
   } catch (err) {
     // refund the website debit — the sheet never received the credits
@@ -175,7 +198,8 @@ function fmt(n) {
 
 async function openTransfer(actor) {
   if (!actor) return notify(t("err.noActor"), "warn");
-  if (!actor.system?.currency) return notify(t("err.noInventory"), "warn");
+  const hasCurrency = game.system.id === "sf2e" ? !!credstick(actor) : !!actor.system?.currency;
+  if (!hasCurrency) return notify(t("err.noInventory"), "warn");
   if (!setting("callsign") || !setting("accessCode")) {
     return notify(t("err.notLinked"), "warn");
   }
