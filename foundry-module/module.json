@@ -2,7 +2,7 @@
   "id": "agx-link",
   "title": "AGX — Galactic Exchange Link",
   "description": "Links Starfinder 2e character sheets to the Algalterian Galactic Exchange website. Players move credits between their sheet and their AGX trading balance in either direction.",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

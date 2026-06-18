@@ -8,9 +8,9 @@ ways:
   balance.
 - **Withdraw** — pull credits from the AGX balance back onto the sheet.
 
-The Starfinder 2e Foundry system runs on the PF2e engine (system id `sf2e`), so
-the module also works on `pf2e` worlds using Starfinder content. Credits are the
-`gp` coin denomination by default (configurable).
+Built for the **Starfinder 2e** Foundry system (system id `sf2e`). Credits are
+read from and written to the character's **credstick** inventory item, the same
+item the SF2e sheet uses to track a character's credit balance.
 
 ## Install
 
@@ -42,13 +42,14 @@ World settings (GM only — defaults already point at the live AGX server):
 | --- | --- |
 | **Supabase URL** | the AGX Supabase project URL |
 | **Supabase Anon Key** | the public AGX anon key |
-| **Credit Denomination** | `gp` (Credits) |
 
 ## Use
 
 Open your character sheet and click the **AGX** button in the sheet's window
-header. A dialog shows the credits on your sheet and on the exchange; enter an
-amount and choose **Deposit to AGX** or **Withdraw to sheet**.
+header. (The button only appears if the character has a **credstick** item in
+their inventory — add one with a starting quantity of 0 if they don't.) A dialog
+shows the credits on your sheet and on the exchange; enter an amount and choose
+**Deposit to AGX** or **Withdraw to sheet**.
 
 You can also trigger it from a macro:
 
@@ -64,8 +65,10 @@ game.agx.openTransfer(actor); // or canvas.tokens.controlled[0]?.actor
   shows up in your AGX transaction feed.
 - Deposits also increase the account's deposit basis (`dep`) so your AGX
   return percentage stays honest; withdrawals decrease it.
-- Transfers are **atomic-ish with rollback**: when depositing, coins are removed
-  from the sheet first and refunded if the website write fails; when
+- Credits on the sheet are tracked as the quantity of the character's
+  `credstick` item; transfers adjust that quantity.
+- Transfers are **atomic-ish with rollback**: when depositing, credits are
+  removed from the sheet first and refunded if the website write fails; when
   withdrawing, the website is debited first and refunded if the sheet credit
   fails. The two ledgers never silently diverge.
 - Whole credits only.
