@@ -66,23 +66,24 @@ function credstick(actor) {
   return actor.items?.find(i => i.slug === "credstick") ?? null;
 }
 
-/** Current credit balance from the character's credstick quantity. */
+/** Current credit balance from the character's credstick. */
 function sheetCredits(actor) {
   const stick = credstick(actor);
-  return stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
+  return stick ? Math.floor(Number(stick.system.price.value.credits) || 0) : 0;
 }
 
 async function addSheetCredits(actor, amount) {
   const stick = credstick(actor);
   if (!stick) throw new Error(t("err.noInventory"));
-  await stick.update({ "system.quantity": (Number(stick.system.quantity) || 0) + amount });
+  const current = Math.floor(Number(stick.system.price.value.credits) || 0);
+  await stick.update({ "system.price.value.credits": current + amount });
 }
 
 async function removeSheetCredits(actor, amount) {
   const stick = credstick(actor);
-  const qty = stick ? Math.floor(Number(stick.system.quantity) || 0) : 0;
-  if (qty < amount) throw new Error(t("err.sheetFunds"));
-  await stick.update({ "system.quantity": qty - amount });
+  const current = stick ? Math.floor(Number(stick.system.price.value.credits) || 0) : 0;
+  if (current < amount) throw new Error(t("err.sheetFunds"));
+  await stick.update({ "system.price.value.credits": current - amount });
 }
 
 /* ── account access ─────────────────────────────────────────────────────── */
