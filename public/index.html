@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* shared shape scale */
-  --r:20px; --r-md:14px; --r-sm:10px;
+  /* shared shape scale — angular HUD geometry */
+  --r:8px; --r-md:5px; --r-sm:3px;
   /* accents */
   --cyan:#36EFE0; --amber:#FFC24B; --vio:#B59CFF;
   --up:#34E2A2; --down:#FF5C7C;
@@ -34,6 +34,7 @@
   --grab:rgba(255,255,255,.25);
   --aurora-1:rgba(54,239,224,.12); --aurora-2:rgba(181,156,255,.11); --aurora-3:rgba(255,194,75,.06);
   --body-base:linear-gradient(180deg,#070b16,#04060d 60%);
+  --grid-dot:rgba(90,140,180,.16); --bracket:var(--cyan);
 }
 :root[data-theme="light"]{
   --bg:#eef2fb; --ink:#0E1A2E; --dim:#5A6B86;
@@ -58,6 +59,7 @@
   --grab:rgba(20,40,80,.22);
   --aurora-1:rgba(8,182,166,.16); --aurora-2:rgba(124,92,240,.13); --aurora-3:rgba(201,126,0,.09);
   --body-base:linear-gradient(180deg,#f4f7fe,#e7edf9 60%);
+  --grid-dot:rgba(20,60,110,.12); --bracket:var(--cyan);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
@@ -76,6 +78,9 @@ body::before{content:'';position:fixed;inset:-25%;z-index:-1;pointer-events:none
   background:radial-gradient(38% 38% at 28% 32%,var(--aurora-2),transparent 70%),radial-gradient(40% 40% at 72% 64%,var(--aurora-1),transparent 70%);
   filter:blur(46px);opacity:.7;animation:aurora 24s ease-in-out infinite alternate}
 @keyframes aurora{0%{transform:translate3d(-3%,-2%,0) scale(1)}100%{transform:translate3d(3%,2%,0) scale(1.12)}}
+/* technical dotted-grid overlay (HUD) */
+body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(var(--grid-dot) 1px,transparent 1.4px);background-size:24px 24px;opacity:.6}
 .mono{font-family:'IBM Plex Mono',monospace}
 h1,h2,h3,.disp{font-family:'Orbitron',sans-serif;letter-spacing:.06em}
 .up{color:var(--up)} .down{color:var(--down)} .dim{color:var(--dim)} .amber{color:var(--amber)} .cyan{color:var(--cyan)}
@@ -100,7 +105,11 @@ input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 
 .btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;filter:none}
 
 /* ── cards ── */
-.card{background:var(--glass-grad);border:1px solid var(--line2);border-radius:var(--r);padding:18px;-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:var(--shadow),inset 0 1px 0 var(--hi)}
+.card{position:relative;background:var(--glass-grad);border:1px solid var(--line2);border-radius:var(--r);padding:18px;-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:var(--shadow),inset 0 1px 0 var(--hi)}
+/* HUD corner brackets (top-left + bottom-right) */
+.card::before,.card::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;opacity:.8}
+.card::before{top:-1px;left:-1px;border-top:2px solid var(--bracket);border-left:2px solid var(--bracket)}
+.card::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--bracket);border-right:2px solid var(--bracket)}
 .wrap{max-width:920px;margin:0 auto;padding:8px 14px 120px}
 
 /* ── header ── */
@@ -128,7 +137,7 @@ header{position:sticky;top:0;z-index:30;background:var(--header-bg);-webkit-back
 
 /* ── bottom nav ── */
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--nav-bg);-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
-  border-top:1px solid var(--line2);border-radius:22px 22px 0 0;display:flex;justify-content:space-around;
+  border-top:1px solid var(--line2);border-radius:10px 10px 0 0;display:flex;justify-content:space-around;
   padding:8px max(6px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-right));
   box-shadow:0 -18px 40px -22px rgba(0,0,0,.5),inset 0 1px 0 var(--hi);transition:background-color .35s ease}
 nav button{flex:1 1 0;min-width:0;background:none;color:var(--dim);font-size:9px;letter-spacing:.05em;padding:9px 2px;font-family:'Orbitron';
@@ -157,9 +166,22 @@ nav button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,tra
 /* ── filter chips ── */
 .chips{display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 2px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;background:var(--chip-bg);color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:color .15s,background .15s,border-color .15s}
+.chip{flex:none;background:var(--chip-bg);color:var(--dim);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 13px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:color .15s,background .15s,border-color .15s}
 .chip.on{color:#04201d;background:linear-gradient(180deg,#46f3e4,#1bcabf);border-color:transparent;box-shadow:0 6px 16px -8px rgba(54,239,224,.6),inset 0 1px 0 rgba(255,255,255,.4)}
-.sect{font-family:'Orbitron';font-size:10px;letter-spacing:.28em;color:var(--dim);margin:20px 0 8px;padding-left:10px;border-left:2px solid var(--amber)}
+.sect{display:flex;align-items:center;gap:10px;font-family:'Orbitron';font-size:10px;letter-spacing:.28em;color:var(--dim);margin:20px 0 8px;padding-left:10px;border-left:2px solid var(--amber)}
+.sect::after{content:'';flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--line2) 0,var(--line2) 4px,transparent 4px,transparent 8px)}
+/* ── HUD instrument cluster (market pulse) ── */
+.hud-tag{display:flex;align-items:center;gap:7px;font-family:'Orbitron';font-size:9px;letter-spacing:.24em;color:var(--dim);text-transform:uppercase}
+.hud-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.hud-row{display:flex;align-items:center;gap:16px}
+.hud-gauge{flex:none}
+.hud-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.hud-readout{position:relative;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--chip-bg)}
+.hud-readout::before{content:'';position:absolute;top:-1px;left:-1px;width:8px;height:8px;border-top:2px solid var(--bracket);border-left:2px solid var(--bracket);opacity:.7}
+.hud-k{font-family:'Orbitron';font-size:8px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.hud-v{font-family:'IBM Plex Mono';font-size:14px;font-weight:600;margin-top:2px}
+.seg{display:flex;gap:2px;height:9px}
+.seg span{flex:1;border-radius:1px}
 
 /* ── asset modal ── */
 .modal-bg{position:fixed;inset:0;background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
@@ -975,28 +997,42 @@ function marketPulse(){
   const adv=pool.filter(x=>x.c>0).length, dec=pool.length-adv;
   const breadth=Math.round(adv/pool.length*100);
   const r=curRegime();
-  const tile=(lbl,x,dir)=>`<div style="flex:1;min-width:0">
-      <div class="l" style="font-family:'Orbitron';font-size:8px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase">${lbl}</div>
-      <div class="mono" style="font-size:13px;font-weight:600;color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.a.sym}</div>
-      <div class="mono ${cls(x.c)}" style="font-size:12px">${pct(x.c)}</div></div>`;
-  return `<div class="card" style="margin-top:12px;padding:16px;background:linear-gradient(150deg,rgba(54,239,224,.07),rgba(181,156,255,.05) 70%,rgba(255,255,255,.02))">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-      <span style="width:9px;height:9px;border-radius:50%;background:${r.col};box-shadow:0 0 12px ${r.col};flex:none"></span>
+  return `<div class="card" style="margin-top:12px">
+    <div class="hud-row">
+      <div class="hud-gauge">${radialGauge(breadth,breadth+"%","BREADTH")}</div>
       <div style="flex:1;min-width:0">
-        <div class="disp" style="font-size:13px;color:${r.col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.label}</div>
-        <div class="dim" style="font-size:9px;letter-spacing:.18em;font-family:'Orbitron';text-transform:uppercase">Market Pulse</div>
+        <div class="hud-tag"><span class="hud-dot" style="background:${r.col};box-shadow:0 0 8px ${r.col}"></span>MARKET PULSE · LIVE</div>
+        <div class="disp" style="font-size:14px;color:${r.col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 9px">${r.label}</div>
+        ${segBar(breadth,18)}
+        <div class="mono" style="font-size:11px;color:var(--dim);margin-top:6px;letter-spacing:.05em">ADV <span class="up">${String(adv).padStart(3,"0")}</span> · DEC <span class="down">${String(dec).padStart(3,"0")}</span> · UNITS ${pool.length}</div>
       </div>
-      <div style="text-align:right"><div class="mono" style="font-size:15px;font-weight:600"><span class="up">${adv}</span> <span class="dim">/</span> <span class="down">${dec}</span></div>
-      <div class="dim" style="font-size:8px;letter-spacing:.16em;font-family:'Orbitron'">ADV / DEC</div></div>
     </div>
-    <div style="height:5px;border-radius:999px;overflow:hidden;background:rgba(255,92,124,.25);margin-bottom:14px">
-      <div style="height:100%;width:${breadth}%;background:linear-gradient(90deg,var(--up),var(--cyan));box-shadow:0 0 10px rgba(54,239,224,.5)"></div></div>
-    <div style="display:flex;gap:14px">
-      ${tile("Top Gainer",up)}
-      <div style="width:1px;background:var(--line)"></div>
-      ${tile("Top Loser",dn)}
+    <div class="hud-split">
+      <div class="hud-readout"><div class="hud-k">▲ TOP GAINER</div><div class="hud-v cyan" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${up.a.sym}</div><div class="mono ${cls(up.c)}" style="font-size:12px">${pct(up.c)}</div></div>
+      <div class="hud-readout"><div class="hud-k">▼ TOP LOSER</div><div class="hud-v cyan" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dn.a.sym}</div><div class="mono ${cls(dn.c)}" style="font-size:12px">${pct(dn.c)}</div></div>
     </div>
   </div>`;
+}
+// radial dial gauge (HUD), theme-colored
+function radialGauge(pct,centerTxt,sub){
+  const R=30,C=2*Math.PI*R,p=Math.max(0,Math.min(100,pct)),off=C*(1-p/100);
+  let ticks="";
+  for(let i=0;i<40;i++){const a=i/40*2*Math.PI,x1=42+34*Math.cos(a),y1=42+34*Math.sin(a),x2=42+38*Math.cos(a),y2=42+38*Math.sin(a);
+    ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--line2)" stroke-width="${i%5===0?1.4:0.6}"/>`;}
+  return `<svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
+    ${ticks}
+    <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--line)" stroke-width="5"/>
+    <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--cyan)" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 42 42)" style="filter:drop-shadow(0 0 4px var(--cyan))"/>
+    <text x="42" y="40" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono" font-size="16" font-weight="600">${centerTxt}</text>
+    <text x="42" y="53" text-anchor="middle" fill="var(--dim)" font-family="Orbitron" font-size="6.5" letter-spacing="1.2">${sub}</text>
+  </svg>`;
+}
+// segmented HUD bar (filled cells glow)
+function segBar(pct,n){
+  n=n||18;const filled=Math.round(Math.max(0,Math.min(100,pct))/100*n);
+  let s="";for(let i=0;i<n;i++)s+=`<span style="background:${i<filled?"linear-gradient(180deg,var(--up),var(--cyan))":"var(--line)"};box-shadow:${i<filled?"0 0 6px color-mix(in srgb,var(--cyan) 45%,transparent)":"none"}"></span>`;
+  return `<div class="seg">${s}</div>`;
 }
 function renderMarket(v){
   v.innerHTML=`
