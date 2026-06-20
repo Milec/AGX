@@ -202,6 +202,13 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .admin-grid h3{font-size:11px;letter-spacing:.22em;color:var(--amber);margin-bottom:12px;padding-left:10px;border-left:2px solid var(--amber);text-transform:uppercase}
 .inline{display:flex;gap:8px;flex-wrap:wrap}
 .inline>*{flex:1;min-width:110px}
+/* operator management cards */
+.opcard{border:1px solid var(--line2);border-radius:var(--r-md);padding:14px;margin-bottom:12px;background:var(--row-grad);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.op-credits{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:8px}
+.op-credits .btn{white-space:nowrap}
+.op-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.op-danger{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line2)}
+.op-label{font-family:'Orbitron';font-size:9px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin:16px 0 0;padding-left:2px}
 
 /* ── feed ── */
 .feed-item{padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--row-grad);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:background-color .35s ease}
@@ -1785,6 +1792,10 @@ const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").m
 const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
 function renderCasino(v){
   if(CFG.casino===false){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The casino decks are dark. The gamemaster has closed the tables.</div>`;return}
+  if(casinoBarred()){v.innerHTML=`<div class="card" style="margin-top:18px;text-align:center;border-color:color-mix(in srgb,var(--down) 50%,transparent)">
+    <div class="disp" style="color:var(--down);font-size:16px;letter-spacing:.1em">⛔ ACCESS REVOKED</div>
+    <div class="dim" style="margin-top:10px;font-size:13px;line-height:1.6">The Drift Casino has barred your credentials at the exchange authority's request. Your chips are no good here, operative.</div>
+  </div>`;return}
   v.innerHTML=`
    <div class="sect" style="margin-top:18px">THE DRIFT CASINO <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· house always wins, eventually</span></div>
    <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
@@ -1801,6 +1812,34 @@ async function wager(delta,game){
   await saveMe();
 }
 function betVal(id){const n=parseFloat($(id).value);return (!n||n<=0)?null:n}
+/* ── GM-controlled per-operator luck & casino ban ──────────────────────────
+   u.luck: "good" | "cursed" | undefined ; u.casinoBan: bool. Luck nudges the
+   pure-chance outcomes via a best/worst-of-two draw so the visible result
+   always matches the payout. Players are never told — it's a GM augmentation. */
+function luckOf(u){return u&&u.luck==="good"?1:(u&&u.luck==="cursed"?-1:0);}
+function casinoBarred(){return !!(ME&&ME.casinoBan);}
+function rouletteWin(n,pick,num){
+  if(pick==="RED")return REDS.has(n);
+  if(pick==="BLACK")return n!==0&&!REDS.has(n);
+  if(pick==="EVEN")return n!==0&&n%2===0;
+  if(pick==="ODD")return n%2===1;
+  return n===num;
+}
+function slotMult(r){
+  if(r[0]===r[1]&&r[1]===r[2])return SLOT_PAY[r[0]];
+  if(r[0]===r[1]||r[1]===r[2]||r[0]===r[2])return 1.35;
+  return 0;
+}
+// blackjack: luck-aware draw (best/worst of two, by who benefits)
+function bjLuckDraw(curVal,who){
+  const luck=luckOf(ME);
+  if(!luck)return bjDraw();
+  const preferHigh = who==="player" ? luck>0 : luck<0;   // closer-to-21-without-busting is "high"
+  const a=bjDraw(),b=bjDraw();
+  const g=c=>{const nv=curVal+(c.r===1?11:Math.min(c.r,10));return nv>21?-100:nv;};
+  const ga=g(a),gb=g(b);
+  return preferHigh?(gb>ga?b:a):(gb<ga?b:a);
+}
 function rHistHTML(){return RHIST.slice(-12).map(n=>`<span style="color:${rlCol(n)}">${n}</span>`).join(" \u00B7 ")}
 function paintCasino(){
   const el=$("#cas");if(!el)return;
@@ -1854,16 +1893,16 @@ function paintCasino(){
 async function spinRoulette(){
   if(SPINNING)return;
   const bet=betVal("#r-bet");if(!bet)return toast("Enter a bet.",true);
-  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  if(bet>ME.cash)return toast("Insufficient credits.",true);
   const pick=$("#r-pick").value,num=parseInt($("#r-num").value);
   if(pick==="NUM"&&(isNaN(num)||num<0||num>36))return toast("Pick a number 0-36.",true);
-  const n=Math.floor(Math.random()*37);
-  let win=false,mult=2;
-  if(pick==="RED")win=REDS.has(n);
-  else if(pick==="BLACK")win=n!==0&&!REDS.has(n);
-  else if(pick==="EVEN")win=n!==0&&n%2===0;
-  else if(pick==="ODD")win=n%2===1;
-  else{win=n===num;mult=36}
+  let n=Math.floor(Math.random()*37);
+  const luck=luckOf(ME);
+  if(luck){const n2=Math.floor(Math.random()*37),w1=rouletteWin(n,pick,num),w2=rouletteWin(n2,pick,num);
+    n = luck>0 ? (w2&&!w1?n2:n) : (w1&&!w2?n2:n);}
+  const win=rouletteWin(n,pick,num),mult=pick==="NUM"?36:2;
   const delta=win?bet*(mult-1):-bet;
   SPINNING=true;$("#r-go").disabled=true;$("#r-res").textContent="";
   await wager(delta,"ROULETTE");
@@ -1946,7 +1985,9 @@ async function bjDeal(){
   SPINNING=true;
   try{
     const bet=betVal("#bj-bet");if(!bet){SPINNING=false;return toast("Enter a bet.",true);}
-    await refreshMe();if(bet>ME.cash){SPINNING=false;return toast("Insufficient credits.",true);}
+    await refreshMe();
+    if(casinoBarred()){SPINNING=false;return toast("You are barred from the casino.",true);}
+    if(bet>ME.cash){SPINNING=false;return toast("Insufficient credits.",true);}
     await wager(-bet,"BLACKJACK");
     const hand={ph:[bjDraw(),bjDraw()],bet,done:false,msg:"",ret:0,doubled:false,fromSplit:false};
     BJ={hands:[hand],dh:[bjDraw(),bjDraw()],active:0,fresh:true,justDrew:false};
@@ -1957,7 +1998,7 @@ async function bjDeal(){
 }
 async function bjHit(){
   const hand=BJ.hands[BJ.active];
-  hand.ph.push(bjDraw());BJ.justDrew=true;
+  hand.ph.push(bjLuckDraw(bjVal(hand.ph),"player"));BJ.justDrew=true;
   if(bjVal(hand.ph)>21){hand.done=true;hand.msg="BUST";hand.ret=0;return bjNext();}
   $("#cas").innerHTML=bjHTML();
 }
@@ -1970,7 +2011,7 @@ async function bjDouble(){
   await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits.",true);
   await wager(-hand.bet,"BLACKJACK DOUBLE");
   hand.bet*=2;hand.doubled=true;
-  hand.ph.push(bjDraw());BJ.justDrew=true;
+  hand.ph.push(bjLuckDraw(bjVal(hand.ph),"player"));BJ.justDrew=true;
   hand.done=true;
   return bjNext();
 }
@@ -1979,8 +2020,8 @@ async function bjSplit(){
   await refreshMe();if(hand.bet>ME.cash)return toast("Insufficient credits for split.",true);
   await wager(-hand.bet,"BLACKJACK SPLIT");
   const c2=hand.ph.pop();
-  const newHand={ph:[c2,bjDraw()],bet:hand.bet,done:false,msg:"",ret:0,doubled:false,fromSplit:true};
-  hand.ph.push(bjDraw());hand.fromSplit=true;
+  const newHand={ph:[c2,bjLuckDraw(bjVal([c2]),"player")],bet:hand.bet,done:false,msg:"",ret:0,doubled:false,fromSplit:true};
+  hand.ph.push(bjLuckDraw(bjVal(hand.ph),"player"));hand.fromSplit=true;
   BJ.hands.splice(BJ.active+1,0,newHand);
   if(hand.ph[0].r===1){hand.done=true;}
   if(newHand.ph[0].r===1){newHand.done=true;}
@@ -1995,7 +2036,7 @@ async function bjNext(){
   else return bjSettleAll(false);
 }
 async function bjSettleAll(natural){
-  while(bjVal(BJ.dh)<17)BJ.dh.push(bjDraw());
+  while(bjVal(BJ.dh)<17)BJ.dh.push(bjLuckDraw(bjVal(BJ.dh),"dealer"));
   const dv=bjVal(BJ.dh);
   let totalRet=0,totalBet=0;
   for(const hand of BJ.hands){
@@ -2025,9 +2066,14 @@ async function hiloPlay(dir){
   if(SPINNING)return;
   const bet=betVal("#h-bet");if(!bet)return toast("Enter a bet.",true);
   const L=Math.min(95,Math.max(5,parseInt($("#h-line").value)||50));
-  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
-  const roll=1+Math.floor(Math.random()*100);
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  if(bet>ME.cash)return toast("Insufficient credits.",true);
+  let roll=1+Math.floor(Math.random()*100);
   const p=dir>0?(100-L)/100:(L-1)/100,mult=0.97/p;
+  const luck=luckOf(ME);
+  if(luck){const r2=1+Math.floor(Math.random()*100),wf=v=>dir>0?v>L:v<L,w1=wf(roll),w2=wf(r2);
+    roll = luck>0 ? (w2&&!w1?r2:roll) : (w1&&!w2?r2:roll);}
   const win=dir>0?roll>L:roll<L;
   const delta=win?bet*(mult-1):-bet;
   SPINNING=true;$("#h-over").disabled=true;$("#h-under").disabled=true;$("#h-res").textContent="";
@@ -2053,11 +2099,14 @@ function slotPick(){let r=Math.random()*100,i=0;while(r>SLOT_W[i]){r-=SLOT_W[i];
 async function spinSlots(){
   if(SPINNING)return;
   const bet=betVal("#s-bet");if(!bet)return toast("Enter a bet.",true);
-  await refreshMe();if(bet>ME.cash)return toast("Insufficient credits.",true);
-  const r=[slotPick(),slotPick(),slotPick()];
-  let mult=0;
-  if(r[0]===r[1]&&r[1]===r[2])mult=SLOT_PAY[r[0]];
-  else if(r[0]===r[1]||r[1]===r[2]||r[0]===r[2])mult=1.35;
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  if(bet>ME.cash)return toast("Insufficient credits.",true);
+  let r=[slotPick(),slotPick(),slotPick()];
+  const luck=luckOf(ME);
+  if(luck){const r2=[slotPick(),slotPick(),slotPick()],m1=slotMult(r),m2=slotMult(r2);
+    r = luck>0 ? (m2>m1?r2:r) : (m2<m1?r2:r);}
+  const mult=slotMult(r);
   const delta=mult>0?bet*(mult-1):-bet;
   SPINNING=true;$("#s-go").disabled=true;$("#s-res").textContent="";
   await wager(delta,"SLOTS");
@@ -3117,20 +3166,34 @@ async function adLoadUsers(){
   const keys=await SG.list("u:");const box=$("#ad-users");box.innerHTML="";
   for(const k of keys){
     const u=await SG.get(k);if(!u)continue;
-    const d=document.createElement("div");d.style.cssText="border-bottom:1px solid var(--line);padding:10px 0";
-    d.innerHTML=`<div style="display:flex;justify-content:space-between;color:var(--ink)"><b>${esc(u.n)}</b><span class="mono">${fmt(netWorth(u))}</span></div>
-      <div class="inline" style="margin-top:6px">
+    const d=document.createElement("div");d.className="opcard";
+    const sGood=u.luck==="good"
+      ?"background:linear-gradient(180deg,#46e3a0,#1bbf7e);color:#04150d;box-shadow:0 8px 22px -10px rgba(52,226,162,.6),inset 0 1px 0 rgba(255,255,255,.4)"
+      :"background:color-mix(in srgb,var(--up) 12%,transparent);color:var(--up);border:1px solid color-mix(in srgb,var(--up) 45%,transparent);box-shadow:none";
+    const sBad=u.luck==="cursed"
+      ?"background:linear-gradient(180deg,#ff6f8c,#e63a5e);color:#2a0010;box-shadow:0 8px 22px -10px rgba(255,92,124,.6),inset 0 1px 0 rgba(255,255,255,.4)"
+      :"background:color-mix(in srgb,var(--down) 12%,transparent);color:var(--down);border:1px solid color-mix(in srgb,var(--down) 45%,transparent);box-shadow:none";
+    d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;color:var(--ink);margin-bottom:4px"><b>${esc(u.n)}</b><span class="mono">${fmt(netWorth(u))}</span></div>
+      <div class="op-credits">
         <input type="number" inputmode="decimal" placeholder="set credits" data-k="${k}" class="adcash">
         <button class="btn ghost adset" data-k="${k}">SET ₢</button>
-        <button class="btn red addel" data-k="${k}">DELETE</button>
       </div>
-      <div class="inline" style="margin-top:6px">
+      <div class="inline" style="margin-top:8px">
         <select class="adgsym" data-k="${k}">${ASSETS.map(a=>`<option>${a.sym}</option>`).join("")}</select>
         <input type="number" inputmode="decimal" placeholder="± shares" class="adgq" data-k="${k}">
         <button class="btn ghost adgrant" data-k="${k}">GRANT</button>
       </div>
-      <div class="inline" style="margin-top:6px">
+      <div class="inline" style="margin-top:8px">
         <button class="btn ${u.l2?"amber":"ghost"} adspread" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
+      </div>
+      <div class="op-label">CASINO FORTUNE</div>
+      <div class="op-two">
+        <button class="btn adluck" data-k="${k}" data-v="good" style="${sGood}">🍀 FORTUNE${u.luck==="good"?" ✓":""}</button>
+        <button class="btn adluck" data-k="${k}" data-v="cursed" style="${sBad}">☠ CURSED${u.luck==="cursed"?" ✓":""}</button>
+      </div>
+      <div class="op-danger">
+        <button class="btn ${u.casinoBan?"red":"ghost"} adban" data-k="${k}">${u.casinoBan?"CASINO BANNED ✓":"BAN FROM CASINO"}</button>
+        <button class="btn red addel" data-k="${k}">DELETE ACCOUNT</button>
       </div>`;
     box.appendChild(d);
   }
@@ -3153,6 +3216,23 @@ async function adLoadUsers(){
     u.l2=!u.l2;await SG.set(k,u);
     if(k===MYKEY)await refreshMe();
     toast(u.n+(u.l2?" granted Level-2 market data access.":" Level-2 access revoked."));
+    adLoadUsers();
+  });
+  box.querySelectorAll(".adluck").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,v=b.dataset.v,u=await SG.get(k);if(!u)return;
+    u.luck = (u.luck===v) ? undefined : v;   // toggle off if already set; otherwise switch
+    await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();
+    toast(u.n+(u.luck==="good"?" blessed with GOOD FORTUNE at the tables."
+      :u.luck==="cursed"?" CURSED — the tables will turn against them."
+      :" casino fortune reset to neutral."));
+    adLoadUsers();
+  });
+  box.querySelectorAll(".adban").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,u=await SG.get(k);if(!u)return;
+    u.casinoBan=!u.casinoBan;await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();
+    toast(u.n+(u.casinoBan?" BANNED from the casino.":" casino access restored."));
     adLoadUsers();
   });
   box.querySelectorAll(".adgrant").forEach(b=>b.onclick=async()=>{
