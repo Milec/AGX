@@ -1,0 +1,10 @@
+{
+  "name": "agx-web-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Isolated dev tooling for AGX web sessions (headless browser screenshots). Kept out of the repo root so it never affects the Cloudflare static-site build.",
+  "type": "module",
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}
