@@ -73,17 +73,14 @@ function sheetCredits(actor) {
 }
 
 async function addSheetCredits(actor, amount) {
-  const stick = credstick(actor);
-  if (!stick) throw new Error(t("err.noInventory"));
-  const current = Math.floor(Number(stick.system.price.value.credits) || 0);
-  await stick.update({ "system.price.value.credits": current + amount });
+  if (!credstick(actor)) throw new Error(t("err.noInventory"));
+  await actor.inventory.addCoins({ credits: amount });
 }
 
 async function removeSheetCredits(actor, amount) {
-  const stick = credstick(actor);
-  const current = stick ? Math.floor(Number(stick.system.price.value.credits) || 0) : 0;
-  if (current < amount) throw new Error(t("err.sheetFunds"));
-  await stick.update({ "system.price.value.credits": current - amount });
+  if (sheetCredits(actor) < amount) throw new Error(t("err.sheetFunds"));
+  const removed = await actor.inventory.removeCoins({ credits: amount });
+  if (!removed) throw new Error(t("err.sheetFunds"));
 }
 
 /* ── account access ─────────────────────────────────────────────────────── */
