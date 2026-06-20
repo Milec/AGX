@@ -95,7 +95,10 @@ input,select{
   transition:border-color .15s,box-shadow .15s,background-color .35s ease,color .35s ease;
 }
 input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 22%,transparent),inset 0 1px 0 var(--hi)}
-.btn{background:linear-gradient(180deg,#48f4e5,#18c6bc);color:#012b27;font-weight:700;padding:12px 18px;box-shadow:0 8px 22px -10px rgba(54,239,224,.7),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .12s,filter .2s,box-shadow .2s}
+.btn{position:relative;overflow:hidden;background:linear-gradient(180deg,#48f4e5,#18c6bc);color:#012b27;font-weight:700;padding:12px 18px;box-shadow:0 8px 22px -10px rgba(54,239,224,.7),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .12s,filter .2s,box-shadow .2s}
+.btn::after{content:'';position:absolute;top:0;left:0;height:100%;width:45%;pointer-events:none;background:linear-gradient(110deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-200%)}
+.btn:hover::after{animation:sheen .6s ease}
+@keyframes sheen{to{transform:translateX(340%)}}
 .btn:hover{filter:brightness(1.07)}
 .btn:active{transform:translateY(1px) scale(.99)}
 .btn.ghost{background:color-mix(in srgb,var(--cyan) 10%,transparent);color:var(--cyan);border:1px solid color-mix(in srgb,var(--cyan) 45%,transparent);box-shadow:inset 0 1px 0 var(--hi)}
@@ -134,7 +137,9 @@ header{position:sticky;top:0;z-index:30;background:var(--header-bg);-webkit-back
 @keyframes tk{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
 @media (prefers-reduced-motion: reduce){.ticker-inner{animation:none}}
 .ticker b{color:var(--amber);font-weight:600}
-.regime-banner{padding:8px 12px;text-align:center;font-family:'Orbitron';font-size:11px;letter-spacing:.22em;border-bottom:1px solid var(--line)}
+.regime-banner{position:relative;overflow:hidden;padding:8px 12px;text-align:center;font-family:'Orbitron';font-size:11px;letter-spacing:.22em;border-bottom:1px solid var(--line)}
+.regime-banner::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 42%,color-mix(in srgb,var(--cyan) 16%,transparent) 50%,transparent 58%);transform:translateX(-100%);animation:bannerSheen 7s ease-in-out infinite}
+@keyframes bannerSheen{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .halt-banner{padding:9px 12px;text-align:center;font-family:'Orbitron';font-size:12px;letter-spacing:.22em;background:rgba(255,92,124,.12);color:var(--down);border-bottom:1px solid var(--down);text-shadow:0 0 12px rgba(255,92,124,.7)}
 
 /* ── bottom nav ── */
@@ -184,7 +189,14 @@ nav button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,tra
 .hud-k{font-family:'Orbitron';font-size:8px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
 .hud-v{font-family:'IBM Plex Mono';font-size:14px;font-weight:600;margin-top:2px}
 .seg{display:flex;gap:2px;height:9px}
-.seg span{flex:1;border-radius:1px}
+.seg span{flex:1;border-radius:1px;transform-origin:bottom;animation:segIn .4s ease both}
+@keyframes segIn{from{opacity:0;transform:scaleY(.25)}to{opacity:1;transform:scaleY(1)}}
+.gauge-prog{animation:gaugeIn 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes gaugeIn{from{stroke-dashoffset:var(--c)}to{stroke-dashoffset:var(--off)}}
+.g-ticks{transform-box:fill-box;transform-origin:center;animation:gspin 32s linear infinite}
+@keyframes gspin{to{transform:rotate(360deg)}}
+.blink{color:var(--cyan);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
 .hud-dot{animation:dotPulse 2.2s ease-in-out infinite}
 @keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.35}}
 .telemetry{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.08em;color:var(--dim);opacity:.75;margin-top:12px;padding-top:8px;border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -193,7 +205,7 @@ nav button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,tra
   background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.22;
   box-shadow:0 0 14px color-mix(in srgb,var(--cyan) 70%,transparent);animation:sweep 7s linear infinite}
 @keyframes sweep{0%{transform:translateY(0)}100%{transform:translateY(100vh)}}
-@media (prefers-reduced-motion:reduce){.hud-dot{animation:none}#scan-sweep{display:none}}
+@media (prefers-reduced-motion:reduce){.hud-dot,.g-ticks,.gauge-prog,.seg span,.blink,.regime-banner::after,.btn::after{animation:none}.gauge-prog{stroke-dashoffset:var(--off)}.seg span{opacity:1;transform:none}#scan-sweep{display:none}}
 
 /* ── asset modal ── */
 .modal-bg{position:fixed;inset:0;background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
@@ -1028,7 +1040,7 @@ function marketPulse(){
       <div class="hud-readout"><div class="hud-k">▲ TOP GAINER</div><div class="hud-v cyan" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${up.a.sym}</div><div class="mono ${cls(up.c)}" style="font-size:12px">${pct(up.c)}</div></div>
       <div class="hud-readout"><div class="hud-k">▼ TOP LOSER</div><div class="hud-v cyan" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dn.a.sym}</div><div class="mono ${cls(dn.c)}" style="font-size:12px">${pct(dn.c)}</div></div>
     </div>
-    <div class="telemetry">FRAME ${(Math.floor(gameNow()/1000)&0xFFFFFF).toString(16).toUpperCase().padStart(6,"0")} · SYNC ✓ · NODES ${String(pool.length).padStart(3,"0")} · FEED ${REGIMES.length?"LIVE":"IDLE"}</div>
+    <div class="telemetry">FRAME ${(Math.floor(gameNow()/1000)&0xFFFFFF).toString(16).toUpperCase().padStart(6,"0")} · SYNC ✓ · NODES ${String(pool.length).padStart(3,"0")} · FEED ${REGIMES.length?"LIVE":"IDLE"} <span class="blink">▮</span></div>
   </div>`;
 }
 // radial dial gauge (HUD), theme-colored
@@ -1040,10 +1052,11 @@ function radialGauge(pct,centerTxt,sub,color){
   for(let i=0;i<40;i++){const a=i/40*2*Math.PI,x1=42+34*Math.cos(a),y1=42+34*Math.sin(a),x2=42+38*Math.cos(a),y2=42+38*Math.sin(a);
     ticks+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--line2)" stroke-width="${i%5===0?1.4:0.6}"/>`;}
   return `<svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
-    ${ticks}
+    <g class="g-ticks">${ticks}</g>
     <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--line)" stroke-width="5"/>
-    <circle cx="42" cy="42" r="${R}" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"
-      stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 42 42)" style="filter:drop-shadow(0 0 4px ${color})"/>
+    <circle class="gauge-prog" cx="42" cy="42" r="${R}" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round"
+      stroke-dasharray="${C.toFixed(1)}" transform="rotate(-90 42 42)"
+      style="--c:${C.toFixed(1)};--off:${off.toFixed(1)};stroke-dashoffset:${off.toFixed(1)};filter:drop-shadow(0 0 4px ${color})"/>
     <text x="42" y="${40+(16-fs)*0.4}" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono" font-size="${fs}" font-weight="600">${centerTxt}</text>
     <text x="42" y="53" text-anchor="middle" fill="var(--dim)" font-family="Orbitron" font-size="6.5" letter-spacing="1.2">${sub}</text>
   </svg>`;
@@ -1051,7 +1064,7 @@ function radialGauge(pct,centerTxt,sub,color){
 // segmented HUD bar (filled cells glow)
 function segBar(pct,n){
   n=n||18;const filled=Math.round(Math.max(0,Math.min(100,pct))/100*n);
-  let s="";for(let i=0;i<n;i++)s+=`<span style="background:${i<filled?"linear-gradient(180deg,var(--up),var(--cyan))":"var(--line)"};box-shadow:${i<filled?"0 0 6px color-mix(in srgb,var(--cyan) 45%,transparent)":"none"}"></span>`;
+  let s="";for(let i=0;i<n;i++)s+=`<span style="animation-delay:${i*30}ms;background:${i<filled?"linear-gradient(180deg,var(--up),var(--cyan))":"var(--line)"};box-shadow:${i<filled?"0 0 6px color-mix(in srgb,var(--cyan) 45%,transparent)":"none"}"></span>`;
   return `<div class="seg">${s}</div>`;
 }
 function renderMarket(v){
