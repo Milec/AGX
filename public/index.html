@@ -170,6 +170,69 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .app-tile .glyph{font-size:38px;line-height:1;color:var(--acc);text-shadow:0 0 18px var(--acc)}
 .app-tile .an{font-family:'Orbitron';font-weight:700;font-size:13px;letter-spacing:.08em}
 .app-tile .at{font-size:10px;color:var(--dim);letter-spacing:.04em;line-height:1.4}
+.app-tile.locked{opacity:.62;--acc:var(--dim)}
+.app-tile.locked .glyph{filter:grayscale(1)}
+.app-tile.locked .at{color:var(--down);letter-spacing:.16em;font-family:'Orbitron'}
+.app-tile .lockbadge{position:absolute;top:8px;right:10px;font-size:15px;z-index:2;filter:saturate(0) brightness(1.4)}
+
+/* ── unauthorized access wall ── */
+.lockwall{display:flex;align-items:center;justify-content:center;min-height:62vh;padding:20px}
+.lockwall-card{position:relative;max-width:380px;width:100%;text-align:center;padding:34px 24px;border:1px solid var(--down);
+  background:color-mix(in srgb,var(--down) 7%,var(--panel));-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:0 0 40px -16px var(--down),inset 0 1px 0 var(--hi);
+  --ch:18px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)))}
+.lockwall-card::before,.lockwall-card::after{content:'';position:absolute;width:16px;height:16px;pointer-events:none}
+.lockwall-card::before{top:0;left:0;border-top:2px solid var(--down);border-left:2px solid var(--down)}
+.lockwall-card::after{bottom:0;right:0;border-bottom:2px solid var(--down);border-right:2px solid var(--down)}
+.lockwall-glyph{font-size:46px;line-height:1;animation:lockPulse 1.6s ease-in-out infinite}
+@keyframes lockPulse{0%,100%{opacity:1;filter:drop-shadow(0 0 8px var(--down))}50%{opacity:.45}}
+.lockwall h1{font-family:'Orbitron';font-size:22px;letter-spacing:.18em;color:var(--down);margin:14px 0 4px;text-shadow:0 0 16px color-mix(in srgb,var(--down) 60%,transparent)}
+.lockwall-app{font-family:'Orbitron';font-size:11px;letter-spacing:.22em;color:var(--ink)}
+.lockwall-msg{font-size:13px;color:var(--dim);line-height:1.55;margin-top:14px}
+.lockwall-code{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;color:var(--down);margin-top:16px;opacity:.8}
+@media (prefers-reduced-motion:reduce){.lockwall-glyph{animation:none}}
+
+/* ── field notes app ── */
+.note-card{position:relative;border:1px solid var(--line);border-left:2px solid var(--vio);border-radius:var(--r-md);background:var(--row-grad);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:13px 14px;margin:9px 0;cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .2s}
+.note-card:hover{transform:translateY(-1px);border-color:var(--vio);box-shadow:var(--shadow)}
+.note-card:active{transform:scale(.995)}
+.note-card-h{display:flex;align-items:center;gap:8px}
+.note-pin{flex:none;font-size:12px}
+.note-card-t{flex:1;min-width:0;font-family:'Orbitron';font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-card-time{flex:none;font-family:'IBM Plex Mono';font-size:10px;color:var(--dim)}
+.note-card-s{font-size:12px;color:var(--dim);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.note-tag{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--vio);background:color-mix(in srgb,var(--vio) 12%,transparent);border:1px solid color-mix(in srgb,var(--vio) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px}
+.note-bar-r{display:flex;align-items:center;gap:8px}
+.note-back{padding:8px 12px;font-size:11px}
+.note-tools{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.note-tool{flex:none;min-width:34px;background:var(--chip-bg);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;font-size:13px;font-family:'IBM Plex Mono';transition:background .15s,border-color .15s}
+.note-tool:hover{border-color:var(--vio);color:var(--vio)}
+.note-body{font-family:'IBM Plex Mono',monospace;background:var(--input-bg);border:1px solid var(--line2);color:var(--ink);border-radius:var(--r-md);
+  padding:12px 14px;font-size:14px;width:100%;min-height:300px;line-height:1.6;resize:vertical;margin-top:10px;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.note-body:focus{outline:none;border-color:var(--vio);box-shadow:0 0 0 3px color-mix(in srgb,var(--vio) 20%,transparent)}
+.note-meta{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:10px;letter-spacing:.06em}
+.note-view-title{font-family:'Orbitron';font-size:22px;letter-spacing:.04em;margin-top:14px;line-height:1.2;color:var(--cyan);text-shadow:var(--glow)}
+.note-render{margin-top:14px;font-size:15px;line-height:1.65}
+.note-render p{margin:10px 0}
+.note-render h2{font-family:'Orbitron';font-size:18px;margin:18px 0 8px;color:var(--ink)}
+.note-render h3{font-family:'Orbitron';font-size:15px;letter-spacing:.04em;margin:16px 0 6px;color:var(--amber)}
+.note-render h4,.note-render h5{font-family:'Orbitron';font-size:13px;letter-spacing:.06em;margin:14px 0 6px;color:var(--dim);text-transform:uppercase}
+.note-render ul,.note-render ol{margin:10px 0 10px 22px}.note-render li{margin:4px 0}
+.note-render code{font-family:'IBM Plex Mono';font-size:13px;background:var(--chip-bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.note-render blockquote{border-left:3px solid var(--vio);margin:12px 0;padding:4px 14px;color:var(--dim);background:color-mix(in srgb,var(--vio) 6%,transparent)}
+.note-render hr{border:none;border-top:1px solid var(--line2);margin:18px 0}
+.note-link{color:var(--cyan);text-decoration:none;border-bottom:1px dashed color-mix(in srgb,var(--cyan) 55%,transparent);cursor:pointer}
+.note-link:hover{color:var(--ink);border-bottom-style:solid}
+.note-link.missing{color:var(--amber);border-bottom-color:color-mix(in srgb,var(--amber) 55%,transparent)}
+.note-link.tick{color:var(--up);font-family:'IBM Plex Mono';font-weight:600;border-bottom-color:color-mix(in srgb,var(--up) 55%,transparent)}
+.note-backlinks{margin-top:24px;padding-top:14px;border-top:1px solid var(--line)}
+.note-bl-h{font-family:'Orbitron';font-size:10px;letter-spacing:.22em;color:var(--dim);margin-bottom:8px}
+.note-bl{font-size:13px;color:var(--cyan);padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer;transition:border-color .15s,background .15s}
+.note-bl:hover{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 8%,transparent)}
 
 /* ── market list rows ── */
 .row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
@@ -891,16 +954,24 @@ const APPS={
     tabs:[["casino","FLOOR"]]},
   blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
     tabs:[["bm","CONTRABAND"]]},
+  notes:{name:"FIELD NOTES",tag:"Private logbook · Cross-linked",glyph:"❖",col:"var(--vio)",
+    tabs:[["notes","NOTEBOOK"]]},
   gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:"⚙",col:"var(--amber)",
     tabs:[["admin","CONSOLE"]]}
 };
-// which apps are installed on this pad right now (depends on GM config)
-function availableApps(){
-  const out=["exchange"];
-  if(!CFG||CFG.casino!==false)out.push("casino");
-  if(CFG&&CFG.bmOpen)out.push("blackmarket");
-  out.push("gm");
-  return out;
+// every app is always shown on the pad; locked ones throw up an access wall
+function launcherApps(){return ["exchange","casino","blackmarket","notes","gm"]}
+// is an app currently locked to this player? (GM config / clearance)
+function appLocked(id){
+  if(id==="casino")return !!(CFG&&CFG.casino===false);
+  if(id==="blackmarket")return !(CFG&&CFG.bmOpen);
+  return false;
+}
+// why it's locked — shown on the access-denied wall
+function lockReason(id){
+  if(id==="casino")return "The Drift Casino tables are dark. Gaming licence suspended by exchange authority.";
+  if(id==="blackmarket")return "No smuggler channels are live. This frequency is being monitored — disconnect.";
+  return "Clearance not recognised.";
 }
 // app that owns a given tab id (used to keep nav highlighting sane)
 function appForTab(t){return Object.keys(APPS).find(k=>APPS[k].tabs.some(x=>x[0]===t))||null}
@@ -994,8 +1065,8 @@ function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
 /* ---------- app shell ---------- */
 function renderApp(){
   const r=curRegime();
-  // if the open app got uninstalled (GM closed casino / black market), bounce home
-  if(APP&&!availableApps().includes(APP))APP=null;
+  // unknown app id? bounce home. Locked apps stay open and show the access wall.
+  if(APP&&!APPS[APP])APP=null;
   $("#root").innerHTML=`
   <header>
     <div class="hbar">
@@ -1022,8 +1093,9 @@ function renderApp(){
 }
 function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
 function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
-// open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps
-function openApp(id){if(!APPS[id]||!availableApps().includes(id))return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;renderApp()}
+// open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
+// Locked apps still "open" — they just render an unauthorized-access wall.
+function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;renderApp()}
 // return to the data-pad home screen
 function goHome(){APP=null;OPEN=null;renderApp()}
 function buildTicker(){
@@ -1034,9 +1106,11 @@ function buildTicker(){
 function renderTab(){
   const v=$("#view");
   if(!APP)return renderLauncher(v);
+  if(appLocked(APP))return renderLocked(v,APP);
   if(TAB==="market")return renderMarket(v);
   if(TAB==="bm")return renderBlackMarket(v);
   if(TAB==="casino")return renderCasino(v);
+  if(TAB==="notes")return renderNotes(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
@@ -1045,16 +1119,31 @@ function renderTab(){
 }
 /* ---------- data-pad home launcher ---------- */
 function renderLauncher(v){
-  const apps=availableApps();
   v.innerHTML=`
     <div class="pad-intro">◈ AGX DATA PAD · SELECT APPLICATION ◈</div>
     <div class="app-grid">
-      ${apps.map(id=>{const a=APPS[id];return `
-        <div class="app-tile" style="--acc:${a.col}" onclick="openApp('${id}')">
+      ${launcherApps().map(id=>{const a=APPS[id],lk=appLocked(id);return `
+        <div class="app-tile${lk?" locked":""}" style="--acc:${a.col}" onclick="openApp('${id}')">
+          ${lk?`<div class="lockbadge">🔒</div>`:""}
           <div class="glyph">${a.glyph}</div>
           <div class="an">${a.name}</div>
-          <div class="at">${a.tag}</div>
+          <div class="at">${lk?"LOCKED":a.tag}</div>
         </div>`;}).join("")}
+    </div>`;
+}
+/* ---------- unauthorized access wall ---------- */
+function renderLocked(v,id){
+  const a=APPS[id];
+  v.innerHTML=`
+    <div class="lockwall">
+      <div class="lockwall-card">
+        <div class="lockwall-glyph">⛔</div>
+        <h1>ACCESS DENIED</h1>
+        <div class="lockwall-app">${a.name}</div>
+        <div class="lockwall-msg">${esc(lockReason(id))}</div>
+        <div class="lockwall-code">ERR · CLEARANCE 0x${id.toUpperCase().slice(0,3)}-DENIED</div>
+        <button class="btn ghost" style="margin-top:18px" onclick="goHome()">⌂ RETURN TO PAD</button>
+      </div>
     </div>`;
 }
 
@@ -1218,6 +1307,188 @@ function paintBM(){
   list.sort((a,b)=>Math.abs(chgMs(b.sym,winMs))-Math.abs(chgMs(a.sym,winMs)));
   const el=$("#bmlist");if(!el)return;
   el.innerHTML=list.length?list.map(rowHTML).join(""):`<div class="dim" style="padding:30px;text-align:center">No contraband matches.</div>`;
+}
+
+/* ============ FIELD NOTES app ============
+   A per-player logbook saved on the account (ME.notes). Supports multiple
+   entries, markdown formatting, [[wiki-style cross-references]] between notes,
+   $TICKER references that open the live asset, tags, search, pinning and
+   automatic backlinks. */
+let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null;
+function notesArr(){if(!ME.notes)ME.notes=[];return ME.notes}
+function noteById(id){return notesArr().find(n=>n.id===id)||null}
+function noteTitleMap(){const m={};for(const n of notesArr())m[(n.title||"").trim().toLowerCase()]=n.id;return m}
+function noteUID(){return "n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function plain(body){ // strip markdown for list snippets
+  return String(body||"").replace(/[#>*`_~\-]/g," ").replace(/\[\[([^\]]+)\]\]/g,"$1").replace(/\[([^\]]+)\]\([^)]*\)/g,"$1").replace(/\s+/g," ").trim();
+}
+function allTags(){const s=new Set();for(const n of notesArr())(n.tags||[]).forEach(t=>s.add(t));return[...s].sort()}
+
+function renderNotes(v){
+  const sel=NOTESEL&&noteById(NOTESEL);
+  if(sel)return renderNoteEditor(v,sel);
+  // ---- list / index view ----
+  const q=NOTEQ.trim().toLowerCase();
+  let list=notesArr().filter(n=>{
+    if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
+    if(!q)return true;
+    return (n.title||"").toLowerCase().includes(q)||(n.body||"").toLowerCase().includes(q)||(n.tags||[]).some(t=>t.toLowerCase().includes(q));
+  });
+  list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  const tags=allTags();
+  v.innerHTML=`
+    <div class="card" style="margin-top:12px"><div class="hud-row">
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:var(--vio);box-shadow:0 0 8px var(--vio)"></span>FIELD NOTES · ${notesArr().length} ENTRIES</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">Private logbook. Use <b>[[Note Title]]</b> to cross-link entries and <b>$SYM</b> to link a listing.</div></div>
+      <button class="btn vio" onclick="newNote()">+ NEW</button>
+    </div></div>
+    <div style="padding-top:10px"><input id="note-q" placeholder="Search notes…" value="${esc(NOTEQ)}"></div>
+    ${tags.length?`<div class="chips">${[["",""]].concat(tags.map(t=>[t,t])).map(t=>
+      `<button class="chip ${(NOTETAG||"")===t[0]?"on":""}" onclick="setNoteTag('${t[0]?esc(t[0]).replace(/'/g,"\\'"):""}')">${t[0]?"#"+esc(t[0]):"ALL"}</button>`).join("")}</div>`:""}
+    <div id="note-list">${list.length?list.map(noteCard).join(""):`<div class="dim" style="padding:34px;text-align:center">${notesArr().length?"No notes match.":"No notes yet. Hit + NEW to start your logbook."}</div>`}</div>`;
+  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;
+    const sub=notesArr().filter(n=>{const qq=NOTEQ.trim().toLowerCase();
+      if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
+      if(!qq)return true;return (n.title||"").toLowerCase().includes(qq)||(n.body||"").toLowerCase().includes(qq)||(n.tags||[]).some(t=>t.toLowerCase().includes(qq));})
+      .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+    const el=$("#note-list");if(el)el.innerHTML=sub.length?sub.map(noteCard).join(""):`<div class="dim" style="padding:34px;text-align:center">No notes match.</div>`;});
+}
+function noteCard(n){
+  const snip=plain(n.body).slice(0,110);
+  return `<div class="note-card" onclick="openNote('${n.id}')">
+    <div class="note-card-h">
+      ${n.pinned?`<span class="note-pin">📌</span>`:""}
+      <div class="note-card-t">${esc(n.title||"Untitled note")}</div>
+      <div class="note-card-time">${ago(n.updated||n.created||Date.now())}</div>
+    </div>
+    ${snip?`<div class="note-card-s">${esc(snip)}${plain(n.body).length>110?"…":""}</div>`:`<div class="note-card-s dim">Empty note</div>`}
+    ${(n.tags||[]).length?`<div class="note-tags">${n.tags.map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+  </div>`;
+}
+function setNoteTag(t){NOTETAG=t||null;renderTab()}
+function newNote(){
+  const n={id:noteUID(),title:"",body:"",tags:[],pinned:false,created:Date.now(),updated:Date.now()};
+  notesArr().unshift(n);NOTESEL=n.id;NOTEEDIT=true;saveMe();renderTab();
+}
+function openNote(id){if(!noteById(id))return;NOTESEL=id;NOTEEDIT=false;renderTab()}
+function openNoteByTitle(title){
+  const t=title.trim();const id=noteTitleMap()[t.toLowerCase()];
+  if(id){openNote(id);return}
+  const n={id:noteUID(),title:t,body:"",tags:[],pinned:false,created:Date.now(),updated:Date.now()};
+  notesArr().unshift(n);NOTESEL=n.id;NOTEEDIT=true;saveMe();renderTab();
+}
+function backToNotes(){commitNote();NOTESEL=null;NOTEEDIT=false;renderTab()}
+// read the editor fields back into the selected note (no-op when not editing)
+function commitNote(){
+  const n=NOTESEL&&noteById(NOTESEL);if(!n)return;
+  const tEl=$("#note-title"),bEl=$("#note-body"),gEl=$("#note-tagsin");
+  if(!tEl&&!bEl)return; // not in edit mode
+  const nt=tEl?tEl.value:n.title, nb=bEl?bEl.value:n.body;
+  const ng=gEl?gEl.value.split(",").map(s=>s.trim().replace(/^#/,"")).filter(Boolean):n.tags;
+  if(nt!==n.title||nb!==n.body||JSON.stringify(ng)!==JSON.stringify(n.tags)){
+    n.title=nt;n.body=nb;n.tags=ng;n.updated=Date.now();saveMe();
+  }
+}
+function saveNote(){commitNote();NOTEEDIT=false;renderTab();toast("Note saved.");}
+function toggleNoteEdit(){if(NOTEEDIT)commitNote();NOTEEDIT=!NOTEEDIT;renderTab();}
+function toggleNotePin(){const n=noteById(NOTESEL);if(!n)return;commitNote();n.pinned=!n.pinned;n.updated=Date.now();saveMe();renderTab();}
+async function deleteNote(){
+  const n=noteById(NOTESEL);if(!n)return;
+  if(!await iconfirm("Delete “"+esc(n.title||"this note")+"” permanently?"))return;
+  ME.notes=notesArr().filter(x=>x.id!==n.id);NOTESEL=null;NOTEEDIT=false;saveMe();renderTab();toast("Note deleted.");
+}
+function renderNoteEditor(v,n){
+  if(NOTEEDIT){
+    v.innerHTML=`
+      <div class="note-bar">
+        <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
+        <div class="note-bar-r">
+          <button class="btn ghost" onclick="toggleNoteEdit()">👁 PREVIEW</button>
+          <button class="btn vio" onclick="saveNote()">SAVE</button>
+        </div>
+      </div>
+      <input id="note-title" placeholder="Note title…" value="${esc(n.title)}" style="font-family:'Orbitron';font-size:16px;margin-top:10px">
+      <div class="note-tools">
+        ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],
+           ["H","mdLine('## ')",""],["•","mdLine('- ')",""],["1.","mdLine('1. ')",""],["❝","mdLine('> ')",""],
+           ["‹/›","md('\`','\`','code')","font-family:monospace"],["🔗","md('[','](url)','link text')",""],
+           ["[[ ]]","md('[[',']]','Note Title')",""],["$","md('$','','SYM')",""]].map(b=>
+          `<button class="note-tool" style="${b[2]}" onclick="${b[1]}">${b[0]}</button>`).join("")}
+      </div>
+      <textarea id="note-body" class="note-body" placeholder="Write your note… Markdown supported. Link other notes with [[Title]] and listings with \$SYM.">${esc(n.body)}</textarea>
+      <input id="note-tagsin" placeholder="tags, comma separated (e.g. heist, contacts, vesk)" value="${esc((n.tags||[]).join(", "))}" style="margin-top:10px">
+      <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
+      <button class="btn red" style="width:100%;margin-top:14px" onclick="deleteNote()">DELETE NOTE</button>`;
+    return;
+  }
+  // ---- read / preview mode ----
+  const back=backlinksFor(n);
+  v.innerHTML=`
+    <div class="note-bar">
+      <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
+      <div class="note-bar-r">
+        <button class="iconbtn" title="Pin" onclick="toggleNotePin()" style="font-size:15px">${n.pinned?"📌":"📍"}</button>
+        <button class="btn vio" onclick="toggleNoteEdit()">✎ EDIT</button>
+      </div>
+    </div>
+    <h1 class="note-view-title">${esc(n.title||"Untitled note")}</h1>
+    ${(n.tags||[]).length?`<div class="note-tags" style="margin:4px 0 2px">${n.tags.map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+    <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
+    <div class="note-render">${n.body.trim()?mdRender(n.body):`<div class="dim">This note is empty. Tap EDIT to add content.</div>`}</div>
+    ${back.length?`<div class="note-backlinks"><div class="note-bl-h">⮌ LINKED FROM</div>${back.map(b=>`<div class="note-bl" onclick="openNote('${b.id}')">${esc(b.title||"Untitled note")}</div>`).join("")}</div>`:""}`;
+}
+// notes that reference this note via [[Title]]
+function backlinksFor(n){
+  const title=(n.title||"").trim().toLowerCase();if(!title)return[];
+  return notesArr().filter(o=>o.id!==n.id&&(o.body||"").toLowerCase().match(/\[\[([^\]]+)\]\]/g)?.some(m=>m.slice(2,-2).trim().toLowerCase()===title));
+}
+// insert wrapping markdown around the textarea selection
+function md(pre,suf,ph){
+  const t=$("#note-body");if(!t)return;
+  const s=t.selectionStart,e=t.selectionEnd,val=t.value,mid=val.slice(s,e)||ph;
+  t.value=val.slice(0,s)+pre+mid+suf+val.slice(e);
+  const cs=s+pre.length;t.focus();t.setSelectionRange(cs,cs+mid.length);
+}
+// insert a line-level prefix at the start of the current line
+function mdLine(pre){
+  const t=$("#note-body");if(!t)return;
+  const val=t.value,s=t.selectionStart,ls=val.lastIndexOf("\n",s-1)+1;
+  t.value=val.slice(0,ls)+pre+val.slice(ls);
+  const np=s+pre.length;t.focus();t.setSelectionRange(np,np);
+}
+/* lightweight markdown + cross-reference renderer (escapes first, then formats) */
+function mdRender(src){
+  const tmap=noteTitleMap();
+  const inline=s=>{
+    s=esc(s);
+    s=s.replace(/`([^`]+)`/g,(m,c)=>`<code>${c}</code>`);
+    s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+    s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+    // [[wiki cross-reference]]
+    s=s.replace(/\[\[([^\]]+)\]\]/g,(m,t)=>{const key=t.trim().toLowerCase();const id=tmap[key];
+      return id?`<a class="note-link" onclick="event.stopPropagation();openNote('${id}')">${t.trim()}</a>`
+              :`<a class="note-link missing" onclick="event.stopPropagation();openNoteByTitle('${t.trim().replace(/'/g,"\\'")}')">${t.trim()}</a>`;});
+    // [label](url) links
+    s=s.replace(/\[([^\]]+)\]\(((https?:\/\/|\/)[^)\s]+)\)/g,'<a class="note-link" href="$2" target="_blank" rel="noopener">$1</a>');
+    // $TICKER → live asset
+    s=s.replace(/\$([A-Z]{2,6})\b/g,(m,sym)=>BYSYM[sym]?`<a class="note-link tick" onclick="event.stopPropagation();openAsset('${sym}')">$${sym}</a>`:m);
+    return s;
+  };
+  const lines=String(src).replace(/\r/g,"").split("\n");
+  let out="",i=0;
+  while(i<lines.length){
+    const ln=lines[i];
+    if(/^\s*---\s*$/.test(ln)){out+="<hr>";i++;continue;}
+    let h=ln.match(/^(#{1,4})\s+(.*)$/);
+    if(h){const lv=h[1].length;out+=`<h${lv+1} class="note-h">${inline(h[2])}</h${lv+1}>`;i++;continue;}
+    if(/^\s*[-*]\s+/.test(ln)){let items="";while(i<lines.length&&/^\s*[-*]\s+/.test(lines[i])){items+=`<li>${inline(lines[i].replace(/^\s*[-*]\s+/,""))}</li>`;i++;}out+=`<ul>${items}</ul>`;continue;}
+    if(/^\s*\d+\.\s+/.test(ln)){let items="";while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){items+=`<li>${inline(lines[i].replace(/^\s*\d+\.\s+/,""))}</li>`;i++;}out+=`<ol>${items}</ol>`;continue;}
+    if(/^\s*>\s?/.test(ln)){let q="";while(i<lines.length&&/^\s*>\s?/.test(lines[i])){q+=inline(lines[i].replace(/^\s*>\s?/,""))+" ";i++;}out+=`<blockquote>${q.trim()}</blockquote>`;continue;}
+    if(/^\s*$/.test(ln)){i++;continue;}
+    const para=[ln];while(i+1<lines.length&&!/^\s*$/.test(lines[i+1])&&!/^(#{1,4}\s|\s*[-*]\s|\s*\d+\.\s|\s*>|\s*---\s*$)/.test(lines[i+1])){para.push(lines[i+1]);i++;}
+    out+=`<p>${para.map(inline).join("<br>")}</p>`;i++;
+  }
+  return out;
 }
 
 /* ---------- charts ---------- */
