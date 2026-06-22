@@ -233,6 +233,22 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .note-bl-h{font-family:'Orbitron';font-size:10px;letter-spacing:.22em;color:var(--dim);margin-bottom:8px}
 .note-bl{font-size:13px;color:var(--cyan);padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer;transition:border-color .15s,background .15s}
 .note-bl:hover{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+.note-cardmeta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.note-folder{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-owner{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-ro{font-family:'Orbitron';font-size:10px;letter-spacing:.16em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:8px;padding:7px 12px}
+
+/* ── AGX Pay app ── */
+.pay-balance{border-color:var(--up)}
+.pay-bal{font-family:'IBM Plex Mono';font-size:34px;font-weight:600;color:var(--up);margin:8px 0 10px;text-shadow:0 0 18px color-mix(in srgb,var(--up) 45%,transparent)}
+.pay-row{display:flex;align-items:center;gap:12px;padding:12px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--row-grad);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.pay-ico{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:1px solid var(--line2)}
+.pay-ico.in{color:var(--up);background:color-mix(in srgb,var(--up) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--up) 30%,transparent)}
+.pay-ico.out{color:var(--down);background:color-mix(in srgb,var(--down) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--down) 30%,transparent)}
+.pay-who{font-size:14px}
+.pay-memo{font-size:12px;color:var(--dim);font-style:italic;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pay-time{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:3px}
+.pay-amt{flex:none;font-family:'IBM Plex Mono';font-size:16px;font-weight:600}
 
 /* ── market list rows ── */
 .row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
@@ -954,13 +970,15 @@ const APPS={
     tabs:[["casino","FLOOR"]]},
   blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
     tabs:[["bm","CONTRABAND"]]},
-  notes:{name:"FIELD NOTES",tag:"Private logbook · Cross-linked",glyph:"❖",col:"var(--vio)",
+  notes:{name:"FIELD NOTES",tag:"Logbook · Shared · Linked",glyph:"❖",col:"var(--vio)",
     tabs:[["notes","NOTEBOOK"]]},
+  pay:{name:"AGX PAY",tag:"Send credits to operators",glyph:"⇄",col:"var(--up)",
+    tabs:[["pay","WALLET"]]},
   gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:"⚙",col:"var(--amber)",
     tabs:[["admin","CONSOLE"]]}
 };
 // every app is always shown on the pad; locked ones throw up an access wall
-function launcherApps(){return ["exchange","casino","blackmarket","notes","gm"]}
+function launcherApps(){return ["exchange","casino","blackmarket","notes","pay","gm"]}
 // is an app currently locked to this player? (GM config / clearance)
 function appLocked(id){
   if(id==="casino")return !!(CFG&&CFG.casino===false);
@@ -1095,7 +1113,7 @@ function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()
 function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
 // open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
 // Locked apps still "open" — they just render an unauthorized-access wall.
-function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;renderApp()}
+function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;renderApp()}
 // return to the data-pad home screen
 function goHome(){APP=null;OPEN=null;renderApp()}
 function buildTicker(){
@@ -1111,6 +1129,7 @@ function renderTab(){
   if(TAB==="bm")return renderBlackMarket(v);
   if(TAB==="casino")return renderCasino(v);
   if(TAB==="notes")return renderNotes(v);
+  if(TAB==="pay")return renderPay(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
@@ -1310,48 +1329,123 @@ function paintBM(){
 }
 
 /* ============ FIELD NOTES app ============
-   A per-player logbook saved on the account (ME.notes). Supports multiple
-   entries, markdown formatting, [[wiki-style cross-references]] between notes,
-   $TICKER references that open the live asset, tags, search, pinning and
-   automatic backlinks. */
-let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null;
+   Three notebooks behind a scope switch:
+     · PRIVATE   — ME.notes, only you can see them
+     · SHARED    — a collective operator notebook (server key "shnotes"); every
+                   operator reads it, you may edit notes you authored
+     · OPERATORS — GM-only, read-only browse of every player's private notes
+   Notes group into folders ("missions"), and support markdown, [[cross-refs]],
+   $TICKER links, tags, pinning, search and automatic backlinks. */
+let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null, NOTESCOPE="private", NOTEFOLDER=null;
+let SHNOTES=[];      // shared notebook cache
+let GMNOTES=null;    // GM browse cache: [{op, notes:[...]}]
 function notesArr(){if(!ME.notes)ME.notes=[];return ME.notes}
-function noteById(id){return notesArr().find(n=>n.id===id)||null}
-function noteTitleMap(){const m={};for(const n of notesArr())m[(n.title||"").trim().toLowerCase()]=n.id;return m}
+async function loadShared(){try{SHNOTES=(await SG.get("shnotes"))||[]}catch(e){SHNOTES=SHNOTES||[]}}
+async function saveShared(){return await SG.set("shnotes",SHNOTES)}
+async function loadGMNotes(){
+  const keys=await SG.list("u:");
+  const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
+  GMNOTES=users.filter(u=>u).map(u=>({op:u.n,notes:(u.notes||[]).map(n=>({...n,owner:u.n}))}))
+    .filter(g=>g.notes.length).sort((a,b)=>a.op.localeCompare(b.op));
+}
+// the working array for the active scope
+function scopeNotes(){
+  if(NOTESCOPE==="shared")return SHNOTES;
+  if(NOTESCOPE==="gm")return (GMNOTES||[]).flatMap(g=>g.notes);
+  return notesArr();
+}
+function canEditNote(n){
+  if(!n||NOTESCOPE==="gm")return false;
+  if(NOTESCOPE==="shared")return !n.owner||n.owner===ME.n;
+  return true;
+}
+// persist whichever notebook the active note lives in
+function persistScope(){if(NOTESCOPE==="shared")return saveShared();return saveMe();}
+function noteById(id){return scopeNotes().find(n=>n.id===id)||null}
+function noteTitleMap(){const m={};for(const n of scopeNotes())m[(n.title||"").trim().toLowerCase()]=n.id;return m}
 function noteUID(){return "n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function plain(body){ // strip markdown for list snippets
   return String(body||"").replace(/[#>*`_~\-]/g," ").replace(/\[\[([^\]]+)\]\]/g,"$1").replace(/\[([^\]]+)\]\([^)]*\)/g,"$1").replace(/\s+/g," ").trim();
 }
-function allTags(){const s=new Set();for(const n of notesArr())(n.tags||[]).forEach(t=>s.add(t));return[...s].sort()}
+function allTags(){const s=new Set();for(const n of scopeNotes())(n.tags||[]).forEach(t=>s.add(t));return[...s].sort()}
+function allFolders(){const s=new Set();for(const n of scopeNotes())if(n.folder)s.add(n.folder);return[...s].sort()}
+function matchNote(n,q){return (n.title||"").toLowerCase().includes(q)||(n.body||"").toLowerCase().includes(q)||(n.tags||[]).some(t=>t.toLowerCase().includes(q))||(n.folder||"").toLowerCase().includes(q)||(n.owner||"").toLowerCase().includes(q)}
+
+async function setNoteScope(s){
+  if(s===NOTESCOPE&&!NOTESEL)return;
+  NOTESCOPE=s;NOTESEL=null;NOTEEDIT=false;NOTEQ="";NOTETAG=null;NOTEFOLDER=null;
+  const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing notebook…</div>`;
+  if(s==="shared")await loadShared();
+  if(s==="gm")await loadGMNotes();
+  renderTab();
+}
+function scopeTabsHTML(){
+  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"]];
+  if(ADMIN)tabs.push(["gm","⚙ OPERATORS"]);
+  return `<div class="chips" style="margin-top:12px">${tabs.map(t=>`<button class="chip ${NOTESCOPE===t[0]?"on":""}" onclick="setNoteScope('${t[0]}')">${t[1]}</button>`).join("")}</div>`;
+}
 
 function renderNotes(v){
   const sel=NOTESEL&&noteById(NOTESEL);
   if(sel)return renderNoteEditor(v,sel);
-  // ---- list / index view ----
-  const q=NOTEQ.trim().toLowerCase();
-  let list=notesArr().filter(n=>{
+  if(NOTESCOPE==="gm")return renderGMNotes(v);
+  const q=NOTEQ.trim().toLowerCase(), shared=NOTESCOPE==="shared";
+  let list=scopeNotes().filter(n=>{
+    if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
     if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
-    if(!q)return true;
-    return (n.title||"").toLowerCase().includes(q)||(n.body||"").toLowerCase().includes(q)||(n.tags||[]).some(t=>t.toLowerCase().includes(q));
+    return !q||matchNote(n,q);
   });
   list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
-  const tags=allTags();
+  const folders=allFolders(),tags=allTags();
   v.innerHTML=`
-    <div class="card" style="margin-top:12px"><div class="hud-row">
-      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:var(--vio);box-shadow:0 0 8px var(--vio)"></span>FIELD NOTES · ${notesArr().length} ENTRIES</div>
-        <div class="dim" style="font-size:11px;margin-top:6px">Private logbook. Use <b>[[Note Title]]</b> to cross-link entries and <b>$SYM</b> to link a listing.</div></div>
+    ${scopeTabsHTML()}
+    <div class="card" style="margin-top:10px"><div class="hud-row">
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:${shared?"var(--up)":"var(--vio)"};box-shadow:0 0 8px ${shared?"var(--up)":"var(--vio)"}"></span>${shared?"SHARED OPERATOR NOTEBOOK":"PRIVATE FIELD NOTES"} · ${scopeNotes().length} ENTRIES</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">${shared?"Visible to all operators — you can edit notes you authored.":"Only you can read these. Use ⇪ on a note to publish it to the shared notebook."} Group with folders, link with <b>[[Title]]</b>.</div></div>
       <button class="btn vio" onclick="newNote()">+ NEW</button>
     </div></div>
     <div style="padding-top:10px"><input id="note-q" placeholder="Search notes…" value="${esc(NOTEQ)}"></div>
+    <div class="chips" id="note-folderbar">
+      <button class="chip ${NOTEFOLDER===null?"on":""}" onclick="setNoteFolder(null)">⊞ ALL</button>
+      <button class="chip ${NOTEFOLDER===""?"on":""}" onclick="setNoteFolder('')">UNFILED</button>
+      ${folders.map(f=>`<button class="chip ${NOTEFOLDER===f?"on":""}" onclick="setNoteFolder('${esc(f).replace(/'/g,"\\'")}')">🗂 ${esc(f)}</button>`).join("")}
+    </div>
     ${tags.length?`<div class="chips">${[["",""]].concat(tags.map(t=>[t,t])).map(t=>
-      `<button class="chip ${(NOTETAG||"")===t[0]?"on":""}" onclick="setNoteTag('${t[0]?esc(t[0]).replace(/'/g,"\\'"):""}')">${t[0]?"#"+esc(t[0]):"ALL"}</button>`).join("")}</div>`:""}
-    <div id="note-list">${list.length?list.map(noteCard).join(""):`<div class="dim" style="padding:34px;text-align:center">${notesArr().length?"No notes match.":"No notes yet. Hit + NEW to start your logbook."}</div>`}</div>`;
+      `<button class="chip ${(NOTETAG||"")===t[0]?"on":""}" onclick="setNoteTag('${t[0]?esc(t[0]).replace(/'/g,"\\'"):""}')">${t[0]?"#"+esc(t[0]):"ALL TAGS"}</button>`).join("")}</div>`:""}
+    <div id="note-list">${noteListHTML(list)}</div>`;
   $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;
-    const sub=notesArr().filter(n=>{const qq=NOTEQ.trim().toLowerCase();
+    const sub=scopeNotes().filter(n=>{
+      if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
       if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
-      if(!qq)return true;return (n.title||"").toLowerCase().includes(qq)||(n.body||"").toLowerCase().includes(qq)||(n.tags||[]).some(t=>t.toLowerCase().includes(qq));})
+      const qq=NOTEQ.trim().toLowerCase();return !qq||matchNote(n,qq);})
       .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
-    const el=$("#note-list");if(el)el.innerHTML=sub.length?sub.map(noteCard).join(""):`<div class="dim" style="padding:34px;text-align:center">No notes match.</div>`;});
+    const el=$("#note-list");if(el)el.innerHTML=noteListHTML(sub);});
+}
+function noteListHTML(list){
+  if(list.length)return list.map(noteCard).join("");
+  const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":scopeNotes().length?"No notes match.":"No notes yet. Hit + NEW to start your logbook.";
+  return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
+}
+function renderGMNotes(v){
+  const groups=GMNOTES||[];
+  const total=groups.reduce((s,g)=>s+g.notes.length,0);
+  const q=NOTEQ.trim().toLowerCase();
+  v.innerHTML=`
+    ${scopeTabsHTML()}
+    <div class="card" style="margin-top:10px;border-color:var(--amber)"><div class="hud-tag"><span class="hud-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>GM OVERSIGHT · ${total} NOTES ACROSS ${groups.length} OPERATIVES</div>
+      <div class="dim" style="font-size:11px;margin-top:6px">Read-only access to every operator's private logbook. ${total?"":"No operatives have written notes yet."}</div></div>
+    <div style="padding-top:10px"><input id="note-q" placeholder="Search all operator notes…" value="${esc(NOTEQ)}"></div>
+    <div id="note-list">${gmGroupsHTML(groups,q)}</div>`;
+  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;const el=$("#note-list");if(el)el.innerHTML=gmGroupsHTML(groups,NOTEQ.trim().toLowerCase());});
+}
+function gmGroupsHTML(groups,q){
+  let html="";
+  for(const g of groups){
+    const ns=g.notes.filter(n=>!q||matchNote(n,q)).sort((a,b)=>(b.updated||0)-(a.updated||0));
+    if(!ns.length)continue;
+    html+=`<div class="sect">${esc(g.op.toUpperCase())} · ${ns.length}</div>`+ns.map(noteCard).join("");
+  }
+  return html||`<div class="dim" style="padding:34px;text-align:center">No notes match.</div>`;
 }
 function noteCard(n){
   const snip=plain(n.body).slice(0,110);
@@ -1362,43 +1456,67 @@ function noteCard(n){
       <div class="note-card-time">${ago(n.updated||n.created||Date.now())}</div>
     </div>
     ${snip?`<div class="note-card-s">${esc(snip)}${plain(n.body).length>110?"…":""}</div>`:`<div class="note-card-s dim">Empty note</div>`}
-    ${(n.tags||[]).length?`<div class="note-tags">${n.tags.map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+    <div class="note-cardmeta">
+      ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
+      ${n.owner&&NOTESCOPE!=="private"?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
+      ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
+    </div>
   </div>`;
 }
 function setNoteTag(t){NOTETAG=t||null;renderTab()}
-function newNote(){
-  const n={id:noteUID(),title:"",body:"",tags:[],pinned:false,created:Date.now(),updated:Date.now()};
-  notesArr().unshift(n);NOTESEL=n.id;NOTEEDIT=true;saveMe();renderTab();
+function setNoteFolder(f){NOTEFOLDER=f;renderTab()}
+function createNote(title){
+  const n={id:noteUID(),title:title||"",body:"",tags:[],folder:(NOTEFOLDER||""),pinned:false,created:Date.now(),updated:Date.now()};
+  if(NOTESCOPE==="shared"){n.owner=ME.n;SHNOTES.unshift(n);saveShared();}
+  else{notesArr().unshift(n);saveMe();}
+  NOTESEL=n.id;NOTEEDIT=true;renderTab();
 }
+function newNote(){if(NOTESCOPE!=="gm")createNote("");}
 function openNote(id){if(!noteById(id))return;NOTESEL=id;NOTEEDIT=false;renderTab()}
 function openNoteByTitle(title){
   const t=title.trim();const id=noteTitleMap()[t.toLowerCase()];
   if(id){openNote(id);return}
-  const n={id:noteUID(),title:t,body:"",tags:[],pinned:false,created:Date.now(),updated:Date.now()};
-  notesArr().unshift(n);NOTESEL=n.id;NOTEEDIT=true;saveMe();renderTab();
+  if(NOTESCOPE==="gm")return;
+  createNote(t);
 }
 function backToNotes(){commitNote();NOTESEL=null;NOTEEDIT=false;renderTab()}
-// read the editor fields back into the selected note (no-op when not editing)
+// read the editor fields back into the selected note (no-op when not editing or read-only)
 function commitNote(){
-  const n=NOTESEL&&noteById(NOTESEL);if(!n)return;
-  const tEl=$("#note-title"),bEl=$("#note-body"),gEl=$("#note-tagsin");
+  const n=NOTESEL&&noteById(NOTESEL);if(!n||!canEditNote(n))return;
+  const tEl=$("#note-title"),bEl=$("#note-body"),gEl=$("#note-tagsin"),fEl=$("#note-folder");
   if(!tEl&&!bEl)return; // not in edit mode
   const nt=tEl?tEl.value:n.title, nb=bEl?bEl.value:n.body;
   const ng=gEl?gEl.value.split(",").map(s=>s.trim().replace(/^#/,"")).filter(Boolean):n.tags;
-  if(nt!==n.title||nb!==n.body||JSON.stringify(ng)!==JSON.stringify(n.tags)){
-    n.title=nt;n.body=nb;n.tags=ng;n.updated=Date.now();saveMe();
+  const nf=fEl?fEl.value.trim():(n.folder||"");
+  if(nt!==n.title||nb!==n.body||JSON.stringify(ng)!==JSON.stringify(n.tags)||nf!==(n.folder||"")){
+    n.title=nt;n.body=nb;n.tags=ng;n.folder=nf;n.updated=Date.now();persistScope();
   }
 }
 function saveNote(){commitNote();NOTEEDIT=false;renderTab();toast("Note saved.");}
 function toggleNoteEdit(){if(NOTEEDIT)commitNote();NOTEEDIT=!NOTEEDIT;renderTab();}
-function toggleNotePin(){const n=noteById(NOTESEL);if(!n)return;commitNote();n.pinned=!n.pinned;n.updated=Date.now();saveMe();renderTab();}
+function toggleNotePin(){const n=noteById(NOTESEL);if(!canEditNote(n))return;commitNote();n.pinned=!n.pinned;n.updated=Date.now();persistScope();renderTab();}
 async function deleteNote(){
-  const n=noteById(NOTESEL);if(!n)return;
+  const n=noteById(NOTESEL);if(!canEditNote(n))return;
   if(!await iconfirm("Delete “"+esc(n.title||"this note")+"” permanently?"))return;
-  ME.notes=notesArr().filter(x=>x.id!==n.id);NOTESEL=null;NOTEEDIT=false;saveMe();renderTab();toast("Note deleted.");
+  if(NOTESCOPE==="shared"){SHNOTES=SHNOTES.filter(x=>x.id!==n.id);await saveShared();}
+  else{ME.notes=notesArr().filter(x=>x.id!==n.id);saveMe();}
+  NOTESEL=null;NOTEEDIT=false;renderTab();toast("Note deleted.");
+}
+// publish a private note to the shared operator notebook (or update the published copy)
+async function shareNote(){
+  const n=noteById(NOTESEL);if(!n||NOTESCOPE!=="private")return;
+  commitNote();await loadShared();
+  const ex=n.sharedId&&SHNOTES.find(s=>s.id===n.sharedId);
+  if(ex){ex.title=n.title;ex.body=n.body;ex.tags=n.tags||[];ex.folder=n.folder||"";ex.updated=Date.now();
+    await saveShared();toast("Updated in shared notebook.");return;}
+  const copy={id:noteUID(),owner:ME.n,title:n.title,body:n.body,tags:(n.tags||[]).slice(),folder:n.folder||"",pinned:false,created:Date.now(),updated:Date.now()};
+  SHNOTES.unshift(copy);n.sharedId=copy.id;saveMe();await saveShared();
+  toast("Published to shared notebook.");
 }
 function renderNoteEditor(v,n){
-  if(NOTEEDIT){
+  const editable=canEditNote(n);
+  if(NOTEEDIT&&editable){
+    const folders=allFolders();
     v.innerHTML=`
       <div class="note-bar">
         <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
@@ -1408,6 +1526,8 @@ function renderNoteEditor(v,n){
         </div>
       </div>
       <input id="note-title" placeholder="Note title…" value="${esc(n.title)}" style="font-family:'Orbitron';font-size:16px;margin-top:10px">
+      <input id="note-folder" list="note-folders" placeholder="🗂 Folder / mission (optional)" value="${esc(n.folder||"")}" style="margin-top:8px">
+      <datalist id="note-folders">${folders.map(f=>`<option value="${esc(f)}">`).join("")}</datalist>
       <div class="note-tools">
         ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],
            ["H","mdLine('## ')",""],["•","mdLine('- ')",""],["1.","mdLine('1. ')",""],["❝","mdLine('> ')",""],
@@ -1417,8 +1537,9 @@ function renderNoteEditor(v,n){
       </div>
       <textarea id="note-body" class="note-body" placeholder="Write your note… Markdown supported. Link other notes with [[Title]] and listings with \$SYM.">${esc(n.body)}</textarea>
       <input id="note-tagsin" placeholder="tags, comma separated (e.g. heist, contacts, vesk)" value="${esc((n.tags||[]).join(", "))}" style="margin-top:10px">
-      <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
-      <button class="btn red" style="width:100%;margin-top:14px" onclick="deleteNote()">DELETE NOTE</button>`;
+      <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}${n.owner?" · by @"+esc(n.owner):""}</div>
+      ${NOTESCOPE==="private"?`<button class="btn ghost" style="width:100%;margin-top:14px" onclick="shareNote()">⇪ ${n.sharedId?"UPDATE IN":"PUBLISH TO"} SHARED NOTEBOOK</button>`:""}
+      <button class="btn red" style="width:100%;margin-top:10px" onclick="deleteNote()">DELETE NOTE</button>`;
     return;
   }
   // ---- read / preview mode ----
@@ -1427,20 +1548,25 @@ function renderNoteEditor(v,n){
     <div class="note-bar">
       <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
       <div class="note-bar-r">
+        ${editable?`${NOTESCOPE==="private"?`<button class="iconbtn" title="${n.sharedId?"Update in":"Publish to"} shared notebook" onclick="shareNote()" style="font-size:15px">⇪</button>`:""}
         <button class="iconbtn" title="Pin" onclick="toggleNotePin()" style="font-size:15px">${n.pinned?"📌":"📍"}</button>
-        <button class="btn vio" onclick="toggleNoteEdit()">✎ EDIT</button>
+        <button class="btn vio" onclick="toggleNoteEdit()">✎ EDIT</button>`:`<span class="note-ro">${NOTESCOPE==="gm"?"GM VIEW · READ ONLY":"READ ONLY"}</span>`}
       </div>
     </div>
     <h1 class="note-view-title">${esc(n.title||"Untitled note")}</h1>
-    ${(n.tags||[]).length?`<div class="note-tags" style="margin:4px 0 2px">${n.tags.map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}</div>`:""}
+    <div class="note-cardmeta" style="margin:6px 0 2px">
+      ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
+      ${n.owner?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
+      ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
+    </div>
     <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
-    <div class="note-render">${n.body.trim()?mdRender(n.body):`<div class="dim">This note is empty. Tap EDIT to add content.</div>`}</div>
+    <div class="note-render">${n.body.trim()?mdRender(n.body):`<div class="dim">This note is empty.${editable?" Tap EDIT to add content.":""}</div>`}</div>
     ${back.length?`<div class="note-backlinks"><div class="note-bl-h">⮌ LINKED FROM</div>${back.map(b=>`<div class="note-bl" onclick="openNote('${b.id}')">${esc(b.title||"Untitled note")}</div>`).join("")}</div>`:""}`;
 }
-// notes that reference this note via [[Title]]
+// notes in the active notebook that reference this note via [[Title]]
 function backlinksFor(n){
   const title=(n.title||"").trim().toLowerCase();if(!title)return[];
-  return notesArr().filter(o=>o.id!==n.id&&(o.body||"").toLowerCase().match(/\[\[([^\]]+)\]\]/g)?.some(m=>m.slice(2,-2).trim().toLowerCase()===title));
+  return scopeNotes().filter(o=>o.id!==n.id&&(o.body||"").toLowerCase().match(/\[\[([^\]]+)\]\]/g)?.some(m=>m.slice(2,-2).trim().toLowerCase()===title));
 }
 // insert wrapping markdown around the textarea selection
 function md(pre,suf,ph){
@@ -1489,6 +1615,87 @@ function mdRender(src){
     out+=`<p>${para.map(inline).join("<br>")}</p>`;i++;
   }
   return out;
+}
+
+/* ============ AGX PAY app ============
+   Venmo-style peer credit transfers between operators. Debits the sender,
+   credits the recipient's account directly, and logs a PAY entry on both
+   sides (which the portfolio cash engine already understands). */
+let PAYUSERS=null, PAYTO="", PAYAMT="", PAYMEMO="", PAYBUSY=false;
+async function loadPayUsers(){
+  try{
+    const keys=await SG.list("u:");
+    const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
+    PAYUSERS=users.filter(u=>u&&u.n&&u.n!==ME.n).map(u=>u.n).sort((a,b)=>a.localeCompare(b));
+  }catch(e){PAYUSERS=[]}
+}
+async function renderPay(v){
+  if(PAYUSERS===null){
+    v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Connecting to credit network…</div>`;
+    await loadPayUsers();
+  }
+  const xfers=(ME.hist||[]).filter(h=>h.side==="PAY").slice(-30).reverse();
+  v.innerHTML=`
+    <div class="card pay-balance" style="margin-top:14px">
+      <div class="hud-tag"><span class="hud-dot" style="background:var(--up);box-shadow:0 0 8px var(--up)"></span>AGX PAY · SPENDABLE BALANCE</div>
+      <div class="pay-bal" id="pay-bal">${fmt(ME.cash)}</div>
+      <div class="dim" style="font-size:11px">Instantly transfer credits to any operator. Transfers settle immediately and can't be reversed — double-check the recipient.</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>SEND CREDITS</h3>
+      <div class="field" style="margin-top:10px"><label>RECIPIENT</label>
+        <select id="pay-to">${PAYUSERS.length?`<option value="">— select operator —</option>`+PAYUSERS.map(n=>`<option value="${esc(n)}" ${PAYTO===n?"selected":""}>${esc(n)}</option>`).join(""):`<option value="">no other operators yet</option>`}</select></div>
+      <div class="field" style="margin-top:10px"><label>AMOUNT (₢)</label>
+        <input id="pay-amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="${esc(PAYAMT)}"></div>
+      <div class="inline" style="margin-top:8px">${[10,50,100,500].map(a=>`<button class="btn ghost" style="flex:1;padding:8px 0;font-size:12px" onclick="payQuick(${a})">+${a}</button>`).join("")}</div>
+      <div class="field" style="margin-top:10px"><label>NOTE (OPTIONAL)</label>
+        <input id="pay-memo" placeholder="e.g. ship repairs, your cut, dinner" maxlength="80" value="${esc(PAYMEMO)}"></div>
+      <button class="btn" style="width:100%;margin-top:14px" id="pay-send" onclick="sendMoney()" ${PAYBUSY?"disabled":""}>SEND CREDITS</button>
+    </div>
+    <div class="sect" style="margin-top:20px">TRANSFER ACTIVITY</div>
+    ${xfers.length?xfers.map(h=>`
+      <div class="pay-row">
+        <div class="pay-ico ${h.d>=0?"in":"out"}">${h.d>=0?"↓":"↑"}</div>
+        <div style="flex:1;min-width:0">
+          <div class="pay-who">${h.d>=0?"From":"To"} <b>${esc(h.with||"unknown")}</b></div>
+          ${h.memo?`<div class="pay-memo">“${esc(h.memo)}”</div>`:""}
+          <div class="pay-time">${ago(h.at)}</div>
+        </div>
+        <div class="pay-amt ${h.d>=0?"up":"down"}">${h.d>=0?"+":"−"}${fmt(Math.abs(h.d))}</div>
+      </div>`).join(""):`<div class="dim" style="padding:24px;text-align:center">No transfers yet. Send a friend some credits.</div>`}`;
+  const sel=$("#pay-to");if(sel)sel.onchange=e=>PAYTO=e.target.value;
+  const amt=$("#pay-amt");if(amt)amt.oninput=e=>PAYAMT=e.target.value;
+  const memo=$("#pay-memo");if(memo)memo.oninput=e=>PAYMEMO=e.target.value;
+}
+function payQuick(a){const el=$("#pay-amt");const cur=parseFloat(el&&el.value)||0;PAYAMT=String(Math.round((cur+a)*100)/100);if(el)el.value=PAYAMT;}
+async function sendMoney(){
+  if(PAYBUSY)return;
+  const to=($("#pay-to")||{}).value||PAYTO;
+  const amt=Math.round((parseFloat(($("#pay-amt")||{}).value||PAYAMT)||0)*100)/100;
+  const memo=(($("#pay-memo")||{}).value||PAYMEMO||"").trim().slice(0,80);
+  if(!to)return toast("Pick a recipient.",true);
+  if(to===ME.n)return toast("You can't pay yourself.",true);
+  if(!isFinite(amt)||amt<=0)return toast("Enter a valid amount.",true);
+  if(amt>ME.cash+1e-9)return toast("Insufficient credits.",true);
+  if(!await iconfirm("Send "+fmt(amt)+" to "+esc(to)+"?"+(memo?"<br><span style='color:var(--dim)'>“"+esc(memo)+"”</span>":"")))return;
+  PAYBUSY=true;const btn=$("#pay-send");if(btn){btn.disabled=true;btn.textContent="SENDING…"}
+  const key="u:"+to.toLowerCase().replace(/[^a-z0-9_-]/g,"_");
+  let dest;try{dest=await SG.get(key);}catch(e){dest=null;}
+  if(!dest){PAYBUSY=false;return toast("Recipient not found.",true);}
+  // debit sender first and persist
+  const now=Date.now(),g=gameNow();
+  ME.cash-=amt;ME.hist=ME.hist||[];ME.hist.push({side:"PAY",d:-amt,with:to,memo,at:now,g});
+  const okMe=await saveMe();
+  if(!okMe){ME.cash+=amt;ME.hist.pop();PAYBUSY=false;return toast("Transfer failed — credits returned.",true);}
+  // credit recipient on the freshest copy
+  dest.cash=(dest.cash||0)+amt;dest.hist=dest.hist||[];dest.hist.push({side:"PAY",d:amt,with:ME.n,memo,at:now,g});
+  const okDest=await SG.set(key,dest);
+  if(!okDest){ // roll the sender back
+    ME.cash+=amt;ME.hist.pop();await saveMe();PAYBUSY=false;
+    return toast("Recipient unreachable — credits returned.",true);
+  }
+  PAYBUSY=false;PAYAMT="";PAYMEMO="";
+  toast("Sent "+fmt(amt)+" to "+to+".");
+  snapshotEq();if(TAB==="pay")renderTab();
 }
 
 /* ---------- charts ---------- */
@@ -1999,7 +2206,7 @@ function portfolioSeries(ms,n=110){
     if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
     else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
     else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
-    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"){cash+=e.d}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"){cash+=e.d}
     else if(e.side==="OBUY"){cash-=e.q*e.p}
     else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
     else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
@@ -2021,7 +2228,7 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
@@ -2029,6 +2236,7 @@ function histLine(h){
     h.side==="INT"?fmt(h.d)+" interest":
     h.side==="BET"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     h.side==="XFER"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
+    h.side==="PAY"?(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" \u00B7 from ":" \u00B7 to ")+esc(h.with):"")+(h.memo?" \u00B7 \u201C"+esc(h.memo)+"\u201D":""):
     `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
   return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
    <div class="t">${ago(h.at)}</div></div>`;
