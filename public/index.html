@@ -3269,30 +3269,30 @@ async function adLoadUsers(){
       :"background:color-mix(in srgb,var(--down) 12%,transparent);color:var(--down);border:1px solid color-mix(in srgb,var(--down) 45%,transparent);box-shadow:none";
     d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;color:var(--ink);margin-bottom:4px"><b>${esc(u.n)}</b><span class="mono">${fmt(netWorth(u))}</span></div>
       <div class="op-credits">
-        <input type="number" inputmode="decimal" placeholder="set credits" data-k="${k}" class="adcash">
-        <button class="btn ghost adset" data-k="${k}">SET ₢</button>
+        <input type="number" inputmode="decimal" placeholder="set credits" data-k="${k}" class="opcash">
+        <button class="btn ghost opset" data-k="${k}">SET ₢</button>
       </div>
       <div class="inline" style="margin-top:8px">
-        <select class="adgsym" data-k="${k}">${ASSETS.map(a=>`<option>${a.sym}</option>`).join("")}</select>
-        <input type="number" inputmode="decimal" placeholder="± shares" class="adgq" data-k="${k}">
-        <button class="btn ghost adgrant" data-k="${k}">GRANT</button>
+        <select class="opgsym" data-k="${k}">${ASSETS.map(a=>`<option>${a.sym}</option>`).join("")}</select>
+        <input type="number" inputmode="decimal" placeholder="± shares" class="opgq" data-k="${k}">
+        <button class="btn ghost opgrant" data-k="${k}">GRANT</button>
       </div>
       <div class="inline" style="margin-top:8px">
-        <button class="btn ${u.l2?"amber":"ghost"} adspread" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
+        <button class="btn ${u.l2?"amber":"ghost"} opl2" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
       </div>
       <div class="op-label">CASINO FORTUNE</div>
       <div class="op-two">
-        <button class="btn adluck" data-k="${k}" data-v="good" style="${sGood}">🍀 FORTUNE${u.luck==="good"?" ✓":""}</button>
-        <button class="btn adluck" data-k="${k}" data-v="cursed" style="${sBad}">☠ CURSED${u.luck==="cursed"?" ✓":""}</button>
+        <button class="btn opluck" data-k="${k}" data-v="good" style="${sGood}">🍀 FORTUNE${u.luck==="good"?" ✓":""}</button>
+        <button class="btn opluck" data-k="${k}" data-v="cursed" style="${sBad}">☠ CURSED${u.luck==="cursed"?" ✓":""}</button>
       </div>
       <div class="op-danger">
-        <button class="btn ${u.casinoBan?"red":"ghost"} adban" data-k="${k}">${u.casinoBan?"CASINO BANNED ✓":"BAN FROM CASINO"}</button>
-        <button class="btn red addel" data-k="${k}">DELETE ACCOUNT</button>
+        <button class="btn ${u.casinoBan?"red":"ghost"} opcasino" data-k="${k}">${u.casinoBan?"CASINO BANNED ✓":"BAN FROM CASINO"}</button>
+        <button class="btn red opdel" data-k="${k}">DELETE ACCOUNT</button>
       </div>`;
     box.appendChild(d);
   }
-  box.querySelectorAll(".adset").forEach(b=>b.onclick=async()=>{
-    const k=b.dataset.k,n=parseFloat(box.querySelector(`.adcash[data-k="${k}"]`).value);
+  box.querySelectorAll(".opset").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,n=parseFloat(box.querySelector(`.opcash[data-k="${k}"]`).value);
     if(isNaN(n))return toast("Enter an amount.",true);
     const u=await SG.get(k);if(!u)return;
     const delta=n-u.cash;u.cash=n;u.dep=(u.dep||0)+delta;
@@ -3300,19 +3300,19 @@ async function adLoadUsers(){
     await SG.set(k,u);
     if(k===MYKEY)await refreshMe();toast(u.n+" credits set to "+fmt(n));
   });
-  box.querySelectorAll(".addel").forEach(b=>b.onclick=async()=>{
+  box.querySelectorAll(".opdel").forEach(b=>b.onclick=async()=>{
     const u=await SG.get(b.dataset.k);
     if(!await iconfirm("Delete account "+(u?u.n:"")+"?"))return;
     await SG.del(b.dataset.k);toast("Account deleted.");adLoadUsers();
   });
-  box.querySelectorAll(".adspread").forEach(b=>b.onclick=async()=>{
+  box.querySelectorAll(".opl2").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k,u=await SG.get(k);if(!u)return;
     u.l2=!u.l2;await SG.set(k,u);
     if(k===MYKEY)await refreshMe();
     toast(u.n+(u.l2?" granted Level-2 market data access.":" Level-2 access revoked."));
     adLoadUsers();
   });
-  box.querySelectorAll(".adluck").forEach(b=>b.onclick=async()=>{
+  box.querySelectorAll(".opluck").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k,v=b.dataset.v,u=await SG.get(k);if(!u)return;
     u.luck = (u.luck===v) ? undefined : v;   // toggle off if already set; otherwise switch
     await SG.set(k,u);
@@ -3322,16 +3322,16 @@ async function adLoadUsers(){
       :" casino fortune reset to neutral."));
     adLoadUsers();
   });
-  box.querySelectorAll(".adban").forEach(b=>b.onclick=async()=>{
+  box.querySelectorAll(".opcasino").forEach(b=>b.onclick=async()=>{
     const k=b.dataset.k,u=await SG.get(k);if(!u)return;
     u.casinoBan=!u.casinoBan;await SG.set(k,u);
     if(k===MYKEY)await refreshMe();
     toast(u.n+(u.casinoBan?" BANNED from the casino.":" casino access restored."));
     adLoadUsers();
   });
-  box.querySelectorAll(".adgrant").forEach(b=>b.onclick=async()=>{
-    const k=b.dataset.k,sym=box.querySelector(`.adgsym[data-k="${k}"]`).value,
-      q=parseFloat(box.querySelector(`.adgq[data-k="${k}"]`).value);
+  box.querySelectorAll(".opgrant").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,sym=box.querySelector(`.opgsym[data-k="${k}"]`).value,
+      q=parseFloat(box.querySelector(`.opgq[data-k="${k}"]`).value);
     if(!q)return toast("Enter share count.",true);
     const u=await SG.get(k);if(!u)return;
     u.hold=u.hold||{};const pos=u.hold[sym]||{q:0,c:0},gp=px(sym);
