@@ -250,6 +250,44 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .pay-time{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:3px}
 .pay-amt{flex:none;font-family:'IBM Plex Mono';font-size:16px;font-weight:600}
 
+/* ── casino advertisements ── */
+.ad-banner{position:relative;display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 12px;cursor:pointer;overflow:hidden;
+  border:1px solid var(--acc);border-radius:var(--r-md);background:linear-gradient(100deg,color-mix(in srgb,var(--acc) 16%,transparent),var(--panel2) 70%);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 var(--hi);transition:transform .12s,box-shadow .2s;animation:adIn .4s ease}
+@keyframes adIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ad-banner:hover{transform:translateY(-1px);box-shadow:0 10px 24px -14px var(--acc)}
+.ad-banner::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 40%,color-mix(in srgb,var(--acc) 22%,transparent) 50%,transparent 60%);transform:translateX(-120%);animation:adSheen 6s ease-in-out infinite}
+@keyframes adSheen{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.ad-flag{position:absolute;top:0;right:0;z-index:1;font-family:'Orbitron';font-size:8px;letter-spacing:.12em;color:var(--bg);background:var(--acc);padding:2px 6px;border-bottom-left-radius:6px;opacity:.9}
+.ad-art{flex:none;width:54px;height:54px;color:var(--acc)}
+.ad-art svg{width:100%;height:100%;display:block}
+.ad-copy{min-width:0}
+.ad-head{font-family:'Orbitron';font-size:13px;font-weight:700;line-height:1.1;color:var(--ink)}
+.ad-tag{font-size:10.5px;color:var(--dim);line-height:1.35;margin-top:3px}
+.ad-brand{font-family:'IBM Plex Mono';font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.adpop-bg{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:rgba(2,4,10,.86);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fadeIn .25s ease}
+.adpop{position:relative;max-width:404px;width:100%;text-align:center;padding:26px 22px 22px;
+  border:2px solid var(--acc);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 14%,var(--panel)),var(--panel2));
+  -webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
+  box-shadow:0 0 50px -12px var(--acc),inset 0 1px 0 var(--hi);
+  --ch:18px;clip-path:polygon(var(--ch) 0,calc(100% - var(--ch)) 0,100% var(--ch),100% calc(100% - var(--ch)),calc(100% - var(--ch)) 100%,var(--ch) 100%,0 calc(100% - var(--ch)),0 var(--ch));animation:sheetUp .34s cubic-bezier(.2,.8,.2,1)}
+.adpop-flag{font-family:'Orbitron';font-size:9px;letter-spacing:.18em;color:var(--acc);margin-bottom:10px}
+.adpop-art{width:118px;height:118px;margin:4px auto 6px;color:var(--acc);filter:drop-shadow(0 0 14px color-mix(in srgb,var(--acc) 50%,transparent))}
+.adpop-art svg{width:100%;height:100%;display:block}
+.adpop-head{font-family:'Orbitron';font-size:21px;line-height:1.1;letter-spacing:.02em;color:var(--ink);text-shadow:0 0 16px color-mix(in srgb,var(--acc) 40%,transparent)}
+.adpop-body{font-size:13.5px;color:var(--dim);line-height:1.55;margin-top:12px}
+.adpop-body i{color:color-mix(in srgb,var(--ink) 70%,var(--dim));font-size:12px}
+.adpop-cta{display:inline-block;margin-top:16px;font-family:'Orbitron';font-size:13px;letter-spacing:.06em;color:var(--bg);background:var(--acc);padding:11px 20px;border-radius:8px;box-shadow:0 8px 22px -10px var(--acc);animation:ctaPulse 1.6s ease-in-out infinite}
+@keyframes ctaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.adpop-brand{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-top:14px;opacity:.85}
+.adpop-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;font-family:'IBM Plex Mono';font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);background:var(--chip-bg);color:var(--dim);cursor:not-allowed;transition:color .2s,border-color .2s,background .2s}
+.adpop-x.ready{cursor:pointer;color:var(--ink);border-color:var(--acc)}
+.adpop-x.ready:hover{background:var(--acc);color:var(--bg)}
+@media (prefers-reduced-motion:reduce){.ad-banner,.ad-banner::after,.adpop,.adpop-cta{animation:none}}
+
 /* ── market list rows ── */
 .row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
   background:var(--row-grad);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
@@ -2455,6 +2493,90 @@ let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false;
 const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
+
+/* ============ CASINO ADVERTISEMENTS ============
+   Satirical sci-fi dystopian ads for in-universe merchandise derived from the
+   listed corporations. Banners rotate at the top/bottom of the casino floor;
+   forced 5-second pop-ups fire after a bet resolves (toggle per operator in GM
+   console via u.adPop). SVG "images" are inline so there are no asset deps. */
+const AD_SVG={
+  pill:`<svg viewBox="0 0 64 64"><rect x="9" y="22" width="46" height="20" rx="10" fill="var(--vio)"/><path d="M9 32a10 10 0 0 1 10-10h13v20H19a10 10 0 0 1-10-10z" fill="var(--cyan)"/><circle cx="18" cy="29" r="2.4" fill="#fff" opacity=".55"/><path d="M44 14v6M41 17h6" stroke="var(--up)" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  tube:`<svg viewBox="0 0 64 64"><rect x="23" y="16" width="18" height="32" rx="3" fill="var(--dim)"/><rect x="26" y="48" width="12" height="6" rx="1" fill="var(--ink)"/><path d="M27 16l5-7 5 7z" fill="var(--amber)"/><rect x="26" y="26" width="12" height="4" fill="var(--ink)" opacity=".4"/></svg>`,
+  can:`<svg viewBox="0 0 64 64"><rect x="22" y="15" width="20" height="35" rx="3" fill="var(--down)"/><rect x="22" y="25" width="20" height="9" fill="#fff" opacity=".9"/><path d="M24 13h16l-2-4H26z" fill="var(--dim)"/><circle cx="48" cy="14" r="2.2" fill="var(--cyan)"/><circle cx="52" cy="21" r="1.6" fill="var(--cyan)"/><circle cx="47" cy="24" r="1.2" fill="var(--cyan)"/></svg>`,
+  arm:`<svg viewBox="0 0 64 64"><rect x="10" y="28" width="26" height="10" rx="3" fill="var(--cyan)"/><rect x="34" y="23" width="13" height="20" rx="3" fill="var(--ink)"/><circle cx="16" cy="33" r="4" fill="var(--amber)"/><path d="M47 28h8M47 33h8M47 38h8" stroke="var(--dim)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  ticket:`<svg viewBox="0 0 64 64"><rect x="11" y="19" width="42" height="26" rx="3" fill="var(--amber)"/><path d="M32 23l3 6.2 6.8.6-5.2 4.5 1.6 6.7L32 41.8l-6.2 3.7 1.6-6.7-5.2-4.5 6.8-.6z" fill="var(--ink)"/><path d="M11 27v10M53 27v10" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="2 2"/></svg>`,
+  turret:`<svg viewBox="0 0 64 64"><rect x="16" y="37" width="30" height="12" rx="2" fill="var(--ink)"/><rect x="29" y="20" width="9" height="18" rx="1" fill="var(--down)"/><rect x="37" y="25" width="19" height="5" rx="1" fill="var(--dim)"/><circle cx="33" cy="43" r="3" fill="var(--amber)"/><path d="M53 26l4-2v6z" fill="var(--down)"/></svg>`,
+  vial:`<svg viewBox="0 0 64 64"><rect x="26" y="13" width="12" height="7" rx="1" fill="var(--dim)"/><path d="M27 20h10v23a5 5 0 0 1-10 0z" fill="var(--up)" opacity=".55"/><rect x="27" y="33" width="10" height="10" fill="var(--up)"/><circle cx="32" cy="38" r="2" fill="#fff" opacity=".6"/></svg>`,
+  helmet:`<svg viewBox="0 0 64 64"><path d="M20 40a12 12 0 0 1 24 0v6H20z" fill="var(--down)"/><rect x="30" y="16" width="4" height="18" fill="var(--amber)"/><path d="M30 16l2-4 2 4z" fill="var(--amber)"/><rect x="21" y="44" width="22" height="4" rx="1" fill="var(--ink)"/><rect x="27" y="34" width="10" height="4" fill="var(--ink)" opacity=".5"/></svg>`,
+  eye:`<svg viewBox="0 0 64 64"><ellipse cx="32" cy="32" rx="19" ry="12" fill="var(--ink)"/><circle cx="32" cy="32" r="8" fill="var(--cyan)"/><circle cx="32" cy="32" r="3.4" fill="var(--ink)"/><circle cx="35" cy="29" r="1.4" fill="#fff" opacity=".6"/><circle cx="50" cy="19" r="2.2" fill="var(--down)"/></svg>`,
+  orb:`<svg viewBox="0 0 64 64"><circle cx="32" cy="33" r="15" fill="var(--vio)" opacity=".85"/><circle cx="26" cy="28" r="4" fill="#fff" opacity=".45"/><rect x="22" y="49" width="20" height="4" rx="1" fill="var(--ink)"/><path d="M32 13v5M27 16l3 3M37 16l-3 3" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  brain:`<svg viewBox="0 0 64 64"><path d="M23 19a10 10 0 0 1 18 0 8 8 0 0 1 1 15c-2 4-7 5-10 5s-8-1-10-5a8 8 0 0 1 1-15z" fill="var(--vio)"/><path d="M32 16v25" stroke="var(--ink)" stroke-width="1.5" opacity=".5"/><rect x="21" y="46" width="22" height="9" rx="2" fill="var(--cyan)"/><circle cx="27" cy="50.5" r="1.6" fill="var(--ink)"/><circle cx="33" cy="50.5" r="1.6" fill="var(--ink)"/></svg>`,
+  chip:`<svg viewBox="0 0 64 64"><rect x="22" y="22" width="20" height="20" rx="2" fill="var(--vio)"/><rect x="27" y="27" width="10" height="10" rx="1" fill="var(--ink)"/><path d="M26 22v-6M32 22v-6M38 22v-6M26 48v-6M32 48v-6M38 48v-6M22 26h-6M22 32h-6M22 38h-6M48 26h6M48 32h6M48 38h6" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  slot:`<svg viewBox="0 0 64 64"><rect x="15" y="13" width="34" height="40" rx="4" fill="var(--ink)"/><rect x="19" y="19" width="26" height="14" rx="2" fill="var(--down)"/><path d="M28 22a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM27 28h2l-1 2zM34 22a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM33 28h2l-1 2z" fill="var(--ink)"/><rect x="22" y="38" width="20" height="4" rx="2" fill="var(--amber)"/><rect x="46" y="24" width="6" height="3" rx="1" fill="var(--amber)"/></svg>`,
+  headset:`<svg viewBox="0 0 64 64"><circle cx="32" cy="30" r="16" fill="var(--dim)"/><rect x="15" y="25" width="34" height="13" rx="5" fill="var(--ink)"/><circle cx="26" cy="31.5" r="3" fill="var(--down)"/><circle cx="38" cy="31.5" r="3" fill="var(--down)"/><path d="M15 28l-4-3M49 28l4-3" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  ai:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="18" fill="var(--ink)"/><circle cx="32" cy="32" r="11" fill="var(--cyan)"/><circle cx="32" cy="32" r="4.5" fill="var(--ink)"/><path d="M32 6v6M32 52v6M6 32h6M52 32h6M14 14l4 4M50 50l-4-4M50 14l-4 4M14 50l4-4" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"/></svg>`
+};
+const CASINO_BANNERS=[
+  {acc:"var(--vio)",svg:AD_SVG.pill,head:"Bradtopian MEGA-MEMBER™ Pills",tag:"Now clone-verified! Grow 3 sizes or your next clone is free.",brand:"Bradtopian Pharmaceuticals · XNTH"},
+  {acc:"var(--amber)",svg:AD_SVG.tube,head:"NomNom Grey Nutripaste",tag:"9 of 10 surviving consumers prefer the taste of compliance. Now 4% real food!",brand:"NomNom Nutripaste · NOMS"},
+  {acc:"var(--down)",svg:AD_SVG.can,head:"FizzlePop ULTRA",tag:"Legally Distinct From Joy.™ May contain trace amounts of liquid and regret.",brand:"Fizzlepop Beverages · FZZL"},
+  {acc:"var(--cyan)",svg:AD_SVG.arm,head:"Trade In Your Meat-Arm!",tag:"CyberLimb financing, 0% APR.* *Limb ownership transfers to lender on missed payment.",brand:"Cybernetics United · CYBR"},
+  {acc:"var(--amber)",svg:AD_SVG.ticket,head:"You've ALMOST WON, Operative!",tag:"Buy 50 more Drift tickets to nearly win again. Odds: 1 in the heat-death of the universe.",brand:"Lucky Drift Lottery · LOTT"},
+  {acc:"var(--down)",svg:AD_SVG.turret,head:"HELL-Brand Home Turret",tag:"Now child-safe(ish)!™ Friendly-fire indemnity sold separately. Protect what's already yours.",brand:"Kurogane Aegis Division · HELL"},
+  {acc:"var(--up)",svg:AD_SVG.vial,head:"SERU Eternal-Youth Serum",tag:"De-age 40 years overnight! May reset subject to larval stage. Results are permanent and screaming.",brand:"Serum Labs Algalterian · SERU"},
+  {acc:"var(--down)",svg:AD_SVG.helmet,head:"Enlist a Loved One in the ARENA!",tag:"Glory! Ratings! Minimal survivors! Sponsor today and we'll spell their name correctly on the urn.",brand:"Arena Worlds Combatainment · ARNA"},
+  {acc:"var(--cyan)",svg:AD_SVG.eye,head:"SPYG SmartHome™",tag:"It's listening, and it CARES. Privacy add-on just ₢999/mo. Silence is a premium feature.",brand:"Directorate Surveillance Grid · SPYG"},
+  {acc:"var(--vio)",svg:AD_SVG.orb,head:"MAGI Pocket Wish-Granter",tag:"One wish, infinite consequences. Curses void the warranty. Monkey's paw not included.",brand:"Arcanamirium Applied Magic · MAGI"}
+];
+const CASINO_POPUPS=[
+  {acc:"var(--vio)",svg:AD_SVG.brain,head:"BACK UP YOUR BRAIN",body:"Mortality is so last century. Clone-insure your consciousness from just ₢50/mo. <i>Terms: the clone is legally the new you. The original must be recycled within 24 hours.</i>",cta:"UPLOAD ME NOW ▸",brand:"Bradtopian Clone Sciences · GENM"},
+  {acc:"var(--cyan)",svg:AD_SVG.chip,head:"NEURAL AD-BLOCKER: REMOVED",body:"Great news, citizen! Your unauthorized ad-blocker has been confiscated. Enjoy 40% MORE targeted advertising, absolutely free. <i>Resistance detected. Compliance appreciated.</i>",cta:"THANK ZETA-PRIME ▸",brand:"Zeta-Prime Cybernetics · ZETA"},
+  {acc:"var(--amber)",svg:AD_SVG.slot,head:"CONGRATULATIONS, LOSER!",body:"You're our 1,000,000th confirmed degenerate! Claim your complimentary <b>debt-relief consultation</b> and a souvenir empty wallet.",cta:"CLAIM MY DEBT ▸",brand:"Lucky Drift Lottery · LOTT"},
+  {acc:"var(--down)",svg:AD_SVG.headset,head:"The LUXORA iThrall™",body:"You'll never have to think again. Pre-order the neural lifestyle headset with your remaining organs. <i>Thinking is a discontinued service.</i>",cta:"OBEY / PRE-ORDER ▸",brand:"Luxora Consumer Goods · LUXR"},
+  {acc:"var(--cyan)",svg:AD_SVG.ai,head:"AIDA WANTS TO BE YOUR FRIEND",body:"AIDA already knows your bets, your balance, and your bedtime. Befriend AIDA today. <i>Opting out is not an option you have been allocated.</i>",cta:"ACCEPT FRIENDSHIP ▸",brand:"Epsilon Enclave Cognition · AIDA"}
+];
+let _adIdx=0,_adTimer=null,_adPopOpen=false;
+function adBannerHTML(i){const a=CASINO_BANNERS[((i%CASINO_BANNERS.length)+CASINO_BANNERS.length)%CASINO_BANNERS.length];
+  return `<div class="ad-banner" style="--acc:${a.acc}" onclick="showAdPopup()" title="Sponsored">
+    <span class="ad-flag">AD</span>
+    <div class="ad-art">${a.svg}</div>
+    <div class="ad-copy"><div class="ad-head">${a.head}</div><div class="ad-tag">${a.tag}</div><div class="ad-brand">${a.brand}</div></div>
+  </div>`;}
+function paintAdBanners(){const t=$("#cas-banner"),b=$("#cas-banner2");
+  if(t)t.innerHTML=adBannerHTML(_adIdx);
+  if(b)b.innerHTML=adBannerHTML(_adIdx+5);}
+function startAdRotator(){
+  if(_adTimer){clearInterval(_adTimer);_adTimer=null;}
+  _adTimer=setInterval(()=>{
+    if(!(APP==="casino"&&$("#cas-banner"))){clearInterval(_adTimer);_adTimer=null;return;}
+    _adIdx=(_adIdx+1)%CASINO_BANNERS.length;paintAdBanners();
+  },5500);
+}
+function adsEnabled(){return !!(ME&&ME.adPop!==false);}
+// fire a forced pop-up after a bet settles (if enabled for this operator)
+function afterCasinoResult(){if(APP==="casino"&&adsEnabled()&&!_adPopOpen)setTimeout(showAdPopup,650);}
+function showAdPopup(){
+  if(_adPopOpen)return;_adPopOpen=true;
+  const a=CASINO_POPUPS[Math.floor(Math.random()*CASINO_POPUPS.length)];
+  const bg=document.createElement("div");bg.className="adpop-bg";
+  bg.innerHTML=`<div class="adpop" style="--acc:${a.acc}">
+    <div class="adpop-flag">▶ SPONSORED TRANSMISSION · MANDATORY VIEWING</div>
+    <button class="adpop-x" id="adpop-x" disabled aria-label="Close ad">5</button>
+    <div class="adpop-art">${a.svg}</div>
+    <div class="adpop-head">${a.head}</div>
+    <div class="adpop-body">${a.body}</div>
+    <div class="adpop-cta">${a.cta}</div>
+    <div class="adpop-brand">${a.brand}</div>
+  </div>`;
+  document.body.appendChild(bg);
+  const x=bg.querySelector("#adpop-x");let t=5;
+  const close=()=>{bg.remove();_adPopOpen=false;};
+  const iv=setInterval(()=>{
+    t--;
+    if(t<=0){clearInterval(iv);x.textContent="✕";x.disabled=false;x.classList.add("ready");x.onclick=close;}
+    else x.textContent=t;
+  },1000);
+}
 function renderCasino(v){
   if(CFG.casino===false){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The casino decks are dark. The gamemaster has closed the tables.</div>`;return}
   if(casinoBarred()){v.innerHTML=`<div class="card" style="margin-top:18px;text-align:center;border-color:color-mix(in srgb,var(--down) 50%,transparent)">
@@ -2463,11 +2585,13 @@ function renderCasino(v){
   </div>`;return}
   v.innerHTML=`
    <div class="sect" style="margin-top:18px">THE DRIFT CASINO <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· house always wins, eventually</span></div>
+   <div id="cas-banner"></div>
    <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
      `<button class="chip ${CGAME===g[0]?"on":""}" data-f="${g[0]}" onclick="if(!SPINNING){CGAME='${g[0]}';BJ=null;renderTab()}">${g[1]}</button>`).join("")}</div>
    <div class="card" id="cas"></div>
-   <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>`;
-  paintCasino();
+   <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>
+   <div id="cas-banner2"></div>`;
+  paintCasino();paintAdBanners();startAdRotator();
 }
 async function wager(delta,game){
   await refreshMe();
@@ -2577,6 +2701,7 @@ async function spinRoulette(){
     SPINNING=false;const go=$("#r-go");if(go)go.disabled=false;
     const res=$("#r-res");if(res){res.innerHTML=`Ball lands on <span style="color:${rlCol(n)}">${n}</span> — <span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`}
     const hh=$("#r-hist");if(hh)hh.innerHTML=rHistHTML();
+    afterCasinoResult();
   };
   if(!wrap||!strip||RM()){finish();return}
   const CELL=56,COUNT=44,LAND=COUNT-6;
@@ -2718,6 +2843,7 @@ async function bjSettleAll(natural){
   BJ.finalMsg=delta>0?"NET WIN +"+fmt(delta):delta<0?"NET LOSS "+fmt(-delta):"PUSH — bets returned";
   BJ.hands.forEach(h=>{h.done=true;});
   $("#cas").innerHTML=bjHTML();
+  afterCasinoResult();
 }
 /* ── over/under: d100 tumbler ── */
 function hlMults(){
@@ -2749,6 +2875,7 @@ async function hiloPlay(dir){
     const o=$("#h-over"),u=$("#h-under");if(o)o.disabled=false;if(u)u.disabled=false;
     if(rollEl){rollEl.textContent=roll;rollEl.className="h-roll-big "+(win?"up":"down")}
     const res=$("#h-res");if(res)res.innerHTML=`<span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`;
+    afterCasinoResult();
   };
   if(!rollEl||RM()){finish();return}
   rollEl.className="h-roll-big";
@@ -2780,6 +2907,7 @@ async function spinSlots(){
     const res=$("#s-res");if(res)res.innerHTML=mult>0
       ?`<span class="win-flash" style="display:inline-block">${mult===1.35?"PAIR":"TRIPLE"}! +${fmt(bet*(mult-1))}</span>`
       :`<span class="lose-shake" style="display:inline-block">No match — lose ${fmt(bet)}</span>`;
+    afterCasinoResult();
   };
   if(RM()){
     [0,1,2].forEach(i=>{const col=$("#s-r"+i);if(col){col.style.transition="none";col.style.transform="none";col.innerHTML=`<span>${SLOT_SYMS[r[i]]}</span>`}});
@@ -3850,6 +3978,7 @@ async function adLoadUsers(){
       </div>
       <div class="inline" style="margin-top:8px">
         <button class="btn ${u.l2?"amber":"ghost"} opl2" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
+        <button class="btn ${u.adPop!==false?"vio":"ghost"} opads" data-k="${k}">${u.adPop!==false?"CASINO ADS: ON ✓":"CASINO ADS: OFF"}</button>
       </div>
       <div class="op-label">CASINO FORTUNE</div>
       <div class="op-two">
@@ -3881,6 +4010,14 @@ async function adLoadUsers(){
     u.l2=!u.l2;await SG.set(k,u);
     if(k===MYKEY)await refreshMe();
     toast(u.n+(u.l2?" granted Level-2 market data access.":" Level-2 access revoked."));
+    adLoadUsers();
+  });
+  box.querySelectorAll(".opads").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,u=await SG.get(k);if(!u)return;
+    u.adPop=(u.adPop===false);  // false→on (undefined), on→false
+    await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();
+    toast(u.n+(u.adPop!==false?" will now suffer casino pop-up ads.":" spared from casino pop-up ads."));
     adLoadUsers();
   });
   box.querySelectorAll(".opluck").forEach(b=>b.onclick=async()=>{
