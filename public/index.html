@@ -150,6 +150,26 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--nav-bg);-
 nav button{flex:1 1 0;min-width:0;background:none;color:var(--dim);font-size:9px;letter-spacing:.05em;padding:9px 2px;font-family:'Orbitron';
   border-radius:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s,background .15s,box-shadow .15s}
 nav button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 38%,transparent),0 0 18px -6px color-mix(in srgb,var(--cyan) 55%,transparent);text-shadow:0 0 12px color-mix(in srgb,var(--cyan) 55%,transparent)}
+nav button.home{flex:0 0 auto;padding:9px 14px;color:var(--amber)}
+nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--amber) 38%,transparent);text-shadow:0 0 12px color-mix(in srgb,var(--amber) 55%,transparent)}
+
+/* ── data-pad home launcher ── */
+.pad-intro{font-family:'Orbitron';font-size:11px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase;text-align:center;margin:18px 0 4px}
+.app-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:10px}
+@media(min-width:560px){.app-grid{grid-template-columns:repeat(3,1fr)}}
+.app-tile{position:relative;background:var(--glass-grad);border:1px solid var(--line2);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:inset 0 1px 0 var(--hi);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:30px 14px 26px;cursor:pointer;text-align:center;
+  --ch:16px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)));
+  transition:transform .14s,box-shadow .2s,border-color .15s}
+.app-tile::before,.app-tile::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;opacity:.85;z-index:1}
+.app-tile::before{top:0;left:0;border-top:2px solid var(--acc);border-left:2px solid var(--acc)}
+.app-tile::after{bottom:0;right:0;border-bottom:2px solid var(--acc);border-right:2px solid var(--acc)}
+.app-tile:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 16px 34px -18px var(--acc)}
+.app-tile:active{transform:translateY(-1px) scale(.99)}
+.app-tile .glyph{font-size:38px;line-height:1;color:var(--acc);text-shadow:0 0 18px var(--acc)}
+.app-tile .an{font-family:'Orbitron';font-weight:700;font-size:13px;letter-spacing:.08em}
+.app-tile .at{font-size:10px;color:var(--dim);letter-spacing:.04em;line-height:1.4}
 
 /* ── market list rows ── */
 .row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
@@ -859,7 +879,31 @@ function iconfirm(msg){return new Promise(resolve=>{
   bg.querySelector('#ic-no').onclick=()=>{bg.remove();resolve(false)};
 })}
 /* ---------- app state ---------- */
-let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="", _assetSig="";
+let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", APP=null, ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="", _assetSig="";
+
+/* ---------- data-pad applications ----------
+   The shell is a "data pad" home screen of app tiles. Each app groups one or
+   more of the underlying tab views. APP===null means we're on the home screen. */
+const APPS={
+  exchange:{name:"AGX EXCHANGE",tag:"Markets · Portfolio · Newswire",glyph:"⬢",col:"var(--cyan)",
+    tabs:[["market","MARKET"],["portfolio","PORTFOLIO"],["feed","FEED"],["leaders","LEADERS"],["guide","GUIDE"]]},
+  casino:{name:"DRIFT CASINO",tag:"Tables · Wheels · Cards",glyph:"♠",col:"var(--vio)",
+    tabs:[["casino","FLOOR"]]},
+  blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
+    tabs:[["bm","CONTRABAND"]]},
+  gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:"⚙",col:"var(--amber)",
+    tabs:[["admin","CONSOLE"]]}
+};
+// which apps are installed on this pad right now (depends on GM config)
+function availableApps(){
+  const out=["exchange"];
+  if(!CFG||CFG.casino!==false)out.push("casino");
+  if(CFG&&CFG.bmOpen)out.push("blackmarket");
+  out.push("gm");
+  return out;
+}
+// app that owns a given tab id (used to keep nav highlighting sane)
+function appForTab(t){return Object.keys(APPS).find(k=>APPS[k].tabs.some(x=>x[0]===t))||null}
 const RANGES={"1D":864e5,"1W":6048e5,"1M":2592e6,"3M":7776e6,"ALL":1/0};
 
 async function ensureCfg(){
@@ -950,6 +994,8 @@ function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
 /* ---------- app shell ---------- */
 function renderApp(){
   const r=curRegime();
+  // if the open app got uninstalled (GM closed casino / black market), bounce home
+  if(APP&&!availableApps().includes(APP))APP=null;
   $("#root").innerHTML=`
   <header>
     <div class="hbar">
@@ -965,17 +1011,21 @@ function renderApp(){
     <div class="regime-banner" id="regime-b" style="color:${r.col}">◈ ${r.label} ◈</div>
   </header>
   <div class="wrap" id="view"></div>
-  <nav>
-    ${[["market","MARKET"],["portfolio","PORTFOLIO"]].concat(!CFG||CFG.casino!==false?[["casino","CASINO"]]:[])
-      .concat([["leaders","LEADERS"],["feed","FEED"],["guide","GUIDE"],["admin","ADMIN"]]).map(t=>
+  ${APP?`<nav>
+    <button class="home" onclick="goHome()">⌂ APPS</button>
+    ${APPS[APP].tabs.map(t=>
       `<button class="${TAB===t[0]?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
-  </nav>
+  </nav>`:""}
   <div id="modal-slot"></div>
   <div id="scan-sweep"></div>`;
   buildTicker();renderTab();tick();
 }
-function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;renderAuth()}
+function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
 function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
+// open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps
+function openApp(id){if(!APPS[id]||!availableApps().includes(id))return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;renderApp()}
+// return to the data-pad home screen
+function goHome(){APP=null;OPEN=null;renderApp()}
 function buildTicker(){
   const movers=ASSETS.filter(a=>!a.bm||CFG.bmOpen).map(a=>({s:a.sym,c:chg24(a.sym)})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,8);
   const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg||e.body||"")}</b>`);
@@ -983,13 +1033,29 @@ function buildTicker(){
 }
 function renderTab(){
   const v=$("#view");
+  if(!APP)return renderLauncher(v);
   if(TAB==="market")return renderMarket(v);
+  if(TAB==="bm")return renderBlackMarket(v);
   if(TAB==="casino")return renderCasino(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
   if(TAB==="guide")return renderGuide(v);
   if(TAB==="admin")return renderAdmin(v);
+}
+/* ---------- data-pad home launcher ---------- */
+function renderLauncher(v){
+  const apps=availableApps();
+  v.innerHTML=`
+    <div class="pad-intro">◈ AGX DATA PAD · SELECT APPLICATION ◈</div>
+    <div class="app-grid">
+      ${apps.map(id=>{const a=APPS[id];return `
+        <div class="app-tile" style="--acc:${a.col}" onclick="openApp('${id}')">
+          <div class="glyph">${a.glyph}</div>
+          <div class="an">${a.name}</div>
+          <div class="at">${a.tag}</div>
+        </div>`;}).join("")}
+    </div>`;
 }
 
 /* ---------- market ---------- */
@@ -1071,8 +1137,7 @@ function renderMarket(v){
   v.innerHTML=`
     ${marketPulse()}
     <div style="padding-top:6px"><input id="srch" placeholder="Search symbol or name…" value="${esc(SEARCH)}"></div>
-    <div class="chips">${[["ALL","ALL"],["STOCKS","STOCKS"],["ETFS","ETFS"],["BONDS","BONDS"],["COMMODITIES","COMMODITIES"],["CRYPTO","CRYPTO"],["WATCHLIST","WATCHLIST"]]
-      .concat(CFG.bmOpen?[["BM","\u2620 BLACK MARKET"]]:[]).map(f=>
+    <div class="chips">${[["ALL","ALL"],["STOCKS","STOCKS"],["ETFS","ETFS"],["BONDS","BONDS"],["COMMODITIES","COMMODITIES"],["CRYPTO","CRYPTO"],["WATCHLIST","WATCHLIST"]].map(f=>
       `<button class="chip ${FILTER===f[0]?"on":""}" data-f="${f[0]}" onclick="setFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
     <div style="margin-bottom:6px"><select id="msort" onchange="SORT=this.value;paintList()">
       ${[["FEAT","SORT: FEATURED"],["GAINERS","SORT: TOP GAINERS"],["LOSERS","SORT: TOP LOSERS"],
@@ -1126,6 +1191,33 @@ function paintList(){
     if(a.sector!==cur){cur=a.sector;html+=`<div class="sect">${esc(cur.toUpperCase())}</div>`}html+=rowHTML(a)}}
   else html=list.map(rowHTML).join("");
   el.innerHTML=list.length?html:`<div class="dim" style="padding:30px;text-align:center">No listings match.</div>`;
+}
+
+/* ---------- black market app ---------- */
+function renderBlackMarket(v){
+  if(!CFG.bmOpen){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The smuggler channels are dark. No contraband is moving right now.</div>`;return}
+  v.innerHTML=`
+    <div class="card" style="margin-top:12px;border-color:var(--down)" >
+      <h3 style="color:var(--down)">☠ UNREGULATED EXCHANGE</h3>
+      <div class="dim" style="font-size:11px;margin-top:6px;line-height:1.5">Off-book contraband listings. Extreme volatility, brutal spreads, no exchange protection. Positions you hold survive a channel shutdown — you just can't trade them while it's dark.</div>
+    </div>
+    <div style="padding-top:10px"><input id="bsrch" placeholder="Search contraband…" value="${esc(SEARCH)}"></div>
+    <div class="ranges" style="margin:8px 0 2px" id="bmrange-bar">${["1D","1W","1M","1Y","ALL"].map(r=>`<button class="${MRANGE===r?"on":""}" onclick="setBMRange('${r}')">${r}</button>`).join("")}</div>
+    <div id="bmlist"></div>`;
+  $("#bsrch").addEventListener("input",e=>{SEARCH=e.target.value;paintBM()});
+  paintBM();
+}
+function setBMRange(r){MRANGE=r;
+  const bar=document.getElementById("bmrange-bar");
+  if(bar)bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.textContent===r));
+  paintBM();}
+function paintBM(){
+  const q=SEARCH.trim().toLowerCase();
+  const winMs=MRANGE_MS[MRANGE]||864e5;
+  let list=ASSETS.filter(a=>a.bm&&(!q||a.sym.toLowerCase().includes(q)||a.name.toLowerCase().includes(q)));
+  list.sort((a,b)=>Math.abs(chgMs(b.sym,winMs))-Math.abs(chgMs(a.sym,winMs)));
+  const el=$("#bmlist");if(!el)return;
+  el.innerHTML=list.length?list.map(rowHTML).join(""):`<div class="dim" style="padding:30px;text-align:center">No contraband matches.</div>`;
 }
 
 /* ---------- charts ---------- */
@@ -3383,6 +3475,7 @@ async function poll(){
   // only rebuild (which clears the price-ref cache) when the asset universe changed
   const _sig=JSON.stringify([CFG.ipos,CFG.names]);if(_sig!==_assetSig){_assetSig=_sig;rebuildAssets();}
   if(TAB==="market"&&$("#mlist"))paintList();
+  if(TAB==="bm"&&$("#bmlist"))paintBM();
   await loadEvents();await refreshMe();
   await settleOptions();await housekeeping();
   if(HALTED!==oldHalt||curRegime().k!==oldReg||isPaused()!==oldPause||speedNow()!==oldSpd||oldBM!==!!CFG.bmOpen||oldCas!==!(CFG.casino===false)){renderApp();go(TAB)}
