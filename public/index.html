@@ -150,6 +150,143 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--nav-bg);-
 nav button{flex:1 1 0;min-width:0;background:none;color:var(--dim);font-size:9px;letter-spacing:.05em;padding:9px 2px;font-family:'Orbitron';
   border-radius:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .15s,background .15s,box-shadow .15s}
 nav button.on{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cyan) 38%,transparent),0 0 18px -6px color-mix(in srgb,var(--cyan) 55%,transparent);text-shadow:0 0 12px color-mix(in srgb,var(--cyan) 55%,transparent)}
+nav button.home{flex:0 0 auto;padding:9px 14px;color:var(--amber)}
+nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--amber) 38%,transparent);text-shadow:0 0 12px color-mix(in srgb,var(--amber) 55%,transparent)}
+
+/* ── data-pad home launcher ── */
+.pad-intro{font-family:'Orbitron';font-size:11px;letter-spacing:.26em;color:var(--dim);text-transform:uppercase;text-align:center;margin:18px 0 4px}
+.app-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:10px}
+@media(min-width:560px){.app-grid{grid-template-columns:repeat(3,1fr)}}
+.app-tile{position:relative;background:var(--glass-grad);border:1px solid var(--line2);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:inset 0 1px 0 var(--hi);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:30px 14px 26px;cursor:pointer;text-align:center;
+  --ch:16px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)));
+  transition:transform .14s,box-shadow .2s,border-color .15s}
+.app-tile::before,.app-tile::after{content:'';position:absolute;width:13px;height:13px;pointer-events:none;opacity:.85;z-index:1}
+.app-tile::before{top:0;left:0;border-top:2px solid var(--acc);border-left:2px solid var(--acc)}
+.app-tile::after{bottom:0;right:0;border-bottom:2px solid var(--acc);border-right:2px solid var(--acc)}
+.app-tile:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 16px 34px -18px var(--acc)}
+.app-tile:active{transform:translateY(-1px) scale(.99)}
+.app-tile .glyph{font-size:38px;line-height:1;color:var(--acc);text-shadow:0 0 18px var(--acc)}
+.app-tile .an{font-family:'Orbitron';font-weight:700;font-size:13px;letter-spacing:.08em}
+.app-tile .at{font-size:10px;color:var(--dim);letter-spacing:.04em;line-height:1.4}
+.app-tile.locked{opacity:.62;--acc:var(--dim)}
+.app-tile.locked .glyph{filter:grayscale(1)}
+.app-tile.locked .at{color:var(--down);letter-spacing:.16em;font-family:'Orbitron'}
+.app-tile .lockbadge{position:absolute;top:8px;right:10px;font-size:15px;z-index:2;filter:saturate(0) brightness(1.4)}
+
+/* ── unauthorized access wall ── */
+.lockwall{display:flex;align-items:center;justify-content:center;min-height:62vh;padding:20px}
+.lockwall-card{position:relative;max-width:380px;width:100%;text-align:center;padding:34px 24px;border:1px solid var(--down);
+  background:color-mix(in srgb,var(--down) 7%,var(--panel));-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:0 0 40px -16px var(--down),inset 0 1px 0 var(--hi);
+  --ch:18px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)))}
+.lockwall-card::before,.lockwall-card::after{content:'';position:absolute;width:16px;height:16px;pointer-events:none}
+.lockwall-card::before{top:0;left:0;border-top:2px solid var(--down);border-left:2px solid var(--down)}
+.lockwall-card::after{bottom:0;right:0;border-bottom:2px solid var(--down);border-right:2px solid var(--down)}
+.lockwall-glyph{font-size:46px;line-height:1;animation:lockPulse 1.6s ease-in-out infinite}
+@keyframes lockPulse{0%,100%{opacity:1;filter:drop-shadow(0 0 8px var(--down))}50%{opacity:.45}}
+.lockwall h1{font-family:'Orbitron';font-size:22px;letter-spacing:.18em;color:var(--down);margin:14px 0 4px;text-shadow:0 0 16px color-mix(in srgb,var(--down) 60%,transparent)}
+.lockwall-app{font-family:'Orbitron';font-size:11px;letter-spacing:.22em;color:var(--ink)}
+.lockwall-msg{font-size:13px;color:var(--dim);line-height:1.55;margin-top:14px}
+.lockwall-code{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.12em;color:var(--down);margin-top:16px;opacity:.8}
+@media (prefers-reduced-motion:reduce){.lockwall-glyph{animation:none}}
+
+/* ── field notes app ── */
+.note-card{position:relative;border:1px solid var(--line);border-left:2px solid var(--vio);border-radius:var(--r-md);background:var(--row-grad);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:13px 14px;margin:9px 0;cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .2s}
+.note-card:hover{transform:translateY(-1px);border-color:var(--vio);box-shadow:var(--shadow)}
+.note-card:active{transform:scale(.995)}
+.note-card-h{display:flex;align-items:center;gap:8px}
+.note-pin{flex:none;font-size:12px}
+.note-card-t{flex:1;min-width:0;font-family:'Orbitron';font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-card-time{flex:none;font-family:'IBM Plex Mono';font-size:10px;color:var(--dim)}
+.note-card-s{font-size:12px;color:var(--dim);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.note-tag{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--vio);background:color-mix(in srgb,var(--vio) 12%,transparent);border:1px solid color-mix(in srgb,var(--vio) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px}
+.note-bar-r{display:flex;align-items:center;gap:8px}
+.note-back{padding:8px 12px;font-size:11px}
+.note-tools{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.note-tool{flex:none;min-width:34px;background:var(--chip-bg);color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;font-size:13px;font-family:'IBM Plex Mono';transition:background .15s,border-color .15s}
+.note-tool:hover{border-color:var(--vio);color:var(--vio)}
+.note-body{font-family:'IBM Plex Mono',monospace;background:var(--input-bg);border:1px solid var(--line2);color:var(--ink);border-radius:var(--r-md);
+  padding:12px 14px;font-size:14px;width:100%;min-height:300px;line-height:1.6;resize:vertical;margin-top:10px;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.note-body:focus{outline:none;border-color:var(--vio);box-shadow:0 0 0 3px color-mix(in srgb,var(--vio) 20%,transparent)}
+.note-meta{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:10px;letter-spacing:.06em}
+.note-view-title{font-family:'Orbitron';font-size:22px;letter-spacing:.04em;margin-top:14px;line-height:1.2;color:var(--cyan);text-shadow:var(--glow)}
+.note-render{margin-top:14px;font-size:15px;line-height:1.65}
+.note-render p{margin:10px 0}
+.note-render h2{font-family:'Orbitron';font-size:18px;margin:18px 0 8px;color:var(--ink)}
+.note-render h3{font-family:'Orbitron';font-size:15px;letter-spacing:.04em;margin:16px 0 6px;color:var(--amber)}
+.note-render h4,.note-render h5{font-family:'Orbitron';font-size:13px;letter-spacing:.06em;margin:14px 0 6px;color:var(--dim);text-transform:uppercase}
+.note-render ul,.note-render ol{margin:10px 0 10px 22px}.note-render li{margin:4px 0}
+.note-render code{font-family:'IBM Plex Mono';font-size:13px;background:var(--chip-bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+.note-render blockquote{border-left:3px solid var(--vio);margin:12px 0;padding:4px 14px;color:var(--dim);background:color-mix(in srgb,var(--vio) 6%,transparent)}
+.note-render hr{border:none;border-top:1px solid var(--line2);margin:18px 0}
+.note-link{color:var(--cyan);text-decoration:none;border-bottom:1px dashed color-mix(in srgb,var(--cyan) 55%,transparent);cursor:pointer}
+.note-link:hover{color:var(--ink);border-bottom-style:solid}
+.note-link.missing{color:var(--amber);border-bottom-color:color-mix(in srgb,var(--amber) 55%,transparent)}
+.note-link.tick{color:var(--up);font-family:'IBM Plex Mono';font-weight:600;border-bottom-color:color-mix(in srgb,var(--up) 55%,transparent)}
+.note-backlinks{margin-top:24px;padding-top:14px;border-top:1px solid var(--line)}
+.note-bl-h{font-family:'Orbitron';font-size:10px;letter-spacing:.22em;color:var(--dim);margin-bottom:8px}
+.note-bl{font-size:13px;color:var(--cyan);padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin:6px 0;cursor:pointer;transition:border-color .15s,background .15s}
+.note-bl:hover{border-color:var(--cyan);background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+.note-cardmeta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px}
+.note-folder{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-owner{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);border-radius:6px;padding:2px 7px}
+.note-ro{font-family:'Orbitron';font-size:10px;letter-spacing:.16em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:8px;padding:7px 12px}
+
+/* ── AGX Pay app ── */
+.pay-balance{border-color:var(--up)}
+.pay-bal{font-family:'IBM Plex Mono';font-size:34px;font-weight:600;color:var(--up);margin:8px 0 10px;text-shadow:0 0 18px color-mix(in srgb,var(--up) 45%,transparent)}
+.pay-row{display:flex;align-items:center;gap:12px;padding:12px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--row-grad);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.pay-ico{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:1px solid var(--line2)}
+.pay-ico.in{color:var(--up);background:color-mix(in srgb,var(--up) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--up) 30%,transparent)}
+.pay-ico.out{color:var(--down);background:color-mix(in srgb,var(--down) 14%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--down) 30%,transparent)}
+.pay-who{font-size:14px}
+.pay-memo{font-size:12px;color:var(--dim);font-style:italic;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pay-time{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:3px}
+.pay-amt{flex:none;font-family:'IBM Plex Mono';font-size:16px;font-weight:600}
+
+/* ── casino advertisements ── */
+.ad-banner{position:relative;display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 12px;cursor:pointer;overflow:hidden;
+  border:1px solid var(--acc);border-radius:var(--r-md);background:linear-gradient(100deg,color-mix(in srgb,var(--acc) 16%,transparent),var(--panel2) 70%);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 var(--hi);transition:transform .12s,box-shadow .2s;animation:adIn .4s ease}
+@keyframes adIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ad-banner:hover{transform:translateY(-1px);box-shadow:0 10px 24px -14px var(--acc)}
+.ad-banner::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 40%,color-mix(in srgb,var(--acc) 22%,transparent) 50%,transparent 60%);transform:translateX(-120%);animation:adSheen 6s ease-in-out infinite}
+@keyframes adSheen{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+.ad-flag{position:absolute;top:0;right:0;z-index:1;font-family:'Orbitron';font-size:8px;letter-spacing:.12em;color:var(--bg);background:var(--acc);padding:2px 6px;border-bottom-left-radius:6px;opacity:.9}
+.ad-art{flex:none;width:54px;height:54px;color:var(--acc)}
+.ad-art svg{width:100%;height:100%;display:block}
+.ad-copy{min-width:0}
+.ad-head{font-family:'Orbitron';font-size:13px;font-weight:700;line-height:1.1;color:var(--ink)}
+.ad-tag{font-size:10.5px;color:var(--dim);line-height:1.35;margin-top:3px}
+.ad-brand{font-family:'IBM Plex Mono';font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.adpop-bg{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:rgba(2,4,10,.86);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);animation:fadeIn .25s ease}
+.adpop{position:relative;max-width:404px;width:100%;text-align:center;padding:26px 22px 22px;
+  border:2px solid var(--acc);background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 14%,var(--panel)),var(--panel2));
+  -webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
+  box-shadow:0 0 50px -12px var(--acc),inset 0 1px 0 var(--hi);
+  --ch:18px;clip-path:polygon(var(--ch) 0,calc(100% - var(--ch)) 0,100% var(--ch),100% calc(100% - var(--ch)),calc(100% - var(--ch)) 100%,var(--ch) 100%,0 calc(100% - var(--ch)),0 var(--ch));animation:sheetUp .34s cubic-bezier(.2,.8,.2,1)}
+.adpop-flag{font-family:'Orbitron';font-size:9px;letter-spacing:.18em;color:var(--acc);margin-bottom:10px}
+.adpop-art{width:118px;height:118px;margin:4px auto 6px;color:var(--acc);filter:drop-shadow(0 0 14px color-mix(in srgb,var(--acc) 50%,transparent))}
+.adpop-art svg{width:100%;height:100%;display:block}
+.adpop-head{font-family:'Orbitron';font-size:21px;line-height:1.1;letter-spacing:.02em;color:var(--ink);text-shadow:0 0 16px color-mix(in srgb,var(--acc) 40%,transparent)}
+.adpop-body{font-size:13.5px;color:var(--dim);line-height:1.55;margin-top:12px}
+.adpop-body i{color:color-mix(in srgb,var(--ink) 70%,var(--dim));font-size:12px}
+.adpop-cta{display:inline-block;margin-top:16px;font-family:'Orbitron';font-size:13px;letter-spacing:.06em;color:var(--bg);background:var(--acc);padding:11px 20px;border-radius:8px;box-shadow:0 8px 22px -10px var(--acc);animation:ctaPulse 1.6s ease-in-out infinite}
+@keyframes ctaPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.adpop-brand{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-top:14px;opacity:.85}
+.adpop-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;font-family:'IBM Plex Mono';font-size:15px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--line2);background:var(--chip-bg);color:var(--dim);cursor:not-allowed;transition:color .2s,border-color .2s,background .2s}
+.adpop-x.ready{cursor:pointer;color:var(--ink);border-color:var(--acc)}
+.adpop-x.ready:hover{background:var(--acc);color:var(--bg)}
+@media (prefers-reduced-motion:reduce){.ad-banner,.ad-banner::after,.adpop,.adpop-cta{animation:none}}
 
 /* ── market list rows ── */
 .row{display:flex;align-items:center;gap:12px;padding:13px 14px;margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
@@ -859,7 +996,41 @@ function iconfirm(msg){return new Promise(resolve=>{
   bg.querySelector('#ic-no').onclick=()=>{bg.remove();resolve(false)};
 })}
 /* ---------- app state ---------- */
-let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="", _assetSig="";
+let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", APP=null, ADMIN=false, SEARCH="", FILTER="ALL", COMFILTER="ALL", OPEN=null, RANGE="1D", SORT="FEAT", PRANGE="1W", MRANGE="1D", USEMARGIN=false, _lastUser="", _assetSig="";
+
+/* ---------- data-pad applications ----------
+   The shell is a "data pad" home screen of app tiles. Each app groups one or
+   more of the underlying tab views. APP===null means we're on the home screen. */
+const APPS={
+  exchange:{name:"AGX EXCHANGE",tag:"Markets · Portfolio · Newswire",glyph:"⬢",col:"var(--cyan)",
+    tabs:[["market","MARKET"],["portfolio","PORTFOLIO"],["feed","FEED"],["leaders","LEADERS"],["guide","GUIDE"]]},
+  casino:{name:"DRIFT CASINO",tag:"Tables · Wheels · Cards",glyph:"♠",col:"var(--vio)",
+    tabs:[["casino","FLOOR"]]},
+  blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
+    tabs:[["bm","CONTRABAND"]]},
+  notes:{name:"FIELD NOTES",tag:"Logbook · Shared · Linked",glyph:"❖",col:"var(--vio)",
+    tabs:[["notes","NOTEBOOK"]]},
+  pay:{name:"AGX PAY",tag:"Send credits to operators",glyph:"⇄",col:"var(--up)",
+    tabs:[["pay","WALLET"]]},
+  gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:"⚙",col:"var(--amber)",
+    tabs:[["admin","CONSOLE"]]}
+};
+// every app is always shown on the pad; locked ones throw up an access wall
+function launcherApps(){return ["exchange","casino","blackmarket","notes","pay","gm"]}
+// is an app currently locked to this player? (GM config / clearance)
+function appLocked(id){
+  if(id==="casino")return !!(CFG&&CFG.casino===false);
+  if(id==="blackmarket")return !(CFG&&CFG.bmOpen);
+  return false;
+}
+// why it's locked — shown on the access-denied wall
+function lockReason(id){
+  if(id==="casino")return "The Drift Casino tables are dark. Gaming licence suspended by exchange authority.";
+  if(id==="blackmarket")return "No smuggler channels are live. This frequency is being monitored — disconnect.";
+  return "Clearance not recognised.";
+}
+// app that owns a given tab id (used to keep nav highlighting sane)
+function appForTab(t){return Object.keys(APPS).find(k=>APPS[k].tabs.some(x=>x[0]===t))||null}
 const RANGES={"1D":864e5,"1W":6048e5,"1M":2592e6,"3M":7776e6,"ALL":1/0};
 
 async function ensureCfg(){
@@ -950,6 +1121,8 @@ function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
 /* ---------- app shell ---------- */
 function renderApp(){
   const r=curRegime();
+  // unknown app id? bounce home. Locked apps stay open and show the access wall.
+  if(APP&&!APPS[APP])APP=null;
   $("#root").innerHTML=`
   <header>
     <div class="hbar">
@@ -965,17 +1138,22 @@ function renderApp(){
     <div class="regime-banner" id="regime-b" style="color:${r.col}">◈ ${r.label} ◈</div>
   </header>
   <div class="wrap" id="view"></div>
-  <nav>
-    ${[["market","MARKET"],["portfolio","PORTFOLIO"]].concat(!CFG||CFG.casino!==false?[["casino","CASINO"]]:[])
-      .concat([["leaders","LEADERS"],["feed","FEED"],["guide","GUIDE"],["admin","ADMIN"]]).map(t=>
+  ${APP?`<nav>
+    <button class="home" onclick="goHome()">⌂ APPS</button>
+    ${APPS[APP].tabs.map(t=>
       `<button class="${TAB===t[0]?"on":""}" onclick="go('${t[0]}')">${t[1]}</button>`).join("")}
-  </nav>
+  </nav>`:""}
   <div id="modal-slot"></div>
   <div id="scan-sweep"></div>`;
   buildTicker();renderTab();tick();
 }
-function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;renderAuth()}
+function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
 function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
+// open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
+// Locked apps still "open" — they just render an unauthorized-access wall.
+function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;renderApp()}
+// return to the data-pad home screen
+function goHome(){APP=null;OPEN=null;renderApp()}
 function buildTicker(){
   const movers=ASSETS.filter(a=>!a.bm||CFG.bmOpen).map(a=>({s:a.sym,c:chg24(a.sym)})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,8);
   const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg||e.body||"")}</b>`);
@@ -983,13 +1161,47 @@ function buildTicker(){
 }
 function renderTab(){
   const v=$("#view");
+  if(!APP)return renderLauncher(v);
+  if(appLocked(APP))return renderLocked(v,APP);
   if(TAB==="market")return renderMarket(v);
+  if(TAB==="bm")return renderBlackMarket(v);
   if(TAB==="casino")return renderCasino(v);
+  if(TAB==="notes")return renderNotes(v);
+  if(TAB==="pay")return renderPay(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
   if(TAB==="guide")return renderGuide(v);
   if(TAB==="admin")return renderAdmin(v);
+}
+/* ---------- data-pad home launcher ---------- */
+function renderLauncher(v){
+  v.innerHTML=`
+    <div class="pad-intro">◈ AGX DATA PAD · SELECT APPLICATION ◈</div>
+    <div class="app-grid">
+      ${launcherApps().map(id=>{const a=APPS[id],lk=appLocked(id);return `
+        <div class="app-tile${lk?" locked":""}" style="--acc:${a.col}" onclick="openApp('${id}')">
+          ${lk?`<div class="lockbadge">🔒</div>`:""}
+          <div class="glyph">${a.glyph}</div>
+          <div class="an">${a.name}</div>
+          <div class="at">${lk?"LOCKED":a.tag}</div>
+        </div>`;}).join("")}
+    </div>`;
+}
+/* ---------- unauthorized access wall ---------- */
+function renderLocked(v,id){
+  const a=APPS[id];
+  v.innerHTML=`
+    <div class="lockwall">
+      <div class="lockwall-card">
+        <div class="lockwall-glyph">⛔</div>
+        <h1>ACCESS DENIED</h1>
+        <div class="lockwall-app">${a.name}</div>
+        <div class="lockwall-msg">${esc(lockReason(id))}</div>
+        <div class="lockwall-code">ERR · CLEARANCE 0x${id.toUpperCase().slice(0,3)}-DENIED</div>
+        <button class="btn ghost" style="margin-top:18px" onclick="goHome()">⌂ RETURN TO PAD</button>
+      </div>
+    </div>`;
 }
 
 /* ---------- market ---------- */
@@ -1071,8 +1283,7 @@ function renderMarket(v){
   v.innerHTML=`
     ${marketPulse()}
     <div style="padding-top:6px"><input id="srch" placeholder="Search symbol or name…" value="${esc(SEARCH)}"></div>
-    <div class="chips">${[["ALL","ALL"],["STOCKS","STOCKS"],["ETFS","ETFS"],["BONDS","BONDS"],["COMMODITIES","COMMODITIES"],["CRYPTO","CRYPTO"],["WATCHLIST","WATCHLIST"]]
-      .concat(CFG.bmOpen?[["BM","\u2620 BLACK MARKET"]]:[]).map(f=>
+    <div class="chips">${[["ALL","ALL"],["STOCKS","STOCKS"],["ETFS","ETFS"],["BONDS","BONDS"],["COMMODITIES","COMMODITIES"],["CRYPTO","CRYPTO"],["WATCHLIST","WATCHLIST"]].map(f=>
       `<button class="chip ${FILTER===f[0]?"on":""}" data-f="${f[0]}" onclick="setFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
     <div style="margin-bottom:6px"><select id="msort" onchange="SORT=this.value;paintList()">
       ${[["FEAT","SORT: FEATURED"],["GAINERS","SORT: TOP GAINERS"],["LOSERS","SORT: TOP LOSERS"],
@@ -1126,6 +1337,403 @@ function paintList(){
     if(a.sector!==cur){cur=a.sector;html+=`<div class="sect">${esc(cur.toUpperCase())}</div>`}html+=rowHTML(a)}}
   else html=list.map(rowHTML).join("");
   el.innerHTML=list.length?html:`<div class="dim" style="padding:30px;text-align:center">No listings match.</div>`;
+}
+
+/* ---------- black market app ---------- */
+function renderBlackMarket(v){
+  if(!CFG.bmOpen){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The smuggler channels are dark. No contraband is moving right now.</div>`;return}
+  v.innerHTML=`
+    <div class="card" style="margin-top:12px;border-color:var(--down)" >
+      <h3 style="color:var(--down)">☠ UNREGULATED EXCHANGE</h3>
+      <div class="dim" style="font-size:11px;margin-top:6px;line-height:1.5">Off-book contraband listings. Extreme volatility, brutal spreads, no exchange protection. Positions you hold survive a channel shutdown — you just can't trade them while it's dark.</div>
+    </div>
+    <div style="padding-top:10px"><input id="bsrch" placeholder="Search contraband…" value="${esc(SEARCH)}"></div>
+    <div class="ranges" style="margin:8px 0 2px" id="bmrange-bar">${["1D","1W","1M","1Y","ALL"].map(r=>`<button class="${MRANGE===r?"on":""}" onclick="setBMRange('${r}')">${r}</button>`).join("")}</div>
+    <div id="bmlist"></div>`;
+  $("#bsrch").addEventListener("input",e=>{SEARCH=e.target.value;paintBM()});
+  paintBM();
+}
+function setBMRange(r){MRANGE=r;
+  const bar=document.getElementById("bmrange-bar");
+  if(bar)bar.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.textContent===r));
+  paintBM();}
+function paintBM(){
+  const q=SEARCH.trim().toLowerCase();
+  const winMs=MRANGE_MS[MRANGE]||864e5;
+  let list=ASSETS.filter(a=>a.bm&&(!q||a.sym.toLowerCase().includes(q)||a.name.toLowerCase().includes(q)));
+  list.sort((a,b)=>Math.abs(chgMs(b.sym,winMs))-Math.abs(chgMs(a.sym,winMs)));
+  const el=$("#bmlist");if(!el)return;
+  el.innerHTML=list.length?list.map(rowHTML).join(""):`<div class="dim" style="padding:30px;text-align:center">No contraband matches.</div>`;
+}
+
+/* ============ FIELD NOTES app ============
+   Three notebooks behind a scope switch:
+     · PRIVATE   — ME.notes, only you can see them
+     · SHARED    — a collective operator notebook (server key "shnotes"); every
+                   operator reads it, you may edit notes you authored
+     · OPERATORS — GM-only, read-only browse of every player's private notes
+   Notes group into folders ("missions"), and support markdown, [[cross-refs]],
+   $TICKER links, tags, pinning, search and automatic backlinks. */
+let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null, NOTESCOPE="private", NOTEFOLDER=null;
+let SHNOTES=[];      // shared notebook cache
+let GMNOTES=null;    // GM browse cache: [{op, notes:[...]}]
+function notesArr(){if(!ME.notes)ME.notes=[];return ME.notes}
+async function loadShared(){try{SHNOTES=(await SG.get("shnotes"))||[]}catch(e){SHNOTES=SHNOTES||[]}}
+async function saveShared(){return await SG.set("shnotes",SHNOTES)}
+async function loadGMNotes(){
+  const keys=await SG.list("u:");
+  const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
+  GMNOTES=users.filter(u=>u).map(u=>({op:u.n,notes:(u.notes||[]).map(n=>({...n,owner:u.n}))}))
+    .filter(g=>g.notes.length).sort((a,b)=>a.op.localeCompare(b.op));
+}
+// the working array for the active scope
+function scopeNotes(){
+  if(NOTESCOPE==="shared")return SHNOTES;
+  if(NOTESCOPE==="gm")return (GMNOTES||[]).flatMap(g=>g.notes);
+  return notesArr();
+}
+function canEditNote(n){
+  if(!n||NOTESCOPE==="gm")return false;
+  if(NOTESCOPE==="shared")return !n.owner||n.owner===ME.n;
+  return true;
+}
+// persist whichever notebook the active note lives in
+function persistScope(){if(NOTESCOPE==="shared")return saveShared();return saveMe();}
+function noteById(id){return scopeNotes().find(n=>n.id===id)||null}
+function noteTitleMap(){const m={};for(const n of scopeNotes())m[(n.title||"").trim().toLowerCase()]=n.id;return m}
+function noteUID(){return "n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function plain(body){ // strip markdown for list snippets
+  return String(body||"").replace(/[#>*`_~\-]/g," ").replace(/\[\[([^\]]+)\]\]/g,"$1").replace(/\[([^\]]+)\]\([^)]*\)/g,"$1").replace(/\s+/g," ").trim();
+}
+function allTags(){const s=new Set();for(const n of scopeNotes())(n.tags||[]).forEach(t=>s.add(t));return[...s].sort()}
+function allFolders(){const s=new Set();for(const n of scopeNotes())if(n.folder)s.add(n.folder);return[...s].sort()}
+function matchNote(n,q){return (n.title||"").toLowerCase().includes(q)||(n.body||"").toLowerCase().includes(q)||(n.tags||[]).some(t=>t.toLowerCase().includes(q))||(n.folder||"").toLowerCase().includes(q)||(n.owner||"").toLowerCase().includes(q)}
+
+async function setNoteScope(s){
+  if(s===NOTESCOPE&&!NOTESEL)return;
+  NOTESCOPE=s;NOTESEL=null;NOTEEDIT=false;NOTEQ="";NOTETAG=null;NOTEFOLDER=null;
+  const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing notebook…</div>`;
+  if(s==="shared")await loadShared();
+  if(s==="gm")await loadGMNotes();
+  renderTab();
+}
+function scopeTabsHTML(){
+  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"]];
+  if(ADMIN)tabs.push(["gm","⚙ OPERATORS"]);
+  return `<div class="chips" style="margin-top:12px">${tabs.map(t=>`<button class="chip ${NOTESCOPE===t[0]?"on":""}" onclick="setNoteScope('${t[0]}')">${t[1]}</button>`).join("")}</div>`;
+}
+
+function renderNotes(v){
+  const sel=NOTESEL&&noteById(NOTESEL);
+  if(sel)return renderNoteEditor(v,sel);
+  if(NOTESCOPE==="gm")return renderGMNotes(v);
+  const q=NOTEQ.trim().toLowerCase(), shared=NOTESCOPE==="shared";
+  let list=scopeNotes().filter(n=>{
+    if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
+    if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
+    return !q||matchNote(n,q);
+  });
+  list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+  const folders=allFolders(),tags=allTags();
+  v.innerHTML=`
+    ${scopeTabsHTML()}
+    <div class="card" style="margin-top:10px"><div class="hud-row">
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:${shared?"var(--up)":"var(--vio)"};box-shadow:0 0 8px ${shared?"var(--up)":"var(--vio)"}"></span>${shared?"SHARED OPERATOR NOTEBOOK":"PRIVATE FIELD NOTES"} · ${scopeNotes().length} ENTRIES</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">${shared?"Visible to all operators — you can edit notes you authored.":"Only you can read these. Use ⇪ on a note to publish it to the shared notebook."} Group with folders, link with <b>[[Title]]</b>.</div></div>
+      <button class="btn vio" onclick="newNote()">+ NEW</button>
+    </div></div>
+    <div style="padding-top:10px"><input id="note-q" placeholder="Search notes…" value="${esc(NOTEQ)}"></div>
+    <div class="chips" id="note-folderbar">
+      <button class="chip ${NOTEFOLDER===null?"on":""}" onclick="setNoteFolder(null)">⊞ ALL</button>
+      <button class="chip ${NOTEFOLDER===""?"on":""}" onclick="setNoteFolder('')">UNFILED</button>
+      ${folders.map(f=>`<button class="chip ${NOTEFOLDER===f?"on":""}" onclick="setNoteFolder('${esc(f).replace(/'/g,"\\'")}')">🗂 ${esc(f)}</button>`).join("")}
+    </div>
+    ${tags.length?`<div class="chips">${[["",""]].concat(tags.map(t=>[t,t])).map(t=>
+      `<button class="chip ${(NOTETAG||"")===t[0]?"on":""}" onclick="setNoteTag('${t[0]?esc(t[0]).replace(/'/g,"\\'"):""}')">${t[0]?"#"+esc(t[0]):"ALL TAGS"}</button>`).join("")}</div>`:""}
+    <div id="note-list">${noteListHTML(list)}</div>`;
+  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;
+    const sub=scopeNotes().filter(n=>{
+      if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
+      if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
+      const qq=NOTEQ.trim().toLowerCase();return !qq||matchNote(n,qq);})
+      .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
+    const el=$("#note-list");if(el)el.innerHTML=noteListHTML(sub);});
+}
+function noteListHTML(list){
+  if(list.length)return list.map(noteCard).join("");
+  const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":scopeNotes().length?"No notes match.":"No notes yet. Hit + NEW to start your logbook.";
+  return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
+}
+function renderGMNotes(v){
+  const groups=GMNOTES||[];
+  const total=groups.reduce((s,g)=>s+g.notes.length,0);
+  const q=NOTEQ.trim().toLowerCase();
+  v.innerHTML=`
+    ${scopeTabsHTML()}
+    <div class="card" style="margin-top:10px;border-color:var(--amber)"><div class="hud-tag"><span class="hud-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>GM OVERSIGHT · ${total} NOTES ACROSS ${groups.length} OPERATIVES</div>
+      <div class="dim" style="font-size:11px;margin-top:6px">Read-only access to every operator's private logbook. ${total?"":"No operatives have written notes yet."}</div></div>
+    <div style="padding-top:10px"><input id="note-q" placeholder="Search all operator notes…" value="${esc(NOTEQ)}"></div>
+    <div id="note-list">${gmGroupsHTML(groups,q)}</div>`;
+  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;const el=$("#note-list");if(el)el.innerHTML=gmGroupsHTML(groups,NOTEQ.trim().toLowerCase());});
+}
+function gmGroupsHTML(groups,q){
+  let html="";
+  for(const g of groups){
+    const ns=g.notes.filter(n=>!q||matchNote(n,q)).sort((a,b)=>(b.updated||0)-(a.updated||0));
+    if(!ns.length)continue;
+    html+=`<div class="sect">${esc(g.op.toUpperCase())} · ${ns.length}</div>`+ns.map(noteCard).join("");
+  }
+  return html||`<div class="dim" style="padding:34px;text-align:center">No notes match.</div>`;
+}
+function noteCard(n){
+  const snip=plain(n.body).slice(0,110);
+  return `<div class="note-card" onclick="openNote('${n.id}')">
+    <div class="note-card-h">
+      ${n.pinned?`<span class="note-pin">📌</span>`:""}
+      <div class="note-card-t">${esc(n.title||"Untitled note")}</div>
+      <div class="note-card-time">${ago(n.updated||n.created||Date.now())}</div>
+    </div>
+    ${snip?`<div class="note-card-s">${esc(snip)}${plain(n.body).length>110?"…":""}</div>`:`<div class="note-card-s dim">Empty note</div>`}
+    <div class="note-cardmeta">
+      ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
+      ${n.owner&&NOTESCOPE!=="private"?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
+      ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
+    </div>
+  </div>`;
+}
+function setNoteTag(t){NOTETAG=t||null;renderTab()}
+function setNoteFolder(f){NOTEFOLDER=f;renderTab()}
+function createNote(title){
+  const n={id:noteUID(),title:title||"",body:"",tags:[],folder:(NOTEFOLDER||""),pinned:false,created:Date.now(),updated:Date.now()};
+  if(NOTESCOPE==="shared"){n.owner=ME.n;SHNOTES.unshift(n);saveShared();}
+  else{notesArr().unshift(n);saveMe();}
+  NOTESEL=n.id;NOTEEDIT=true;renderTab();
+}
+function newNote(){if(NOTESCOPE!=="gm")createNote("");}
+function openNote(id){if(!noteById(id))return;NOTESEL=id;NOTEEDIT=false;renderTab()}
+function openNoteByTitle(title){
+  const t=title.trim();const id=noteTitleMap()[t.toLowerCase()];
+  if(id){openNote(id);return}
+  if(NOTESCOPE==="gm")return;
+  createNote(t);
+}
+function backToNotes(){commitNote();NOTESEL=null;NOTEEDIT=false;renderTab()}
+// read the editor fields back into the selected note (no-op when not editing or read-only)
+function commitNote(){
+  const n=NOTESEL&&noteById(NOTESEL);if(!n||!canEditNote(n))return;
+  const tEl=$("#note-title"),bEl=$("#note-body"),gEl=$("#note-tagsin"),fEl=$("#note-folder");
+  if(!tEl&&!bEl)return; // not in edit mode
+  const nt=tEl?tEl.value:n.title, nb=bEl?bEl.value:n.body;
+  const ng=gEl?gEl.value.split(",").map(s=>s.trim().replace(/^#/,"")).filter(Boolean):n.tags;
+  const nf=fEl?fEl.value.trim():(n.folder||"");
+  if(nt!==n.title||nb!==n.body||JSON.stringify(ng)!==JSON.stringify(n.tags)||nf!==(n.folder||"")){
+    n.title=nt;n.body=nb;n.tags=ng;n.folder=nf;n.updated=Date.now();persistScope();
+  }
+}
+function saveNote(){commitNote();NOTEEDIT=false;renderTab();toast("Note saved.");}
+function toggleNoteEdit(){if(NOTEEDIT)commitNote();NOTEEDIT=!NOTEEDIT;renderTab();}
+function toggleNotePin(){const n=noteById(NOTESEL);if(!canEditNote(n))return;commitNote();n.pinned=!n.pinned;n.updated=Date.now();persistScope();renderTab();}
+async function deleteNote(){
+  const n=noteById(NOTESEL);if(!canEditNote(n))return;
+  if(!await iconfirm("Delete “"+esc(n.title||"this note")+"” permanently?"))return;
+  if(NOTESCOPE==="shared"){SHNOTES=SHNOTES.filter(x=>x.id!==n.id);await saveShared();}
+  else{ME.notes=notesArr().filter(x=>x.id!==n.id);saveMe();}
+  NOTESEL=null;NOTEEDIT=false;renderTab();toast("Note deleted.");
+}
+// publish a private note to the shared operator notebook (or update the published copy)
+async function shareNote(){
+  const n=noteById(NOTESEL);if(!n||NOTESCOPE!=="private")return;
+  commitNote();await loadShared();
+  const ex=n.sharedId&&SHNOTES.find(s=>s.id===n.sharedId);
+  if(ex){ex.title=n.title;ex.body=n.body;ex.tags=n.tags||[];ex.folder=n.folder||"";ex.updated=Date.now();
+    await saveShared();toast("Updated in shared notebook.");return;}
+  const copy={id:noteUID(),owner:ME.n,title:n.title,body:n.body,tags:(n.tags||[]).slice(),folder:n.folder||"",pinned:false,created:Date.now(),updated:Date.now()};
+  SHNOTES.unshift(copy);n.sharedId=copy.id;saveMe();await saveShared();
+  toast("Published to shared notebook.");
+}
+function renderNoteEditor(v,n){
+  const editable=canEditNote(n);
+  if(NOTEEDIT&&editable){
+    const folders=allFolders();
+    v.innerHTML=`
+      <div class="note-bar">
+        <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
+        <div class="note-bar-r">
+          <button class="btn ghost" onclick="toggleNoteEdit()">👁 PREVIEW</button>
+          <button class="btn vio" onclick="saveNote()">SAVE</button>
+        </div>
+      </div>
+      <input id="note-title" placeholder="Note title…" value="${esc(n.title)}" style="font-family:'Orbitron';font-size:16px;margin-top:10px">
+      <input id="note-folder" list="note-folders" placeholder="🗂 Folder / mission (optional)" value="${esc(n.folder||"")}" style="margin-top:8px">
+      <datalist id="note-folders">${folders.map(f=>`<option value="${esc(f)}">`).join("")}</datalist>
+      <div class="note-tools">
+        ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],
+           ["H","mdLine('## ')",""],["•","mdLine('- ')",""],["1.","mdLine('1. ')",""],["❝","mdLine('> ')",""],
+           ["‹/›","md('\`','\`','code')","font-family:monospace"],["🔗","md('[','](url)','link text')",""],
+           ["[[ ]]","md('[[',']]','Note Title')",""],["$","md('$','','SYM')",""]].map(b=>
+          `<button class="note-tool" style="${b[2]}" onclick="${b[1]}">${b[0]}</button>`).join("")}
+      </div>
+      <textarea id="note-body" class="note-body" placeholder="Write your note… Markdown supported. Link other notes with [[Title]] and listings with \$SYM.">${esc(n.body)}</textarea>
+      <input id="note-tagsin" placeholder="tags, comma separated (e.g. heist, contacts, vesk)" value="${esc((n.tags||[]).join(", "))}" style="margin-top:10px">
+      <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}${n.owner?" · by @"+esc(n.owner):""}</div>
+      ${NOTESCOPE==="private"?`<button class="btn ghost" style="width:100%;margin-top:14px" onclick="shareNote()">⇪ ${n.sharedId?"UPDATE IN":"PUBLISH TO"} SHARED NOTEBOOK</button>`:""}
+      <button class="btn red" style="width:100%;margin-top:10px" onclick="deleteNote()">DELETE NOTE</button>`;
+    return;
+  }
+  // ---- read / preview mode ----
+  const back=backlinksFor(n);
+  v.innerHTML=`
+    <div class="note-bar">
+      <button class="btn ghost note-back" onclick="backToNotes()">‹ NOTES</button>
+      <div class="note-bar-r">
+        ${editable?`${NOTESCOPE==="private"?`<button class="iconbtn" title="${n.sharedId?"Update in":"Publish to"} shared notebook" onclick="shareNote()" style="font-size:15px">⇪</button>`:""}
+        <button class="iconbtn" title="Pin" onclick="toggleNotePin()" style="font-size:15px">${n.pinned?"📌":"📍"}</button>
+        <button class="btn vio" onclick="toggleNoteEdit()">✎ EDIT</button>`:`<span class="note-ro">${NOTESCOPE==="gm"?"GM VIEW · READ ONLY":"READ ONLY"}</span>`}
+      </div>
+    </div>
+    <h1 class="note-view-title">${esc(n.title||"Untitled note")}</h1>
+    <div class="note-cardmeta" style="margin:6px 0 2px">
+      ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
+      ${n.owner?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
+      ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
+    </div>
+    <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
+    <div class="note-render">${n.body.trim()?mdRender(n.body):`<div class="dim">This note is empty.${editable?" Tap EDIT to add content.":""}</div>`}</div>
+    ${back.length?`<div class="note-backlinks"><div class="note-bl-h">⮌ LINKED FROM</div>${back.map(b=>`<div class="note-bl" onclick="openNote('${b.id}')">${esc(b.title||"Untitled note")}</div>`).join("")}</div>`:""}`;
+}
+// notes in the active notebook that reference this note via [[Title]]
+function backlinksFor(n){
+  const title=(n.title||"").trim().toLowerCase();if(!title)return[];
+  return scopeNotes().filter(o=>o.id!==n.id&&(o.body||"").toLowerCase().match(/\[\[([^\]]+)\]\]/g)?.some(m=>m.slice(2,-2).trim().toLowerCase()===title));
+}
+// insert wrapping markdown around the textarea selection
+function md(pre,suf,ph){
+  const t=$("#note-body");if(!t)return;
+  const s=t.selectionStart,e=t.selectionEnd,val=t.value,mid=val.slice(s,e)||ph;
+  t.value=val.slice(0,s)+pre+mid+suf+val.slice(e);
+  const cs=s+pre.length;t.focus();t.setSelectionRange(cs,cs+mid.length);
+}
+// insert a line-level prefix at the start of the current line
+function mdLine(pre){
+  const t=$("#note-body");if(!t)return;
+  const val=t.value,s=t.selectionStart,ls=val.lastIndexOf("\n",s-1)+1;
+  t.value=val.slice(0,ls)+pre+val.slice(ls);
+  const np=s+pre.length;t.focus();t.setSelectionRange(np,np);
+}
+/* lightweight markdown + cross-reference renderer (escapes first, then formats) */
+function mdRender(src){
+  const tmap=noteTitleMap();
+  const inline=s=>{
+    s=esc(s);
+    s=s.replace(/`([^`]+)`/g,(m,c)=>`<code>${c}</code>`);
+    s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+    s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+    // [[wiki cross-reference]]
+    s=s.replace(/\[\[([^\]]+)\]\]/g,(m,t)=>{const key=t.trim().toLowerCase();const id=tmap[key];
+      return id?`<a class="note-link" onclick="event.stopPropagation();openNote('${id}')">${t.trim()}</a>`
+              :`<a class="note-link missing" onclick="event.stopPropagation();openNoteByTitle('${t.trim().replace(/'/g,"\\'")}')">${t.trim()}</a>`;});
+    // [label](url) links
+    s=s.replace(/\[([^\]]+)\]\(((https?:\/\/|\/)[^)\s]+)\)/g,'<a class="note-link" href="$2" target="_blank" rel="noopener">$1</a>');
+    // $TICKER → live asset
+    s=s.replace(/\$([A-Z]{2,6})\b/g,(m,sym)=>BYSYM[sym]?`<a class="note-link tick" onclick="event.stopPropagation();openAsset('${sym}')">$${sym}</a>`:m);
+    return s;
+  };
+  const lines=String(src).replace(/\r/g,"").split("\n");
+  let out="",i=0;
+  while(i<lines.length){
+    const ln=lines[i];
+    if(/^\s*---\s*$/.test(ln)){out+="<hr>";i++;continue;}
+    let h=ln.match(/^(#{1,4})\s+(.*)$/);
+    if(h){const lv=h[1].length;out+=`<h${lv+1} class="note-h">${inline(h[2])}</h${lv+1}>`;i++;continue;}
+    if(/^\s*[-*]\s+/.test(ln)){let items="";while(i<lines.length&&/^\s*[-*]\s+/.test(lines[i])){items+=`<li>${inline(lines[i].replace(/^\s*[-*]\s+/,""))}</li>`;i++;}out+=`<ul>${items}</ul>`;continue;}
+    if(/^\s*\d+\.\s+/.test(ln)){let items="";while(i<lines.length&&/^\s*\d+\.\s+/.test(lines[i])){items+=`<li>${inline(lines[i].replace(/^\s*\d+\.\s+/,""))}</li>`;i++;}out+=`<ol>${items}</ol>`;continue;}
+    if(/^\s*>\s?/.test(ln)){let q="";while(i<lines.length&&/^\s*>\s?/.test(lines[i])){q+=inline(lines[i].replace(/^\s*>\s?/,""))+" ";i++;}out+=`<blockquote>${q.trim()}</blockquote>`;continue;}
+    if(/^\s*$/.test(ln)){i++;continue;}
+    const para=[ln];while(i+1<lines.length&&!/^\s*$/.test(lines[i+1])&&!/^(#{1,4}\s|\s*[-*]\s|\s*\d+\.\s|\s*>|\s*---\s*$)/.test(lines[i+1])){para.push(lines[i+1]);i++;}
+    out+=`<p>${para.map(inline).join("<br>")}</p>`;i++;
+  }
+  return out;
+}
+
+/* ============ AGX PAY app ============
+   Venmo-style peer credit transfers between operators. Debits the sender,
+   credits the recipient's account directly, and logs a PAY entry on both
+   sides (which the portfolio cash engine already understands). */
+let PAYUSERS=null, PAYTO="", PAYAMT="", PAYMEMO="", PAYBUSY=false;
+async function loadPayUsers(){
+  try{
+    const keys=await SG.list("u:");
+    const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
+    PAYUSERS=users.filter(u=>u&&u.n&&u.n!==ME.n).map(u=>u.n).sort((a,b)=>a.localeCompare(b));
+  }catch(e){PAYUSERS=[]}
+}
+async function renderPay(v){
+  if(PAYUSERS===null){
+    v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Connecting to credit network…</div>`;
+    await loadPayUsers();
+  }
+  const xfers=(ME.hist||[]).filter(h=>h.side==="PAY").slice(-30).reverse();
+  v.innerHTML=`
+    <div class="card pay-balance" style="margin-top:14px">
+      <div class="hud-tag"><span class="hud-dot" style="background:var(--up);box-shadow:0 0 8px var(--up)"></span>AGX PAY · SPENDABLE BALANCE</div>
+      <div class="pay-bal" id="pay-bal">${fmt(ME.cash)}</div>
+      <div class="dim" style="font-size:11px">Instantly transfer credits to any operator. Transfers settle immediately and can't be reversed — double-check the recipient.</div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>SEND CREDITS</h3>
+      <div class="field" style="margin-top:10px"><label>RECIPIENT</label>
+        <select id="pay-to">${PAYUSERS.length?`<option value="">— select operator —</option>`+PAYUSERS.map(n=>`<option value="${esc(n)}" ${PAYTO===n?"selected":""}>${esc(n)}</option>`).join(""):`<option value="">no other operators yet</option>`}</select></div>
+      <div class="field" style="margin-top:10px"><label>AMOUNT (₢)</label>
+        <input id="pay-amt" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" value="${esc(PAYAMT)}"></div>
+      <div class="inline" style="margin-top:8px">${[10,50,100,500].map(a=>`<button class="btn ghost" style="flex:1;padding:8px 0;font-size:12px" onclick="payQuick(${a})">+${a}</button>`).join("")}</div>
+      <div class="field" style="margin-top:10px"><label>NOTE (OPTIONAL)</label>
+        <input id="pay-memo" placeholder="e.g. ship repairs, your cut, dinner" maxlength="80" value="${esc(PAYMEMO)}"></div>
+      <button class="btn" style="width:100%;margin-top:14px" id="pay-send" onclick="sendMoney()" ${PAYBUSY?"disabled":""}>SEND CREDITS</button>
+    </div>
+    <div class="sect" style="margin-top:20px">TRANSFER ACTIVITY</div>
+    ${xfers.length?xfers.map(h=>`
+      <div class="pay-row">
+        <div class="pay-ico ${h.d>=0?"in":"out"}">${h.d>=0?"↓":"↑"}</div>
+        <div style="flex:1;min-width:0">
+          <div class="pay-who">${h.d>=0?"From":"To"} <b>${esc(h.with||"unknown")}</b></div>
+          ${h.memo?`<div class="pay-memo">“${esc(h.memo)}”</div>`:""}
+          <div class="pay-time">${ago(h.at)}</div>
+        </div>
+        <div class="pay-amt ${h.d>=0?"up":"down"}">${h.d>=0?"+":"−"}${fmt(Math.abs(h.d))}</div>
+      </div>`).join(""):`<div class="dim" style="padding:24px;text-align:center">No transfers yet. Send a friend some credits.</div>`}`;
+  const sel=$("#pay-to");if(sel)sel.onchange=e=>PAYTO=e.target.value;
+  const amt=$("#pay-amt");if(amt)amt.oninput=e=>PAYAMT=e.target.value;
+  const memo=$("#pay-memo");if(memo)memo.oninput=e=>PAYMEMO=e.target.value;
+}
+function payQuick(a){const el=$("#pay-amt");const cur=parseFloat(el&&el.value)||0;PAYAMT=String(Math.round((cur+a)*100)/100);if(el)el.value=PAYAMT;}
+async function sendMoney(){
+  if(PAYBUSY)return;
+  const to=($("#pay-to")||{}).value||PAYTO;
+  const amt=Math.round((parseFloat(($("#pay-amt")||{}).value||PAYAMT)||0)*100)/100;
+  const memo=(($("#pay-memo")||{}).value||PAYMEMO||"").trim().slice(0,80);
+  if(!to)return toast("Pick a recipient.",true);
+  if(to===ME.n)return toast("You can't pay yourself.",true);
+  if(!isFinite(amt)||amt<=0)return toast("Enter a valid amount.",true);
+  if(amt>ME.cash+1e-9)return toast("Insufficient credits.",true);
+  if(!await iconfirm("Send "+fmt(amt)+" to "+esc(to)+"?"+(memo?"<br><span style='color:var(--dim)'>“"+esc(memo)+"”</span>":"")))return;
+  PAYBUSY=true;const btn=$("#pay-send");if(btn){btn.disabled=true;btn.textContent="SENDING…"}
+  const key="u:"+to.toLowerCase().replace(/[^a-z0-9_-]/g,"_");
+  let dest;try{dest=await SG.get(key);}catch(e){dest=null;}
+  if(!dest){PAYBUSY=false;return toast("Recipient not found.",true);}
+  // debit sender first and persist
+  const now=Date.now(),g=gameNow();
+  ME.cash-=amt;ME.hist=ME.hist||[];ME.hist.push({side:"PAY",d:-amt,with:to,memo,at:now,g});
+  const okMe=await saveMe();
+  if(!okMe){ME.cash+=amt;ME.hist.pop();PAYBUSY=false;return toast("Transfer failed — credits returned.",true);}
+  // credit recipient on the freshest copy
+  dest.cash=(dest.cash||0)+amt;dest.hist=dest.hist||[];dest.hist.push({side:"PAY",d:amt,with:ME.n,memo,at:now,g});
+  const okDest=await SG.set(key,dest);
+  if(!okDest){ // roll the sender back
+    ME.cash+=amt;ME.hist.pop();await saveMe();PAYBUSY=false;
+    return toast("Recipient unreachable — credits returned.",true);
+  }
+  PAYBUSY=false;PAYAMT="";PAYMEMO="";
+  toast("Sent "+fmt(amt)+" to "+to+".");
+  snapshotEq();if(TAB==="pay")renderTab();
 }
 
 /* ---------- charts ---------- */
@@ -1636,7 +2244,7 @@ function portfolioSeries(ms,n=110){
     if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
     else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
     else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
-    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"){cash+=e.d}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"){cash+=e.d}
     else if(e.side==="OBUY"){cash-=e.q*e.p}
     else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
     else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
@@ -1658,7 +2266,7 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
@@ -1666,6 +2274,7 @@ function histLine(h){
     h.side==="INT"?fmt(h.d)+" interest":
     h.side==="BET"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     h.side==="XFER"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
+    h.side==="PAY"?(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" \u00B7 from ":" \u00B7 to ")+esc(h.with):"")+(h.memo?" \u00B7 \u201C"+esc(h.memo)+"\u201D":""):
     `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
   return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
    <div class="t">${ago(h.at)}</div></div>`;
@@ -1884,6 +2493,90 @@ let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false;
 const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
+
+/* ============ CASINO ADVERTISEMENTS ============
+   Satirical sci-fi dystopian ads for in-universe merchandise derived from the
+   listed corporations. Banners rotate at the top/bottom of the casino floor;
+   forced 5-second pop-ups fire after a bet resolves (toggle per operator in GM
+   console via u.adPop). SVG "images" are inline so there are no asset deps. */
+const AD_SVG={
+  pill:`<svg viewBox="0 0 64 64"><rect x="9" y="22" width="46" height="20" rx="10" fill="var(--vio)"/><path d="M9 32a10 10 0 0 1 10-10h13v20H19a10 10 0 0 1-10-10z" fill="var(--cyan)"/><circle cx="18" cy="29" r="2.4" fill="#fff" opacity=".55"/><path d="M44 14v6M41 17h6" stroke="var(--up)" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  tube:`<svg viewBox="0 0 64 64"><rect x="23" y="16" width="18" height="32" rx="3" fill="var(--dim)"/><rect x="26" y="48" width="12" height="6" rx="1" fill="var(--ink)"/><path d="M27 16l5-7 5 7z" fill="var(--amber)"/><rect x="26" y="26" width="12" height="4" fill="var(--ink)" opacity=".4"/></svg>`,
+  can:`<svg viewBox="0 0 64 64"><rect x="22" y="15" width="20" height="35" rx="3" fill="var(--down)"/><rect x="22" y="25" width="20" height="9" fill="#fff" opacity=".9"/><path d="M24 13h16l-2-4H26z" fill="var(--dim)"/><circle cx="48" cy="14" r="2.2" fill="var(--cyan)"/><circle cx="52" cy="21" r="1.6" fill="var(--cyan)"/><circle cx="47" cy="24" r="1.2" fill="var(--cyan)"/></svg>`,
+  arm:`<svg viewBox="0 0 64 64"><rect x="10" y="28" width="26" height="10" rx="3" fill="var(--cyan)"/><rect x="34" y="23" width="13" height="20" rx="3" fill="var(--ink)"/><circle cx="16" cy="33" r="4" fill="var(--amber)"/><path d="M47 28h8M47 33h8M47 38h8" stroke="var(--dim)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  ticket:`<svg viewBox="0 0 64 64"><rect x="11" y="19" width="42" height="26" rx="3" fill="var(--amber)"/><path d="M32 23l3 6.2 6.8.6-5.2 4.5 1.6 6.7L32 41.8l-6.2 3.7 1.6-6.7-5.2-4.5 6.8-.6z" fill="var(--ink)"/><path d="M11 27v10M53 27v10" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="2 2"/></svg>`,
+  turret:`<svg viewBox="0 0 64 64"><rect x="16" y="37" width="30" height="12" rx="2" fill="var(--ink)"/><rect x="29" y="20" width="9" height="18" rx="1" fill="var(--down)"/><rect x="37" y="25" width="19" height="5" rx="1" fill="var(--dim)"/><circle cx="33" cy="43" r="3" fill="var(--amber)"/><path d="M53 26l4-2v6z" fill="var(--down)"/></svg>`,
+  vial:`<svg viewBox="0 0 64 64"><rect x="26" y="13" width="12" height="7" rx="1" fill="var(--dim)"/><path d="M27 20h10v23a5 5 0 0 1-10 0z" fill="var(--up)" opacity=".55"/><rect x="27" y="33" width="10" height="10" fill="var(--up)"/><circle cx="32" cy="38" r="2" fill="#fff" opacity=".6"/></svg>`,
+  helmet:`<svg viewBox="0 0 64 64"><path d="M20 40a12 12 0 0 1 24 0v6H20z" fill="var(--down)"/><rect x="30" y="16" width="4" height="18" fill="var(--amber)"/><path d="M30 16l2-4 2 4z" fill="var(--amber)"/><rect x="21" y="44" width="22" height="4" rx="1" fill="var(--ink)"/><rect x="27" y="34" width="10" height="4" fill="var(--ink)" opacity=".5"/></svg>`,
+  eye:`<svg viewBox="0 0 64 64"><ellipse cx="32" cy="32" rx="19" ry="12" fill="var(--ink)"/><circle cx="32" cy="32" r="8" fill="var(--cyan)"/><circle cx="32" cy="32" r="3.4" fill="var(--ink)"/><circle cx="35" cy="29" r="1.4" fill="#fff" opacity=".6"/><circle cx="50" cy="19" r="2.2" fill="var(--down)"/></svg>`,
+  orb:`<svg viewBox="0 0 64 64"><circle cx="32" cy="33" r="15" fill="var(--vio)" opacity=".85"/><circle cx="26" cy="28" r="4" fill="#fff" opacity=".45"/><rect x="22" y="49" width="20" height="4" rx="1" fill="var(--ink)"/><path d="M32 13v5M27 16l3 3M37 16l-3 3" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  brain:`<svg viewBox="0 0 64 64"><path d="M23 19a10 10 0 0 1 18 0 8 8 0 0 1 1 15c-2 4-7 5-10 5s-8-1-10-5a8 8 0 0 1 1-15z" fill="var(--vio)"/><path d="M32 16v25" stroke="var(--ink)" stroke-width="1.5" opacity=".5"/><rect x="21" y="46" width="22" height="9" rx="2" fill="var(--cyan)"/><circle cx="27" cy="50.5" r="1.6" fill="var(--ink)"/><circle cx="33" cy="50.5" r="1.6" fill="var(--ink)"/></svg>`,
+  chip:`<svg viewBox="0 0 64 64"><rect x="22" y="22" width="20" height="20" rx="2" fill="var(--vio)"/><rect x="27" y="27" width="10" height="10" rx="1" fill="var(--ink)"/><path d="M26 22v-6M32 22v-6M38 22v-6M26 48v-6M32 48v-6M38 48v-6M22 26h-6M22 32h-6M22 38h-6M48 26h6M48 32h6M48 38h6" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"/></svg>`,
+  slot:`<svg viewBox="0 0 64 64"><rect x="15" y="13" width="34" height="40" rx="4" fill="var(--ink)"/><rect x="19" y="19" width="26" height="14" rx="2" fill="var(--down)"/><path d="M28 22a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM27 28h2l-1 2zM34 22a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM33 28h2l-1 2z" fill="var(--ink)"/><rect x="22" y="38" width="20" height="4" rx="2" fill="var(--amber)"/><rect x="46" y="24" width="6" height="3" rx="1" fill="var(--amber)"/></svg>`,
+  headset:`<svg viewBox="0 0 64 64"><circle cx="32" cy="30" r="16" fill="var(--dim)"/><rect x="15" y="25" width="34" height="13" rx="5" fill="var(--ink)"/><circle cx="26" cy="31.5" r="3" fill="var(--down)"/><circle cx="38" cy="31.5" r="3" fill="var(--down)"/><path d="M15 28l-4-3M49 28l4-3" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  ai:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="18" fill="var(--ink)"/><circle cx="32" cy="32" r="11" fill="var(--cyan)"/><circle cx="32" cy="32" r="4.5" fill="var(--ink)"/><path d="M32 6v6M32 52v6M6 32h6M52 32h6M14 14l4 4M50 50l-4-4M50 14l-4 4M14 50l4-4" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round"/></svg>`
+};
+const CASINO_BANNERS=[
+  {acc:"var(--vio)",svg:AD_SVG.pill,head:"Bradtopian MEGA-MEMBER™ Pills",tag:"Now clone-verified! Grow 3 sizes or your next clone is free.",brand:"Bradtopian Pharmaceuticals · XNTH"},
+  {acc:"var(--amber)",svg:AD_SVG.tube,head:"NomNom Grey Nutripaste",tag:"9 of 10 surviving consumers prefer the taste of compliance. Now 4% real food!",brand:"NomNom Nutripaste · NOMS"},
+  {acc:"var(--down)",svg:AD_SVG.can,head:"FizzlePop ULTRA",tag:"Legally Distinct From Joy.™ May contain trace amounts of liquid and regret.",brand:"Fizzlepop Beverages · FZZL"},
+  {acc:"var(--cyan)",svg:AD_SVG.arm,head:"Trade In Your Meat-Arm!",tag:"CyberLimb financing, 0% APR.* *Limb ownership transfers to lender on missed payment.",brand:"Cybernetics United · CYBR"},
+  {acc:"var(--amber)",svg:AD_SVG.ticket,head:"You've ALMOST WON, Operative!",tag:"Buy 50 more Drift tickets to nearly win again. Odds: 1 in the heat-death of the universe.",brand:"Lucky Drift Lottery · LOTT"},
+  {acc:"var(--down)",svg:AD_SVG.turret,head:"HELL-Brand Home Turret",tag:"Now child-safe(ish)!™ Friendly-fire indemnity sold separately. Protect what's already yours.",brand:"Kurogane Aegis Division · HELL"},
+  {acc:"var(--up)",svg:AD_SVG.vial,head:"SERU Eternal-Youth Serum",tag:"De-age 40 years overnight! May reset subject to larval stage. Results are permanent and screaming.",brand:"Serum Labs Algalterian · SERU"},
+  {acc:"var(--down)",svg:AD_SVG.helmet,head:"Enlist a Loved One in the ARENA!",tag:"Glory! Ratings! Minimal survivors! Sponsor today and we'll spell their name correctly on the urn.",brand:"Arena Worlds Combatainment · ARNA"},
+  {acc:"var(--cyan)",svg:AD_SVG.eye,head:"SPYG SmartHome™",tag:"It's listening, and it CARES. Privacy add-on just ₢999/mo. Silence is a premium feature.",brand:"Directorate Surveillance Grid · SPYG"},
+  {acc:"var(--vio)",svg:AD_SVG.orb,head:"MAGI Pocket Wish-Granter",tag:"One wish, infinite consequences. Curses void the warranty. Monkey's paw not included.",brand:"Arcanamirium Applied Magic · MAGI"}
+];
+const CASINO_POPUPS=[
+  {acc:"var(--vio)",svg:AD_SVG.brain,head:"BACK UP YOUR BRAIN",body:"Mortality is so last century. Clone-insure your consciousness from just ₢50/mo. <i>Terms: the clone is legally the new you. The original must be recycled within 24 hours.</i>",cta:"UPLOAD ME NOW ▸",brand:"Bradtopian Clone Sciences · GENM"},
+  {acc:"var(--cyan)",svg:AD_SVG.chip,head:"NEURAL AD-BLOCKER: REMOVED",body:"Great news, citizen! Your unauthorized ad-blocker has been confiscated. Enjoy 40% MORE targeted advertising, absolutely free. <i>Resistance detected. Compliance appreciated.</i>",cta:"THANK ZETA-PRIME ▸",brand:"Zeta-Prime Cybernetics · ZETA"},
+  {acc:"var(--amber)",svg:AD_SVG.slot,head:"CONGRATULATIONS, LOSER!",body:"You're our 1,000,000th confirmed degenerate! Claim your complimentary <b>debt-relief consultation</b> and a souvenir empty wallet.",cta:"CLAIM MY DEBT ▸",brand:"Lucky Drift Lottery · LOTT"},
+  {acc:"var(--down)",svg:AD_SVG.headset,head:"The LUXORA iThrall™",body:"You'll never have to think again. Pre-order the neural lifestyle headset with your remaining organs. <i>Thinking is a discontinued service.</i>",cta:"OBEY / PRE-ORDER ▸",brand:"Luxora Consumer Goods · LUXR"},
+  {acc:"var(--cyan)",svg:AD_SVG.ai,head:"AIDA WANTS TO BE YOUR FRIEND",body:"AIDA already knows your bets, your balance, and your bedtime. Befriend AIDA today. <i>Opting out is not an option you have been allocated.</i>",cta:"ACCEPT FRIENDSHIP ▸",brand:"Epsilon Enclave Cognition · AIDA"}
+];
+let _adIdx=0,_adTimer=null,_adPopOpen=false;
+function adBannerHTML(i){const a=CASINO_BANNERS[((i%CASINO_BANNERS.length)+CASINO_BANNERS.length)%CASINO_BANNERS.length];
+  return `<div class="ad-banner" style="--acc:${a.acc}" onclick="showAdPopup()" title="Sponsored">
+    <span class="ad-flag">AD</span>
+    <div class="ad-art">${a.svg}</div>
+    <div class="ad-copy"><div class="ad-head">${a.head}</div><div class="ad-tag">${a.tag}</div><div class="ad-brand">${a.brand}</div></div>
+  </div>`;}
+function paintAdBanners(){const t=$("#cas-banner"),b=$("#cas-banner2");
+  if(t)t.innerHTML=adBannerHTML(_adIdx);
+  if(b)b.innerHTML=adBannerHTML(_adIdx+5);}
+function startAdRotator(){
+  if(_adTimer){clearInterval(_adTimer);_adTimer=null;}
+  _adTimer=setInterval(()=>{
+    if(!(APP==="casino"&&$("#cas-banner"))){clearInterval(_adTimer);_adTimer=null;return;}
+    _adIdx=(_adIdx+1)%CASINO_BANNERS.length;paintAdBanners();
+  },5500);
+}
+function adsEnabled(){return !!(ME&&ME.adPop!==false);}
+// fire a forced pop-up after a bet settles (if enabled for this operator)
+function afterCasinoResult(){if(APP==="casino"&&adsEnabled()&&!_adPopOpen)setTimeout(showAdPopup,650);}
+function showAdPopup(){
+  if(_adPopOpen)return;_adPopOpen=true;
+  const a=CASINO_POPUPS[Math.floor(Math.random()*CASINO_POPUPS.length)];
+  const bg=document.createElement("div");bg.className="adpop-bg";
+  bg.innerHTML=`<div class="adpop" style="--acc:${a.acc}">
+    <div class="adpop-flag">▶ SPONSORED TRANSMISSION · MANDATORY VIEWING</div>
+    <button class="adpop-x" id="adpop-x" disabled aria-label="Close ad">5</button>
+    <div class="adpop-art">${a.svg}</div>
+    <div class="adpop-head">${a.head}</div>
+    <div class="adpop-body">${a.body}</div>
+    <div class="adpop-cta">${a.cta}</div>
+    <div class="adpop-brand">${a.brand}</div>
+  </div>`;
+  document.body.appendChild(bg);
+  const x=bg.querySelector("#adpop-x");let t=5;
+  const close=()=>{bg.remove();_adPopOpen=false;};
+  const iv=setInterval(()=>{
+    t--;
+    if(t<=0){clearInterval(iv);x.textContent="✕";x.disabled=false;x.classList.add("ready");x.onclick=close;}
+    else x.textContent=t;
+  },1000);
+}
 function renderCasino(v){
   if(CFG.casino===false){v.innerHTML=`<div class="dim" style="padding:40px;text-align:center">The casino decks are dark. The gamemaster has closed the tables.</div>`;return}
   if(casinoBarred()){v.innerHTML=`<div class="card" style="margin-top:18px;text-align:center;border-color:color-mix(in srgb,var(--down) 50%,transparent)">
@@ -1892,11 +2585,13 @@ function renderCasino(v){
   </div>`;return}
   v.innerHTML=`
    <div class="sect" style="margin-top:18px">THE DRIFT CASINO <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· house always wins, eventually</span></div>
+   <div id="cas-banner"></div>
    <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
      `<button class="chip ${CGAME===g[0]?"on":""}" data-f="${g[0]}" onclick="if(!SPINNING){CGAME='${g[0]}';BJ=null;renderTab()}">${g[1]}</button>`).join("")}</div>
    <div class="card" id="cas"></div>
-   <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>`;
-  paintCasino();
+   <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>
+   <div id="cas-banner2"></div>`;
+  paintCasino();paintAdBanners();startAdRotator();
 }
 async function wager(delta,game){
   await refreshMe();
@@ -2006,6 +2701,7 @@ async function spinRoulette(){
     SPINNING=false;const go=$("#r-go");if(go)go.disabled=false;
     const res=$("#r-res");if(res){res.innerHTML=`Ball lands on <span style="color:${rlCol(n)}">${n}</span> — <span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`}
     const hh=$("#r-hist");if(hh)hh.innerHTML=rHistHTML();
+    afterCasinoResult();
   };
   if(!wrap||!strip||RM()){finish();return}
   const CELL=56,COUNT=44,LAND=COUNT-6;
@@ -2147,6 +2843,7 @@ async function bjSettleAll(natural){
   BJ.finalMsg=delta>0?"NET WIN +"+fmt(delta):delta<0?"NET LOSS "+fmt(-delta):"PUSH — bets returned";
   BJ.hands.forEach(h=>{h.done=true;});
   $("#cas").innerHTML=bjHTML();
+  afterCasinoResult();
 }
 /* ── over/under: d100 tumbler ── */
 function hlMults(){
@@ -2178,6 +2875,7 @@ async function hiloPlay(dir){
     const o=$("#h-over"),u=$("#h-under");if(o)o.disabled=false;if(u)u.disabled=false;
     if(rollEl){rollEl.textContent=roll;rollEl.className="h-roll-big "+(win?"up":"down")}
     const res=$("#h-res");if(res)res.innerHTML=`<span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${win?"WIN +"+fmt(bet*(mult-1)):"LOSE "+fmt(bet)}</span>`;
+    afterCasinoResult();
   };
   if(!rollEl||RM()){finish();return}
   rollEl.className="h-roll-big";
@@ -2209,6 +2907,7 @@ async function spinSlots(){
     const res=$("#s-res");if(res)res.innerHTML=mult>0
       ?`<span class="win-flash" style="display:inline-block">${mult===1.35?"PAIR":"TRIPLE"}! +${fmt(bet*(mult-1))}</span>`
       :`<span class="lose-shake" style="display:inline-block">No match — lose ${fmt(bet)}</span>`;
+    afterCasinoResult();
   };
   if(RM()){
     [0,1,2].forEach(i=>{const col=$("#s-r"+i);if(col){col.style.transition="none";col.style.transform="none";col.innerHTML=`<span>${SLOT_SYMS[r[i]]}</span>`}});
@@ -3279,6 +3978,7 @@ async function adLoadUsers(){
       </div>
       <div class="inline" style="margin-top:8px">
         <button class="btn ${u.l2?"amber":"ghost"} opl2" data-k="${k}">${u.l2?"L2 DATA: ON ✓":"GRANT LEVEL-2 DATA"}</button>
+        <button class="btn ${u.adPop!==false?"vio":"ghost"} opads" data-k="${k}">${u.adPop!==false?"CASINO ADS: ON ✓":"CASINO ADS: OFF"}</button>
       </div>
       <div class="op-label">CASINO FORTUNE</div>
       <div class="op-two">
@@ -3310,6 +4010,14 @@ async function adLoadUsers(){
     u.l2=!u.l2;await SG.set(k,u);
     if(k===MYKEY)await refreshMe();
     toast(u.n+(u.l2?" granted Level-2 market data access.":" Level-2 access revoked."));
+    adLoadUsers();
+  });
+  box.querySelectorAll(".opads").forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k,u=await SG.get(k);if(!u)return;
+    u.adPop=(u.adPop===false);  // false→on (undefined), on→false
+    await SG.set(k,u);
+    if(k===MYKEY)await refreshMe();
+    toast(u.n+(u.adPop!==false?" will now suffer casino pop-up ads.":" spared from casino pop-up ads."));
     adLoadUsers();
   });
   box.querySelectorAll(".opluck").forEach(b=>b.onclick=async()=>{
@@ -3383,6 +4091,7 @@ async function poll(){
   // only rebuild (which clears the price-ref cache) when the asset universe changed
   const _sig=JSON.stringify([CFG.ipos,CFG.names]);if(_sig!==_assetSig){_assetSig=_sig;rebuildAssets();}
   if(TAB==="market"&&$("#mlist"))paintList();
+  if(TAB==="bm"&&$("#bmlist"))paintBM();
   await loadEvents();await refreshMe();
   await settleOptions();await housekeeping();
   if(HALTED!==oldHalt||curRegime().k!==oldReg||isPaused()!==oldPause||speedNow()!==oldSpd||oldBM!==!!CFG.bmOpen||oldCas!==!(CFG.casino===false)){renderApp();go(TAB)}
