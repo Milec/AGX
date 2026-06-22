@@ -238,6 +238,37 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .note-owner{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);border-radius:6px;padding:2px 7px}
 .note-ro{font-family:'Orbitron';font-size:10px;letter-spacing:.16em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:8px;padding:7px 12px}
 
+/* ── notes folder tree (collapsible) ── */
+.tree-folder{margin-top:6px}
+.tree-folder-h{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--chip-bg);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:border-color .15s,background .15s}
+.tree-folder-h:hover{border-color:var(--amber)}
+.tree-caret{flex:none;width:12px;font-size:10px;color:var(--dim);text-align:center}
+.tree-fic{flex:none}
+.tree-fname{flex:1;min-width:0;font-family:'Orbitron';font-size:12px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree-count{flex:none;font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);background:var(--panel2);border-radius:6px;padding:1px 7px}
+.tree-add{flex:none;width:24px;height:24px;border-radius:6px;border:1px solid var(--line2);background:none;color:var(--vio);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+.tree-add:hover{background:color-mix(in srgb,var(--vio) 14%,transparent);border-color:var(--vio)}
+.tree-children{margin:4px 0 4px 14px;border-left:1px solid var(--line);padding-left:8px}
+.tree-loose{margin-left:6px;border-left:none;padding-left:0;margin-top:6px}
+.tree-note{display:flex;align-items:center;gap:8px;padding:8px 10px;margin:3px 0;cursor:pointer;border-radius:8px;border:1px solid transparent;transition:background .12s,border-color .12s}
+.tree-note:hover{background:color-mix(in srgb,var(--cyan) 8%,transparent);border-color:var(--line)}
+.tree-nic{flex:none;opacity:.8;font-size:13px}
+.tree-nname{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree-owner{flex:none;font-family:'IBM Plex Mono';font-size:9px;color:var(--cyan)}
+.tree-ntime{flex:none;font-family:'IBM Plex Mono';font-size:9px;color:var(--dim)}
+
+/* ── notes knowledge graph ── */
+.graph-wrap{margin-top:10px;border:1px solid var(--line2);border-radius:var(--r-md);background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--vio) 7%,transparent),transparent 70%),var(--panel2);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);overflow:hidden}
+.graph-svg{display:block;width:100%;height:62vh;height:62dvh;touch-action:manipulation}
+.graph-svg .gnode circle{transition:filter .15s}
+.graph-svg .gnode:hover circle{filter:brightness(1.25) drop-shadow(0 0 4px currentColor)}
+.graph-svg text{paint-order:stroke;stroke:var(--bg);stroke-width:.5px}
+.graph-legend{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;margin-top:10px}
+.glg{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+.glg i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
 /* ── AGX Pay app ── */
 .pay-balance{border-color:var(--up)}
 .pay-bal{font-family:'IBM Plex Mono';font-size:34px;font-weight:600;color:var(--up);margin:8px 0 10px;text-shadow:0 0 18px color-mix(in srgb,var(--up) 45%,transparent)}
@@ -1009,7 +1040,7 @@ const APPS={
   blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
     tabs:[["bm","CONTRABAND"]]},
   notes:{name:"FIELD NOTES",tag:"Logbook · Shared · Linked",glyph:"❖",col:"var(--vio)",
-    tabs:[["notes","NOTEBOOK"]]},
+    tabs:[["notes","NOTEBOOK"],["notesgraph","GRAPH"]]},
   pay:{name:"AGX PAY",tag:"Send credits to operators",glyph:"⇄",col:"var(--up)",
     tabs:[["pay","WALLET"]]},
   gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:"⚙",col:"var(--amber)",
@@ -1148,7 +1179,7 @@ function renderApp(){
   buildTicker();renderTab();tick();
 }
 function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
-function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
+function go(t){if(APP==="notes")commitNote();TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
 // open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
 // Locked apps still "open" — they just render an unauthorized-access wall.
 function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;renderApp()}
@@ -1178,6 +1209,7 @@ function renderTab(){
   if(TAB==="bm")return renderBlackMarket(v);
   if(TAB==="casino")return renderCasino(v);
   if(TAB==="notes")return renderNotes(v);
+  if(TAB==="notesgraph")return renderNotesGraph(v);
   if(TAB==="pay")return renderPay(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
@@ -1385,7 +1417,7 @@ function paintBM(){
      · OPERATORS — GM-only, read-only browse of every player's private notes
    Notes group into folders ("missions"), and support markdown, [[cross-refs]],
    $TICKER links, tags, pinning, search and automatic backlinks. */
-let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null, NOTESCOPE="private", NOTEFOLDER=null;
+let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null, NOTESCOPE="private", NOTEFOLDER=null, NOTECOLLAPSE={};
 let SHNOTES=[];      // shared notebook cache
 let GMNOTES=null;    // GM browse cache: [{op, notes:[...]}]
 function notesArr(){if(!ME.notes)ME.notes=[];return ME.notes}
@@ -1438,14 +1470,8 @@ function renderNotes(v){
   const sel=NOTESEL&&noteById(NOTESEL);
   if(sel)return renderNoteEditor(v,sel);
   if(NOTESCOPE==="gm")return renderGMNotes(v);
-  const q=NOTEQ.trim().toLowerCase(), shared=NOTESCOPE==="shared";
-  let list=scopeNotes().filter(n=>{
-    if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
-    if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
-    return !q||matchNote(n,q);
-  });
-  list.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
-  const folders=allFolders(),tags=allTags();
+  const shared=NOTESCOPE==="shared";
+  const tags=allTags();
   v.innerHTML=`
     ${scopeTabsHTML()}
     <div class="card" style="margin-top:10px"><div class="hud-row">
@@ -1454,21 +1480,59 @@ function renderNotes(v){
       <button class="btn vio" onclick="newNote()">+ NEW</button>
     </div></div>
     <div style="padding-top:10px"><input id="note-q" placeholder="Search notes…" value="${esc(NOTEQ)}"></div>
-    <div class="chips" id="note-folderbar">
-      <button class="chip ${NOTEFOLDER===null?"on":""}" onclick="setNoteFolder(null)">⊞ ALL</button>
-      <button class="chip ${NOTEFOLDER===""?"on":""}" onclick="setNoteFolder('')">UNFILED</button>
-      ${folders.map(f=>`<button class="chip ${NOTEFOLDER===f?"on":""}" onclick="setNoteFolder('${esc(f).replace(/'/g,"\\'")}')">🗂 ${esc(f)}</button>`).join("")}
-    </div>
     ${tags.length?`<div class="chips">${[["",""]].concat(tags.map(t=>[t,t])).map(t=>
       `<button class="chip ${(NOTETAG||"")===t[0]?"on":""}" onclick="setNoteTag('${t[0]?esc(t[0]).replace(/'/g,"\\'"):""}')">${t[0]?"#"+esc(t[0]):"ALL TAGS"}</button>`).join("")}</div>`:""}
-    <div id="note-list">${noteListHTML(list)}</div>`;
-  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;
+    <div id="note-list">${notesBodyHTML()}</div>`;
+  $("#note-q").addEventListener("input",e=>{NOTEQ=e.target.value;const el=$("#note-list");if(el)el.innerHTML=notesBodyHTML();});
+}
+// flat filtered results when searching or tag-filtering, otherwise the folder tree
+function notesBodyHTML(){
+  const q=NOTEQ.trim().toLowerCase();
+  if(q||NOTETAG){
     const sub=scopeNotes().filter(n=>{
-      if(NOTEFOLDER!==null&&(n.folder||"")!==NOTEFOLDER)return false;
       if(NOTETAG&&!(n.tags||[]).includes(NOTETAG))return false;
-      const qq=NOTEQ.trim().toLowerCase();return !qq||matchNote(n,qq);})
+      return !q||matchNote(n,q);})
       .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.updated||0)-(a.updated||0));
-    const el=$("#note-list");if(el)el.innerHTML=noteListHTML(sub);});
+    return noteListHTML(sub);
+  }
+  return folderTreeHTML();
+}
+function isFolderCollapsed(f){return !!NOTECOLLAPSE[NOTESCOPE+"/"+f]}
+function toggleFolder(f){const k=NOTESCOPE+"/"+f;NOTECOLLAPSE[k]=!NOTECOLLAPSE[k];const el=$("#note-list");if(el)el.innerHTML=notesBodyHTML();}
+function newNoteInFolder(f){NOTEFOLDER=f;createNote("");NOTEFOLDER=null;}
+// Obsidian-style collapsible file tree: folders (expandable) then loose notes
+function folderTreeHTML(){
+  const notes=scopeNotes();
+  if(!notes.length){
+    const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":"No notes yet. Hit + NEW to start your logbook.";
+    return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
+  }
+  const byFolder={},unfiled=[];
+  for(const n of notes){if(n.folder)(byFolder[n.folder]=byFolder[n.folder]||[]).push(n);else unfiled.push(n);}
+  const sortN=a=>a.sort((x,y)=>(y.pinned?1:0)-(x.pinned?1:0)||(y.updated||0)-(x.updated||0));
+  const folders=Object.keys(byFolder).sort((a,b)=>a.localeCompare(b));
+  let html="";
+  for(const f of folders){
+    const col=isFolderCollapsed(f),items=sortN(byFolder[f]),fe=esc(f).replace(/'/g,"\\'");
+    html+=`<div class="tree-folder">
+      <div class="tree-folder-h" onclick="toggleFolder('${fe}')">
+        <span class="tree-caret">${col?"▸":"▾"}</span><span class="tree-fic">🗂</span>
+        <span class="tree-fname">${esc(f)}</span><span class="tree-count">${items.length}</span>
+        ${NOTESCOPE!=="gm"?`<button class="tree-add" title="New note in folder" onclick="event.stopPropagation();newNoteInFolder('${fe}')">+</button>`:""}
+      </div>
+      ${col?"":`<div class="tree-children">${items.map(treeNoteRow).join("")}</div>`}
+    </div>`;
+  }
+  if(unfiled.length)html+=`<div class="tree-children tree-loose">${sortN(unfiled).map(treeNoteRow).join("")}</div>`;
+  return html;
+}
+function treeNoteRow(n){
+  return `<div class="tree-note" onclick="openNote('${n.id}')">
+    <span class="tree-nic">📄</span>
+    <span class="tree-nname">${n.pinned?"📌 ":""}${esc(n.title||"Untitled note")}</span>
+    ${n.owner&&NOTESCOPE!=="private"?`<span class="tree-owner">@${esc(n.owner)}</span>`:""}
+    <span class="tree-ntime">${ago(n.updated||n.created||Date.now())}</span>
+  </div>`;
 }
 function noteListHTML(list){
   if(list.length)return list.map(noteCard).join("");
@@ -1664,6 +1728,60 @@ function mdRender(src){
     out+=`<p>${para.map(inline).join("<br>")}</p>`;i++;
   }
   return out;
+}
+
+/* ---------- notes graph (Obsidian-style node view) ---------- */
+function strHue(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h;}
+function graphOpen(id){if(!scopeNotes().some(n=>n.id===id))return;NOTESEL=id;NOTEEDIT=false;go("notes");}
+// build nodes + [[wikilink]] edges and run a small force-directed layout
+function computeGraph(notes){
+  const map={};notes.forEach(n=>{const t=(n.title||"").trim().toLowerCase();if(t)map[t]=n.id;});
+  const nodes=notes.map((n,i)=>{const a=i/Math.max(1,notes.length)*6.2832;
+    return {id:n.id,title:n.title||"Untitled",folder:n.folder||"",owner:n.owner||"",deg:0,
+      x:Math.cos(a)*90+(Math.random()-.5)*24,y:Math.sin(a)*90+(Math.random()-.5)*24};});
+  const byId={};nodes.forEach(nd=>byId[nd.id]=nd);
+  const edges=[];
+  notes.forEach(n=>{const refs=(n.body||"").match(/\[\[([^\]]+)\]\]/g)||[];const seen=new Set();
+    refs.forEach(r=>{const tid=map[r.slice(2,-2).trim().toLowerCase()];
+      if(tid&&tid!==n.id&&!seen.has(tid)){seen.add(tid);edges.push([n.id,tid]);byId[n.id].deg++;byId[tid].deg++;}});});
+  const N=nodes.length,iters=N>50?110:N>20?170:240;
+  for(let it=0;it<iters;it++){
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){const a=nodes[i],b=nodes[j];
+      let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2),f=2600/d2;
+      const ux=dx/d,uy=dy/d;a.x+=ux*f;a.y+=uy*f;b.x-=ux*f;b.y-=uy*f;}
+    for(const e of edges){const a=byId[e[0]],b=byId[e[1]];let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||0.01;
+      const f=(d-72)*0.018,ux=dx/d,uy=dy/d;a.x+=ux*f;a.y+=uy*f;b.x-=ux*f;b.y-=uy*f;}
+    for(const nd of nodes){nd.x*=0.985;nd.y*=0.985;}
+  }
+  return {nodes,edges,byId};
+}
+function renderNotesGraph(v){
+  if(NOTESCOPE==="gm"&&!GMNOTES){setNoteScope("gm");return;}
+  const notes=scopeNotes();
+  const head=`${scopeTabsHTML()}
+    <div class="card" style="margin-top:10px"><div class="hud-tag"><span class="hud-dot" style="background:var(--vio);box-shadow:0 0 8px var(--vio)"></span>KNOWLEDGE GRAPH · ${notes.length} NODES</div>
+      <div class="dim" style="font-size:11px;margin-top:6px">Each node is a note; links are <b>[[cross-references]]</b>. Node size grows with connections, colour groups by folder. Tap a node to open it.</div></div>`;
+  if(notes.length<1){v.innerHTML=head+`<div class="dim" style="padding:34px;text-align:center">No notes to map yet.</div>`;return;}
+  const {nodes,edges,byId}=computeGraph(notes);
+  let minX=1/0,maxX=-1/0,minY=1/0,maxY=-1/0;
+  nodes.forEach(n=>{minX=Math.min(minX,n.x);maxX=Math.max(maxX,n.x);minY=Math.min(minY,n.y);maxY=Math.max(maxY,n.y);});
+  const pad=46,W=(maxX-minX)+2*pad||200,H=(maxY-minY)+2*pad||200;
+  const vb=`${(minX-pad).toFixed(1)} ${(minY-pad).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}`;
+  const scale=Math.max(W,H)/100; // keep stroke/label legible across graph sizes
+  const lines=edges.map(e=>{const a=byId[e[0]],b=byId[e[1]];
+    return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="var(--line2)" stroke-width="${(0.7*scale).toFixed(2)}" opacity="0.55"/>`;}).join("");
+  const dots=nodes.map(n=>{
+    const r=(3.2+Math.min(7,n.deg*1.4))*scale;
+    const fill=n.folder?`hsl(${strHue(n.folder)} 70% 58%)`:"var(--vio)";
+    const fs=(4.4*scale).toFixed(1),label=n.title.length>22?n.title.slice(0,21)+"…":n.title;
+    return `<g class="gnode" onclick="graphOpen('${n.id}')" style="cursor:pointer">
+      <circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" stroke="var(--bg)" stroke-width="${(0.6*scale).toFixed(2)}"/>
+      <text x="${n.x.toFixed(1)}" y="${(n.y+r+fs*1.1).toFixed(1)}" font-size="${fs}" text-anchor="middle" fill="var(--ink)" font-family="'IBM Plex Mono',monospace">${esc(label)}</text>
+    </g>`;}).join("");
+  const folders=[...new Set(nodes.map(n=>n.folder).filter(Boolean))].sort();
+  const legend=folders.length?`<div class="graph-legend">${folders.map(f=>`<span class="glg"><i style="background:hsl(${strHue(f)} 70% 58%)"></i>${esc(f)}</span>`).join("")}<span class="glg"><i style="background:var(--vio)"></i>unfiled</span></div>`:"";
+  v.innerHTML=head+`<div class="graph-wrap"><svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" class="graph-svg">${lines}${dots}</svg></div>${legend}
+    <div class="dim mono" style="font-size:11px;text-align:center;margin-top:6px">${nodes.length} notes · ${edges.length} links</div>`;
 }
 
 /* ============ AGX PAY app ============
