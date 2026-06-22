@@ -1778,38 +1778,22 @@ function renderNotesGraph(v){
   const vb=`${(minX-pad).toFixed(1)} ${(minY-pad).toFixed(1)} ${W.toFixed(1)} ${H.toFixed(1)}`;
   const nodeR=n=>2.6+Math.min(5,n.deg*0.9);
   // muted, desaturated palette for a grittier sci-fi feel
-  const hueFill=n=>n.folder?`hsl(${strHue(n.folder)} 36% 48%)`:"hsl(338 30% 47%)";
-  // soft colour bloom behind everything (blurred dots) — Obsidian's glow haze
-  const glow=nodes.map(n=>`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${(nodeR(n)*1.6).toFixed(1)}" fill="${hueFill(n)}"/>`).join("");
+  const hueFill=n=>n.folder?`hsl(${strHue(n.folder)} 42% 55%)`:"hsl(338 34% 56%)";
   // thin, faint links
   const lines=edges.map(e=>{const a=byId[e[0]],b=byId[e[1]];
     return `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="rgba(228,150,182,0.22)" stroke-width="0.4"/>`;}).join("");
-  // solid dots with a light label set beside the node
+  // hollow ring nodes with a faintly tinted interior and a coloured border
   const dots=nodes.map(n=>{
     const r=nodeR(n),X=n.x.toFixed(1),Y=n.y.toFixed(1),fs=3.1;
     const label=n.title.length>26?n.title.slice(0,25)+"…":n.title;
     return `<g class="gnode" style="color:${hueFill(n)}" onclick="graphOpen('${n.id}')">
-      <circle class="gdot" cx="${X}" cy="${Y}" r="${r.toFixed(1)}" fill="currentColor"/>
-      <circle cx="${X}" cy="${Y}" r="${r.toFixed(1)}" fill="url(#gscan)" pointer-events="none"/>
-      <circle cx="${X}" cy="${Y}" r="${r.toFixed(1)}" fill="url(#gshade)" pointer-events="none"/>
+      <circle class="gdot" cx="${X}" cy="${Y}" r="${r.toFixed(1)}" fill="currentColor" fill-opacity="0.1" stroke="currentColor" stroke-width="0.9"/>
       <text x="${(n.x+r+1.6).toFixed(1)}" y="${(n.y+fs*0.36).toFixed(1)}" font-size="${fs}" text-anchor="start">${esc(label)}</text>
     </g>`;}).join("");
   const folders=[...new Set(nodes.map(n=>n.folder).filter(Boolean))].sort();
-  const legend=folders.length?`<div class="graph-legend">${folders.map(f=>`<span class="glg"><i style="background:hsl(${strHue(f)} 70% 60%)"></i>${esc(f)}</span>`).join("")}<span class="glg"><i style="background:hsl(338 78% 62%)"></i>unfiled</span></div>`:"";
+  const legend=folders.length?`<div class="graph-legend">${folders.map(f=>`<span class="glg"><i style="background:hsl(${strHue(f)} 42% 55%)"></i>${esc(f)}</span>`).join("")}<span class="glg"><i style="background:hsl(338 34% 56%)"></i>unfiled</span></div>`:"";
   v.innerHTML=head+`<div class="graph-wrap"><svg viewBox="${vb}" preserveAspectRatio="xMidYMid meet" class="graph-svg">
-    <defs>
-      <filter id="gbloom" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.6"/></filter>
-      <radialGradient id="gshade" cx="38%" cy="34%" r="72%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-        <stop offset="44%" stop-color="#000000" stop-opacity="0"/>
-        <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
-      </radialGradient>
-      <pattern id="gscan" patternUnits="userSpaceOnUse" width="3" height="1.3">
-        <rect width="3" height="0.65" y="0" fill="#000" opacity="0.42"/>
-        <rect x="0" width="0.6" height="1.3" fill="#000" opacity="0.16"/>
-      </pattern>
-    </defs>
-    <g filter="url(#gbloom)" opacity="0.5">${glow}</g>${lines}${dots}</svg></div>${legend}
+    ${lines}${dots}</svg></div>${legend}
     <div class="dim mono" style="font-size:11px;text-align:center;margin-top:6px">${nodes.length} notes · ${edges.length} links</div>`;
 }
 
