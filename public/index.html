@@ -1134,8 +1134,8 @@ function renderApp(){
     <div class="scan"></div>
     <div class="gclk" id="gclock"></div>
     <div class="ticker"><div class="ticker-inner" id="ticker"></div></div>
-    <div id="halt-slot">${HALTED?`<div class="halt-banner">⛔ TRADING HALTED BY EXCHANGE AUTHORITY</div>`:""}${isPaused()?`<div class="regime-banner" style="color:var(--vio);border-bottom:1px solid var(--vio)">⏸ MARKET PAUSED — BETWEEN SESSIONS</div>`:speedNow()!==1?`<div class="regime-banner" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">⏩ TIME COMPRESSION ${speedNow()}×</div>`:""}</div>
-    <div class="regime-banner" id="regime-b" style="color:${r.col}">◈ ${r.label} ◈</div>
+    ${APP==="exchange"?`<div id="halt-slot">${HALTED?`<div class="halt-banner">⛔ TRADING HALTED BY EXCHANGE AUTHORITY</div>`:""}${isPaused()?`<div class="regime-banner" style="color:var(--vio);border-bottom:1px solid var(--vio)">⏸ MARKET PAUSED — BETWEEN SESSIONS</div>`:speedNow()!==1?`<div class="regime-banner" style="color:var(--cyan);border-bottom:1px solid var(--cyan)">⏩ TIME COMPRESSION ${speedNow()}×</div>`:""}</div>
+    <div class="regime-banner" id="regime-b" style="color:${r.col}">◈ ${r.label} ◈</div>`:""}
   </header>
   <div class="wrap" id="view"></div>
   ${APP?`<nav>
@@ -1154,10 +1154,21 @@ function go(t){TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelec
 function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;renderApp()}
 // return to the data-pad home screen
 function goHome(){APP=null;OPEN=null;renderApp()}
+// market-status chips for the running ticker — shown only when the dedicated
+// banners aren't visible (i.e. anywhere outside the AGX Exchange app)
+function statusTickerBits(){
+  const r=curRegime(),bits=[];
+  if(HALTED)bits.push(`<b style="color:var(--down)">⛔ TRADING HALTED</b>`);
+  if(isPaused())bits.push(`<b style="color:var(--vio)">⏸ MARKET PAUSED</b>`);
+  else if(speedNow()!==1)bits.push(`<b style="color:var(--cyan)">⏩ TIME COMPRESSION ${speedNow()}×</b>`);
+  bits.push(`<b style="color:${r.col}">◈ ${r.label}</b>`);
+  return bits;
+}
 function buildTicker(){
   const movers=ASSETS.filter(a=>!a.bm||CFG.bmOpen).map(a=>({s:a.sym,c:chg24(a.sym)})).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c)).slice(0,8);
   const news=EV.filter(e=>e.t==="news").slice(-3).map(e=>`<b>⬢ ${esc(e.msg||e.body||"")}</b>`);
-  $("#ticker").innerHTML=[...news,...movers.map(m=>`${m.s} <span class="${cls(m.c)}">${pct(m.c)}</span>`)].join(" &nbsp;·&nbsp; ");
+  const status=APP==="exchange"?[]:statusTickerBits();
+  $("#ticker").innerHTML=[...status,...news,...movers.map(m=>`${m.s} <span class="${cls(m.c)}">${pct(m.c)}</span>`)].join(" &nbsp;·&nbsp; ");
 }
 function renderTab(){
   const v=$("#view");
