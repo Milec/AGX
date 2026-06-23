@@ -1428,8 +1428,17 @@ async function saveShared(){return await SG.set("shnotes",SHNOTES)}
 async function loadGMNotes(){
   const keys=await SG.list("u:");
   const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
-  GMNOTES=users.filter(u=>u).map(u=>({op:u.n,notes:(u.notes||[]).map(n=>({...n,owner:u.n}))}))
-    .filter(g=>g.notes.length).sort((a,b)=>a.op.localeCompare(b.op));
+  await loadShared();                       // also pull the shared notebook
+  const byOp={};
+  const add=(op,note)=>{op=op||"Unknown";(byOp[op]=byOp[op]||{op,notes:[]}).notes.push(note);};
+  for(const u of users){
+    if(!u||!u.n)continue;
+    byOp[u.n]=byOp[u.n]||{op:u.n,notes:[]};   // ensure the operative appears even with 0 notes
+    for(const n of (u.notes||[]))add(u.n,{...n,owner:u.n});
+  }
+  // attribute every shared note to its author so the GM sees those too
+  for(const n of (SHNOTES||[]))add(n.owner||"Shared",{...n,shared:true});
+  GMNOTES=Object.values(byOp).filter(g=>g.notes.length).sort((a,b)=>a.op.localeCompare(b.op));
 }
 // the working array for the active scope
 function scopeNotes(){
@@ -1572,6 +1581,7 @@ function noteCard(n){
     </div>
     ${snip?`<div class="note-card-s">${esc(snip)}${plain(n.body).length>110?"…":""}</div>`:`<div class="note-card-s dim">Empty note</div>`}
     <div class="note-cardmeta">
+      ${n.shared?`<span class="note-folder" style="color:var(--up);border-color:color-mix(in srgb,var(--up) 32%,transparent);background:color-mix(in srgb,var(--up) 12%,transparent)">⇪ shared</span>`:""}
       ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
       ${n.owner&&NOTESCOPE!=="private"?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
       ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
