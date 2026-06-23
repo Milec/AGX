@@ -287,6 +287,25 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .pay-time{font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);margin-top:3px}
 .pay-amt{flex:none;font-family:'IBM Plex Mono';font-size:16px;font-weight:600}
 
+/* ── bounty board ── */
+.bounty-card{position:relative;border:1px solid var(--line);border-left:3px solid var(--bd,var(--amber));border-radius:var(--r-md);background:var(--row-grad);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding:13px 14px;margin:10px 0;cursor:pointer;transition:transform .12s,border-color .15s,box-shadow .2s}
+.bounty-card:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.bounty-card.done{opacity:.72}
+.bounty-h{display:flex;align-items:baseline;gap:10px}
+.bounty-title{flex:1;min-width:0;font-family:'Orbitron';font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bounty-reward{flex:none;font-family:'IBM Plex Mono';font-size:16px;font-weight:700;color:var(--amber)}
+.bounty-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.bounty-tag{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--c,var(--dim));border:1px solid color-mix(in srgb,var(--c,var(--dim)) 34%,transparent);background:color-mix(in srgb,var(--c,var(--dim)) 12%,transparent);border-radius:6px;padding:2px 7px}
+.bounty-snip{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bounty-act{margin-top:10px}
+.bounty-act .btn{width:100%}
+.bounty-paid{font-family:'IBM Plex Mono';font-size:11px;color:var(--up);margin-top:8px}
+.bounty-detail-reward{font-family:'IBM Plex Mono';font-size:30px;font-weight:700;color:var(--amber);margin-top:6px}
+.bounty-detail-reward span{font-family:'Space Grotesk';font-size:13px;font-weight:400;color:var(--dim);margin-left:6px}
+.bounty-claimants{margin-top:18px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bounty-claimants .note-bl-h{width:100%}
+
 /* ── casino advertisements ── */
 .ad-banner{position:relative;display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 12px;cursor:pointer;overflow:hidden;
   border:1px solid var(--acc);border-radius:var(--r-md);background:linear-gradient(100deg,color-mix(in srgb,var(--acc) 16%,transparent),var(--panel2) 70%);
@@ -1063,11 +1082,13 @@ const APPS={
     tabs:[["notes","NOTEBOOK"],["notesgraph","GRAPH"]]},
   pay:{name:"AGX PAY",tag:"Send credits to operators",glyph:"⇄",col:"var(--up)",
     tabs:[["pay","WALLET"]]},
+  bounties:{name:"BOUNTY BOARD",tag:"Contracts · Rewards",glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="14" y="12" width="36" height="44" rx="3"/><path d="M22 12v-3h20v3" stroke-width="2"/><circle cx="32" cy="34" r="9"/><circle cx="32" cy="34" r="2" fill="currentColor" stroke="none"/><path d="M32 22v-3M32 49v-3M21 34h-3M46 34h-3" stroke-width="2"/></svg>`,col:"var(--amber)",
+    tabs:[["bounties","BOARD"]]},
   gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:`<svg class="gm-sigil" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M32 8 53 20 53 44 32 56 11 44 11 20Z"/><path d="M32 32 32 8M32 32 53 20M32 32 53 44M32 32 32 56M32 32 11 44M32 32 11 20" stroke-width="1.5" opacity=".8"/><circle cx="32" cy="32" r="5.5" fill="currentColor" stroke="none"/><circle cx="32" cy="32" r="9" stroke-width="1.2" opacity=".5"/><circle cx="32" cy="8" r="2.4" fill="currentColor" stroke="none"/><circle cx="53" cy="20" r="2.4" fill="currentColor" stroke="none"/><circle cx="53" cy="44" r="2.4" fill="currentColor" stroke="none"/><circle cx="32" cy="56" r="2.4" fill="currentColor" stroke="none"/><circle cx="11" cy="44" r="2.4" fill="currentColor" stroke="none"/><circle cx="11" cy="20" r="2.4" fill="currentColor" stroke="none"/></svg>`,col:"var(--amber)",
     tabs:[["admin","CONSOLE"]]}
 };
 // every app is always shown on the pad; locked ones throw up an access wall
-function launcherApps(){return ["exchange","casino","blackmarket","notes","pay","gm"]}
+function launcherApps(){return ["exchange","casino","blackmarket","notes","pay","bounties","gm"]}
 // is an app currently locked to this player? (GM config / clearance)
 function appLocked(id){
   if(id==="casino")return !!(CFG&&CFG.casino===false);
@@ -1211,7 +1232,7 @@ function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()
 function go(t){if(APP==="notes")commitNote();TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
 // open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
 // Locked apps still "open" — they just render an unauthorized-access wall.
-function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;ADTAB="market";renderApp()}
+function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;ADTAB="market";BOUNTYSEL=null;BOUNTYFILTER="open";BOUNTYLOADED=false;renderApp()}
 // return to the data-pad home screen
 function goHome(){APP=null;OPEN=null;renderApp()}
 // market-status chips for the running ticker — shown only when the dedicated
@@ -1240,6 +1261,7 @@ function renderTab(){
   if(TAB==="notes")return renderNotes(v);
   if(TAB==="notesgraph")return renderNotesGraph(v);
   if(TAB==="pay")return renderPay(v);
+  if(TAB==="bounties")return renderBounties(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
@@ -1915,6 +1937,189 @@ async function sendMoney(){
   snapshotEq();if(TAB==="pay")renderTab();
 }
 
+/* ============ BOUNTY BOARD app ============
+   GM posts contracts with credit rewards; operators accept them; the GM marks
+   them complete and pays out one or many operators at once. Bounties live in
+   the shared "bounties" key. Reward payouts credit each recipient (and count
+   as GM injections, like grants — excluded from true return). */
+let BOUNTIES=[], BOUNTYSEL=null, BOUNTYEDIT=false, BOUNTYFILTER="open", BOUNTYOPS=[], BOUNTYPAY=[], BOUNTYBUSY=false, BOUNTYLOADED=false;
+const DIFFS={trivial:["TRIVIAL","var(--up)"],standard:["STANDARD","var(--cyan)"],hazardous:["HAZARDOUS","var(--amber)"],suicide:["SUICIDE RUN","var(--down)"]};
+const BSTAT={open:["◈ OPEN","var(--cyan)"],completed:["✓ PAID OUT","var(--up)"],closed:["✕ CLOSED","var(--dim)"]};
+async function loadBounties(){try{BOUNTIES=(await SG.get("bounties"))||[]}catch(e){BOUNTIES=BOUNTIES||[]}}
+async function saveBounties(){return await SG.set("bounties",BOUNTIES)}
+async function loadBountyOps(){try{const keys=await SG.list("u:");const us=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));BOUNTYOPS=us.filter(u=>u&&u.n).map(u=>u.n).sort((a,b)=>a.localeCompare(b));}catch(e){BOUNTYOPS=[]}}
+function bountyById(id){return BOUNTIES.find(x=>x.id===id)||null}
+function bountyUID(){return "b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+async function refreshBounties(){
+  const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing contracts…</div>`;
+  await loadBounties();if(ADMIN)await loadBountyOps();BOUNTYLOADED=true;renderTab();
+}
+function renderBounties(v){
+  // first paint loads the board from the server, then re-renders
+  if(!BOUNTYLOADED){v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing contracts…</div>`;refreshBounties();return;}
+  const sel=BOUNTYSEL&&bountyById(BOUNTYSEL);
+  if(sel)return renderBountyDetail(v,sel);
+  const mine=b=>(b.claimants||[]).includes(ME.n);
+  const filters=ADMIN?[["open","OPEN"],["completed","PAID"],["all","ALL"]]:[["open","OPEN"],["mine","MY CONTRACTS"],["completed","COMPLETED"]];
+  let list=BOUNTIES.slice().sort((a,b)=>(b.updated||0)-(a.updated||0)).filter(b=>{
+    if(BOUNTYFILTER==="open")return b.status==="open"||!b.status;
+    if(BOUNTYFILTER==="mine")return mine(b);
+    if(BOUNTYFILTER==="completed")return b.status==="completed";
+    return true;
+  });
+  const openCount=BOUNTIES.filter(b=>b.status==="open"||!b.status).length;
+  v.innerHTML=`
+    <div class="card" style="margin-top:14px;border-color:var(--amber)"><div class="hud-row">
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:var(--amber);box-shadow:0 0 8px var(--amber)"></span>ALGALTERIAN BOUNTY BOARD · ${openCount} OPEN</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">${ADMIN?"Post contracts, set rewards, and pay out one or many operators at once.":"Accept contracts to register your interest. The gamemaster pays out rewards on completion."}</div></div>
+      <div style="display:flex;gap:6px">${ADMIN?`<button class="btn ghost" style="padding:9px 11px" onclick="refreshBounties()">⟳</button><button class="btn amber" onclick="newBounty()">+ POST</button>`:`<button class="btn ghost" style="padding:9px 11px" onclick="refreshBounties()">⟳</button>`}</div>
+    </div></div>
+    <div class="chips">${filters.map(f=>`<button class="chip ${BOUNTYFILTER===f[0]?"on":""}" onclick="setBountyFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
+    <div id="bounty-list">${list.length?list.map(bountyCard).join(""):`<div class="dim" style="padding:34px;text-align:center">${ADMIN?"No contracts here yet. Hit + POST to create one.":BOUNTYFILTER==="mine"?"You haven't accepted any contracts.":"No contracts posted right now. Check back, operative."}</div>`}</div>`;
+}
+function setBountyFilter(f){BOUNTYFILTER=f;renderTab();}
+function bountyCard(b){
+  const d=DIFFS[b.difficulty]||DIFFS.standard, st=BSTAT[b.status||"open"]||BSTAT.open;
+  const mine=(b.claimants||[]).includes(ME.n), n=(b.claimants||[]).length;
+  return `<div class="bounty-card ${b.status==="completed"?"done":""}" style="--bd:${d[1]}" onclick="openBounty('${b.id}')">
+    <div class="bounty-h">
+      <span class="bounty-title">${esc(b.title||"Untitled contract")}</span>
+      <span class="bounty-reward">${fmt(b.reward||0)}</span>
+    </div>
+    <div class="bounty-meta">
+      <span class="bounty-tag" style="--c:${d[1]}">${d[0]}</span>
+      <span class="bounty-tag" style="--c:${st[1]}">${st[0]}</span>
+      ${b.faction?`<span class="bounty-tag" style="--c:var(--dim)">${esc(b.faction)}</span>`:""}
+      ${n?`<span class="bounty-tag" style="--c:var(--vio)">👥 ${n} accepted${mine?" · you":""}</span>`:""}
+    </div>
+    ${plain(b.brief)?`<div class="bounty-snip">${esc(plain(b.brief).slice(0,120))}${plain(b.brief).length>120?"…":""}</div>`:""}
+    ${!ADMIN&&(b.status==="open"||!b.status)?`<div class="bounty-act" onclick="event.stopPropagation()">${mine?`<button class="btn ghost" onclick="abandonBounty('${b.id}')">ABANDON</button>`:`<button class="btn amber" onclick="claimBounty('${b.id}')">ACCEPT CONTRACT</button>`}</div>`:""}
+    ${b.status==="completed"&&(b.paidTo||[]).length?`<div class="bounty-paid">Paid ${fmt(b.paidEach||0)} each to ${b.paidTo.map(x=>"@"+esc(x)).join(" ")}</div>`:""}
+  </div>`;
+}
+function openBounty(id){if(!bountyById(id))return;BOUNTYSEL=id;BOUNTYEDIT=false;BOUNTYPAY=null;renderTab();}
+function backToBounties(){BOUNTYSEL=null;BOUNTYEDIT=false;renderTab();}
+function newBounty(){
+  if(!ADMIN)return;
+  const b={id:bountyUID(),title:"",brief:"",reward:1000,difficulty:"standard",faction:"",status:"open",claimants:[],created:Date.now(),updated:Date.now()};
+  BOUNTIES.unshift(b);saveBounties();BOUNTYSEL=b.id;BOUNTYEDIT=true;renderTab();
+}
+async function claimBounty(id){
+  await loadBounties();const b=bountyById(id);if(!b||(b.status&&b.status!=="open"))return;
+  b.claimants=b.claimants||[];if(!b.claimants.includes(ME.n)){b.claimants.push(ME.n);b.updated=Date.now();await saveBounties();}
+  toast("Contract accepted. Good hunting, operative.");renderTab();
+}
+async function abandonBounty(id){
+  await loadBounties();const b=bountyById(id);if(!b)return;
+  b.claimants=(b.claimants||[]).filter(x=>x!==ME.n);b.updated=Date.now();await saveBounties();
+  toast("Contract abandoned.");renderTab();
+}
+async function deleteBounty(){
+  const b=bountyById(BOUNTYSEL);if(!b||!ADMIN)return;
+  if(!await iconfirm("Delete contract “"+esc(b.title||"untitled")+"” permanently?"))return;
+  BOUNTIES=BOUNTIES.filter(x=>x.id!==b.id);await saveBounties();BOUNTYSEL=null;renderTab();toast("Contract deleted.");
+}
+// GM: read editor fields back into the bounty
+function commitBounty(){
+  const b=BOUNTYSEL&&bountyById(BOUNTYSEL);if(!b||!ADMIN)return;
+  const t=$("#bty-title"),r=$("#bty-reward"),br=$("#note-body"),fa=$("#bty-faction"),df=$("#bty-diff");
+  if(!t&&!br)return;
+  if(t)b.title=t.value;
+  if(r){const n=parseFloat(r.value);if(isFinite(n)&&n>=0)b.reward=Math.round(n*100)/100;}
+  if(br)b.brief=br.value;
+  if(fa)b.faction=fa.value.trim().slice(0,30);
+  if(df)b.difficulty=df.value;
+  b.updated=Date.now();saveBounties();
+}
+function saveBounty(){commitBounty();BOUNTYEDIT=false;renderTab();toast("Contract saved.");}
+function toggleBountyEdit(){if(BOUNTYEDIT)commitBounty();BOUNTYEDIT=!BOUNTYEDIT;renderTab();}
+function toggleBountyPay(name){
+  BOUNTYPAY=BOUNTYPAY||[];const i=BOUNTYPAY.indexOf(name);
+  if(i>=0)BOUNTYPAY.splice(i,1);else BOUNTYPAY.push(name);
+  renderTab();
+}
+async function payBounty(split){
+  if(BOUNTYBUSY)return;
+  const b=bountyById(BOUNTYSEL);if(!b||!ADMIN)return;
+  const recips=(BOUNTYPAY&&BOUNTYPAY.length?BOUNTYPAY:(b.claimants||[])).slice();
+  if(!recips.length)return toast("Select at least one operator to pay.",true);
+  const each=split?Math.round((b.reward||0)/recips.length*100)/100:(b.reward||0);
+  if(each<=0)return toast("Set a reward greater than zero first.",true);
+  if(!await iconfirm(`Pay ${fmt(each)} to ${recips.length} operator${recips.length>1?"s":""}?<br><span style="color:var(--dim)">${recips.map(x=>"@"+esc(x)).join(" ")}</span>`))return;
+  BOUNTYBUSY=true;const btn=$("#bty-paybtn");if(btn){btn.disabled=true;btn.textContent="PAYING…";}
+  const now=Date.now(),g=gameNow();let ok=0,failed=[];
+  for(const name of recips){
+    const key="u:"+name.toLowerCase().replace(/[^a-z0-9_-]/g,"_");
+    let u;try{u=await SG.get(key);}catch(e){u=null;}
+    if(!u){failed.push(name);continue;}
+    u.cash=(u.cash||0)+each;u.dep=(u.dep||0)+each; // GM reward: doesn't inflate true return
+    u.hist=u.hist||[];u.hist.push({side:"BOUNTY",d:each,o:b.title||"bounty",at:now,g});
+    const okU=await SG.set(key,u);
+    if(okU){ok++;if(name===ME.n){ME.cash=u.cash;ME.dep=u.dep;ME.hist=u.hist;}}else failed.push(name);
+  }
+  b.status="completed";b.paidTo=recips.filter(r=>!failed.includes(r));b.paidEach=each;b.paidAt=now;b.updated=now;
+  await saveBounties();
+  BOUNTYBUSY=false;BOUNTYPAY=null;
+  toast(`Paid ${fmt(each)} to ${ok} operator${ok!==1?"s":""}.`+(failed.length?` ${failed.length} unreachable.`:""),failed.length>0);
+  renderTab();
+}
+async function reopenBounty(){
+  const b=bountyById(BOUNTYSEL);if(!b||!ADMIN)return;
+  b.status="open";b.paidTo=null;b.paidEach=null;b.updated=Date.now();await saveBounties();renderTab();toast("Contract re-opened.");
+}
+function renderBountyDetail(v,b){
+  const d=DIFFS[b.difficulty]||DIFFS.standard, st=BSTAT[b.status||"open"]||BSTAT.open;
+  const claimants=b.claimants||[], mine=claimants.includes(ME.n);
+  if(BOUNTYEDIT&&ADMIN){
+    v.innerHTML=`
+      <div class="note-bar">
+        <button class="btn ghost note-back" onclick="backToBounties()">‹ BOARD</button>
+        <div class="note-bar-r"><button class="btn ghost" onclick="toggleBountyEdit()">👁 PREVIEW</button><button class="btn amber" onclick="saveBounty()">SAVE</button></div>
+      </div>
+      <input id="bty-title" placeholder="Contract title…" value="${esc(b.title||"")}" style="font-family:'Orbitron';font-size:16px;margin-top:10px">
+      <div class="inline" style="margin-top:8px">
+        <input id="bty-reward" type="number" inputmode="decimal" min="0" step="any" placeholder="Reward ₢" value="${b.reward||0}">
+        <select id="bty-diff">${Object.keys(DIFFS).map(k=>`<option value="${k}" ${b.difficulty===k?"selected":""}>${DIFFS[k][0]}</option>`).join("")}</select>
+      </div>
+      <input id="bty-faction" placeholder="Posted by / faction (optional)" value="${esc(b.faction||"")}" style="margin-top:8px" maxlength="30">
+      <div class="note-tools" style="margin-top:10px">
+        ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],["H","mdLine('## ')",""],["•","mdLine('- ')",""],["❝","mdLine('> ')",""],["$","md('$','','SYM')",""]].map(x=>`<button class="note-tool" style="${x[2]}" onclick="${x[1]}">${x[0]}</button>`).join("")}
+      </div>
+      <textarea id="note-body" class="note-body" placeholder="Mission brief… Markdown supported. Reference listings with \$SYM.">${esc(b.brief||"")}</textarea>
+      <div class="note-meta">Posted ${ago(b.created)} · Edited ${ago(b.updated||b.created)} · ${claimants.length} accepted</div>
+      <button class="btn red" style="width:100%;margin-top:12px" onclick="deleteBounty()">DELETE CONTRACT</button>`;
+    return;
+  }
+  // ---- read view ----
+  const payList=ADMIN?[...new Set([...claimants,...BOUNTYOPS])]:[];
+  const sel=BOUNTYPAY&&BOUNTYPAY.length?BOUNTYPAY:claimants;
+  v.innerHTML=`
+    <div class="note-bar">
+      <button class="btn ghost note-back" onclick="backToBounties()">‹ BOARD</button>
+      <div class="note-bar-r">${ADMIN?`<button class="btn amber" onclick="toggleBountyEdit()">✎ EDIT</button>`:(b.status==="open"||!b.status)?(mine?`<button class="btn ghost" onclick="abandonBounty('${b.id}')">ABANDON</button>`:`<button class="btn amber" onclick="claimBounty('${b.id}')">ACCEPT</button>`):`<span class="note-ro">${st[0]}</span>`}</div>
+    </div>
+    <h1 class="note-view-title" style="color:var(--amber)">${esc(b.title||"Untitled contract")}</h1>
+    <div class="bounty-detail-reward">${fmt(b.reward||0)}<span> reward</span></div>
+    <div class="note-cardmeta" style="margin:8px 0">
+      <span class="bounty-tag" style="--c:${d[1]}">${d[0]}</span>
+      <span class="bounty-tag" style="--c:${st[1]}">${st[0]}</span>
+      ${b.faction?`<span class="bounty-tag" style="--c:var(--dim)">${esc(b.faction)}</span>`:""}
+    </div>
+    <div class="note-render">${(b.brief||"").trim()?mdRender(b.brief):`<div class="dim">No brief provided.</div>`}</div>
+    <div class="bounty-claimants"><div class="note-bl-h">👥 ACCEPTED BY · ${claimants.length}</div>${claimants.length?claimants.map(c=>`<span class="note-owner">@${esc(c)}</span>`).join(" "):`<span class="dim" style="font-size:12px">No operatives yet.</span>`}</div>
+    ${ADMIN?`<div class="card" style="margin-top:16px;border-color:var(--up)"><h3 style="color:var(--up)">PAY OUT REWARD</h3>
+      <div class="dim" style="font-size:11px;margin:6px 0 8px">Select recipients (those who accepted are pre-selected), then pay everyone at once. Each payout credits the operator and is logged as a bounty reward.</div>
+      <div class="chips">${payList.length?payList.map(o=>`<button class="chip ${sel.includes(o)?"on":""}" onclick="toggleBountyPay('${esc(o).replace(/'/g,"\\'")}')">${esc(o)}${claimants.includes(o)?" ✓":""}</button>`).join(""):`<span class="dim" style="font-size:12px">No operators found.</span>`}</div>
+      <div class="dim mono" style="font-size:11px;margin:10px 0 4px">${sel.length} selected · ${fmt(b.reward||0)} each = ${fmt((b.reward||0)*sel.length)} total · or split = ${fmt(sel.length?Math.round((b.reward||0)/sel.length*100)/100:0)} each</div>
+      <div class="inline">
+        <button class="btn" id="bty-paybtn" onclick="payBounty(false)">PAY ${fmt(b.reward||0)} EACH</button>
+        <button class="btn ghost" onclick="payBounty(true)">SPLIT REWARD</button>
+      </div>
+      ${b.status==="completed"?`<button class="btn ghost" style="width:100%;margin-top:10px" onclick="reopenBounty()">↺ RE-OPEN CONTRACT</button>`:""}
+    </div>`:(b.status==="completed"&&(b.paidTo||[]).includes(ME.n)?`<div class="card" style="margin-top:14px;border-color:var(--up)"><div class="up" style="font-family:'Orbitron';font-size:13px">✓ REWARD RECEIVED · ${fmt(b.paidEach||0)}</div></div>`:"")}`;
+}
+
 /* ---------- charts ---------- */
 function drawChart(canvas,pts,color){
   const dpr=window.devicePixelRatio||1, w=canvas.clientWidth||320, h=canvas.clientHeight||180;
@@ -2423,7 +2628,7 @@ function portfolioSeries(ms,n=110){
     if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
     else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
     else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
-    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"){cash+=e.d}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"||e.side==="BOUNTY"){cash+=e.d}
     else if(e.side==="OBUY"){cash-=e.q*e.p}
     else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
     else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
@@ -2445,7 +2650,7 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"],BOUNTY:["BOUNTY","amber"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
@@ -2454,6 +2659,7 @@ function histLine(h){
     h.side==="BET"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     h.side==="XFER"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     h.side==="PAY"?(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" \u00B7 from ":" \u00B7 to ")+esc(h.with):"")+(h.memo?" \u00B7 \u201C"+esc(h.memo)+"\u201D":""):
+    h.side==="BOUNTY"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+esc(h.o):" reward"):
     `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
   return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
    <div class="t">${ago(h.at)}</div></div>`;
