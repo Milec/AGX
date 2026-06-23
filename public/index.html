@@ -222,6 +222,14 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .note-view-title{font-family:'Orbitron';font-size:22px;letter-spacing:.04em;margin-top:14px;line-height:1.2;color:var(--cyan);text-shadow:var(--glow)}
 .note-render{margin-top:14px;font-size:15px;line-height:1.65}
 .note-render p{margin:10px 0}
+.md-img{display:block;max-width:100%;height:auto;border:1px solid var(--line2);border-radius:var(--r-md);margin:10px 0;box-shadow:var(--shadow);cursor:zoom-in}
+.img-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.img-thumb{position:relative;width:72px;height:72px;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--panel2)}
+.img-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.img-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(8,8,12,.74);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.img-del:hover{background:var(--down)}
+.img-lb{position:fixed;inset:0;z-index:90;background:rgba(2,4,10,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;cursor:zoom-out;animation:fadeIn .2s ease}
+.img-lb img{max-width:96%;max-height:92%;border:1px solid var(--line2);border-radius:var(--r-md);box-shadow:0 20px 60px -20px #000}
 .note-render h2{font-family:'Orbitron';font-size:18px;margin:18px 0 8px;color:var(--ink)}
 .note-render h3{font-family:'Orbitron';font-size:15px;letter-spacing:.04em;margin:16px 0 6px;color:var(--amber)}
 .note-render h4,.note-render h5{font-family:'Orbitron';font-size:13px;letter-spacing:.06em;margin:14px 0 6px;color:var(--dim);text-transform:uppercase}
@@ -1706,10 +1714,11 @@ function renderNoteEditor(v,n){
         ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],
            ["H","mdLine('## ')",""],["•","mdLine('- ')",""],["1.","mdLine('1. ')",""],["❝","mdLine('> ')",""],
            ["‹/›","md('\`','\`','code')","font-family:monospace"],["🔗","md('[','](url)','link text')",""],
-           ["[[ ]]","md('[[',']]','Note Title')",""],["$","md('$','','SYM')",""]].map(b=>
+           ["[[ ]]","md('[[',']]','Note Title')",""],["$","md('$','','SYM')",""],["🖼","pickImage('note')",""]].map(b=>
           `<button class="note-tool" style="${b[2]}" onclick="${b[1]}">${b[0]}</button>`).join("")}
       </div>
       <textarea id="note-body" class="note-body" placeholder="Write your note… Markdown supported. Link other notes with [[Title]] and listings with \$SYM.">${esc(n.body)}</textarea>
+      ${(n.imgs||[]).length?`<div class="img-strip">${n.imgs.map(im=>`<div class="img-thumb"><img src="${im.d}" alt=""><button class="img-del" title="Remove image" onclick="removeImage('note','${im.id}')">✕</button></div>`).join("")}</div>`:""}
       <input id="note-tagsin" placeholder="tags, comma separated (e.g. heist, contacts, vesk)" value="${esc((n.tags||[]).join(", "))}" style="margin-top:10px">
       <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}${n.owner?" · by @"+esc(n.owner):""}</div>
       ${NOTESCOPE==="private"?`<button class="btn ghost" style="width:100%;margin-top:14px" onclick="shareNote()">⇪ ${n.sharedId?"UPDATE IN":"PUBLISH TO"} SHARED NOTEBOOK</button>`:""}
@@ -1734,7 +1743,7 @@ function renderNoteEditor(v,n){
       ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
     </div>
     <div class="note-meta">Created ${ago(n.created)} · Edited ${ago(n.updated||n.created)}</div>
-    <div class="note-render">${n.body.trim()?mdRender(n.body):`<div class="dim">This note is empty.${editable?" Tap EDIT to add content.":""}</div>`}</div>
+    <div class="note-render">${n.body.trim()?mdRender(n.body,n.imgs):`<div class="dim">This note is empty.${editable?" Tap EDIT to add content.":""}</div>`}</div>
     ${back.length?`<div class="note-backlinks"><div class="note-bl-h">⮌ LINKED FROM</div>${back.map(b=>`<div class="note-bl" onclick="openNote('${b.id}')">${esc(b.title||"Untitled note")}</div>`).join("")}</div>`:""}`;
 }
 // notes in the active notebook that reference this note via [[Title]]
@@ -1756,14 +1765,73 @@ function mdLine(pre){
   t.value=val.slice(0,ls)+pre+val.slice(ls);
   const np=s+pre.length;t.focus();t.setSelectionRange(np,np);
 }
+/* ---------- image attachments (notes + missions) ---------- */
+let _imgTarget=null;
+// the note/bounty currently being edited (for image attach/remove + persist)
+function imgItem(t){return t==="bounty"?(BOUNTYSEL&&bountyById(BOUNTYSEL)):(NOTESEL&&noteById(NOTESEL));}
+function imgPersist(t){return t==="bounty"?commitBounty():commitNote();}
+// downscale + JPEG-compress an image file to keep stored data small
+function downscaleImage(file,maxDim,q,cb){
+  const fr=new FileReader();
+  fr.onload=e=>{const img=new Image();
+    img.onload=()=>{let w=img.width,h=img.height;const sc=Math.min(1,maxDim/Math.max(w,h));
+      w=Math.max(1,Math.round(w*sc));h=Math.max(1,Math.round(h*sc));
+      const cv=document.createElement("canvas");cv.width=w;cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      try{cb(cv.toDataURL("image/jpeg",q));}catch(err){cb(null);}};
+    img.onerror=()=>cb(null);img.src=e.target.result;};
+  fr.onerror=()=>cb(null);fr.readAsDataURL(file);
+}
+function pickImage(target){
+  _imgTarget=target;
+  const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(f)addImageFile(f);};
+  inp.click();
+}
+function addImageFile(file){
+  if(!/^image\//.test(file.type))return toast("Choose an image file.",true);
+  const item=imgItem(_imgTarget);if(!item)return;
+  downscaleImage(file,900,0.68,durl=>{
+    if(!durl)return toast("Couldn't read that image.",true);
+    const finish=u=>{
+      if(u.length>1.3e6)return toast("Image is too large even after compression — try a smaller one.",true);
+      item.imgs=item.imgs||[];
+      if(item.imgs.length>=8)return toast("Up to 8 images per entry.",true);
+      const id="i"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+      item.imgs.push({id,d:u});
+      const ta=$("#note-body");
+      if(ta){const s=ta.selectionStart,e=ta.selectionEnd,v=ta.value,tok=(v&&!/\n$/.test(v.slice(0,s))&&s>0?"\n":"")+`![image](img:${id})\n`;
+        ta.value=v.slice(0,s)+tok+v.slice(e);const c=s+tok.length;ta.focus();ta.setSelectionRange(c,c);}
+      imgPersist(_imgTarget);renderTab();toast("Image attached.");
+    };
+    // second, tighter pass if still heavy
+    if(durl.length>1.3e6)downscaleImage(file,640,0.55,d2=>finish(d2||durl));
+    else finish(durl);
+  });
+}
+function imgLightbox(src){const bg=document.createElement("div");bg.className="img-lb";bg.innerHTML=`<img src="${src}">`;bg.onclick=()=>bg.remove();document.body.appendChild(bg);}
+function removeImage(target,id){
+  const item=imgItem(target);if(!item||!item.imgs)return;
+  imgPersist(target); // capture current text first
+  item.imgs=item.imgs.filter(x=>x.id!==id);
+  if(item.body!==undefined)item.body=(item.body||"").replace(new RegExp("!\\[[^\\]]*\\]\\(img:"+id+"\\)\\n?","g"),"");
+  if(item.brief!==undefined)item.brief=(item.brief||"").replace(new RegExp("!\\[[^\\]]*\\]\\(img:"+id+"\\)\\n?","g"),"");
+  if(target==="bounty")saveBounties();else persistScope();
+  renderTab();toast("Image removed.");
+}
 /* lightweight markdown + cross-reference renderer (escapes first, then formats) */
-function mdRender(src){
+function mdRender(src,imgs){
   const tmap=noteTitleMap();
+  const imap={};(imgs||[]).forEach(im=>{if(im&&im.id)imap[im.id]=im.d;});
   const inline=s=>{
     s=esc(s);
     s=s.replace(/`([^`]+)`/g,(m,c)=>`<code>${c}</code>`);
     s=s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
     s=s.replace(/(^|[^*])\*([^*\n]+)\*/g,"$1<em>$2</em>");
+    // ![alt](img:ID | data:image/… | http…) embedded images — run before links/wiki
+    s=s.replace(/!\[([^\]]*)\]\((img:[A-Za-z0-9_-]+|data:image\/[^)\s]+|https?:\/\/[^)\s]+)\)/g,(m,alt,u)=>{
+      if(u.indexOf("img:")===0)u=imap[u.slice(4)]||"";
+      return u?`<img class="md-img" src="${u}" alt="${alt}" loading="lazy" onclick="event.stopPropagation();imgLightbox(this.src)">`:"";});
     // [[wiki cross-reference]]
     s=s.replace(/\[\[([^\]]+)\]\]/g,(m,t)=>{const key=t.trim().toLowerCase();const id=tmap[key];
       return id?`<a class="note-link" onclick="event.stopPropagation();openNote('${id}')">${t.trim()}</a>`
@@ -2084,9 +2152,10 @@ function renderBountyDetail(v,b){
       </div>
       <input id="bty-faction" placeholder="Posted by / faction (optional)" value="${esc(b.faction||"")}" style="margin-top:8px" maxlength="30">
       <div class="note-tools" style="margin-top:10px">
-        ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],["H","mdLine('## ')",""],["•","mdLine('- ')",""],["❝","mdLine('> ')",""],["$","md('$','','SYM')",""]].map(x=>`<button class="note-tool" style="${x[2]}" onclick="${x[1]}">${x[0]}</button>`).join("")}
+        ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],["H","mdLine('## ')",""],["•","mdLine('- ')",""],["❝","mdLine('> ')",""],["$","md('$','','SYM')",""],["🖼","pickImage('bounty')",""]].map(x=>`<button class="note-tool" style="${x[2]}" onclick="${x[1]}">${x[0]}</button>`).join("")}
       </div>
       <textarea id="note-body" class="note-body" placeholder="Mission brief… Markdown supported. Reference listings with \$SYM.">${esc(b.brief||"")}</textarea>
+      ${(b.imgs||[]).length?`<div class="img-strip">${b.imgs.map(im=>`<div class="img-thumb"><img src="${im.d}" alt=""><button class="img-del" title="Remove image" onclick="removeImage('bounty','${im.id}')">✕</button></div>`).join("")}</div>`:""}
       <div class="note-meta">Posted ${ago(b.created)} · Edited ${ago(b.updated||b.created)} · ${claimants.length} accepted</div>
       <button class="btn red" style="width:100%;margin-top:12px" onclick="deleteBounty()">DELETE CONTRACT</button>`;
     return;
@@ -2106,7 +2175,7 @@ function renderBountyDetail(v,b){
       <span class="bounty-tag" style="--c:${st[1]}">${st[0]}</span>
       ${b.faction?`<span class="bounty-tag" style="--c:var(--dim)">${esc(b.faction)}</span>`:""}
     </div>
-    <div class="note-render">${(b.brief||"").trim()?mdRender(b.brief):`<div class="dim">No brief provided.</div>`}</div>
+    <div class="note-render">${(b.brief||"").trim()?mdRender(b.brief,b.imgs):`<div class="dim">No brief provided.</div>`}</div>
     <div class="bounty-claimants"><div class="note-bl-h">👥 ACCEPTED BY · ${claimants.length}</div>${claimants.length?claimants.map(c=>`<span class="note-owner">@${esc(c)}</span>`).join(" "):`<span class="dim" style="font-size:12px">No operatives yet.</span>`}</div>
     ${ADMIN?`<div class="card" style="margin-top:16px;border-color:var(--up)"><h3 style="color:var(--up)">PAY OUT REWARD</h3>
       <div class="dim" style="font-size:11px;margin:6px 0 8px">Select recipients (those who accepted are pre-selected), then pay everyone at once. Each payout credits the operator and is logged as a bounty reward.</div>
