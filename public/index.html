@@ -241,6 +241,8 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .note-folder{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 32%,transparent);border-radius:6px;padding:2px 7px}
 .note-owner{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.04em;color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);border-radius:6px;padding:2px 7px}
 .note-ro{font-family:'Orbitron';font-size:10px;letter-spacing:.16em;color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:8px;padding:7px 12px}
+.brief-recip{margin-top:10px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--amber) 32%,transparent);border-radius:var(--r-md);background:color-mix(in srgb,var(--amber) 7%,transparent)}
+.brief-recip-h{font-family:'Orbitron';font-size:10px;letter-spacing:.18em;color:var(--amber);margin-bottom:8px}
 
 /* ── notes folder tree (collapsible) ── */
 .tree-folder{margin-top:6px}
@@ -1449,9 +1451,14 @@ function paintBM(){
 let NOTESEL=null, NOTEEDIT=false, NOTEQ="", NOTETAG=null, NOTESCOPE="private", NOTEFOLDER=null, NOTECOLLAPSE={};
 let SHNOTES=[];      // shared notebook cache
 let GMNOTES=null;    // GM browse cache: [{op, notes:[...]}]
+let BRIEFS=[];       // GM briefings cache (server key "gmbriefs")
+let BRIEFOPS=[];     // operator callsigns for the GM recipient picker
 function notesArr(){if(!ME.notes)ME.notes=[];return ME.notes}
 async function loadShared(){try{SHNOTES=(await SG.get("shnotes"))||[]}catch(e){SHNOTES=SHNOTES||[]}}
 async function saveShared(){return await SG.set("shnotes",SHNOTES)}
+async function loadBriefs(){try{BRIEFS=(await SG.get("gmbriefs"))||[]}catch(e){BRIEFS=BRIEFS||[]}}
+async function saveBriefs(){return await SG.set("gmbriefs",BRIEFS)}
+async function loadBriefOps(){try{const keys=await SG.list("u:");const us=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));BRIEFOPS=us.filter(u=>u&&u.n).map(u=>u.n).sort((a,b)=>a.localeCompare(b));}catch(e){BRIEFOPS=[]}}
 async function loadGMNotes(){
   const keys=await SG.list("u:");
   const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
@@ -1471,15 +1478,19 @@ async function loadGMNotes(){
 function scopeNotes(){
   if(NOTESCOPE==="shared")return SHNOTES;
   if(NOTESCOPE==="gm")return (GMNOTES||[]).flatMap(g=>g.notes);
+  if(NOTESCOPE==="briefs")return ADMIN?BRIEFS:BRIEFS.filter(b=>(b.to||[]).includes(ME.n));
   return notesArr();
 }
 function canEditNote(n){
   if(!n||NOTESCOPE==="gm")return false;
+  if(NOTESCOPE==="briefs")return !!ADMIN;
   if(NOTESCOPE==="shared")return !n.owner||n.owner===ME.n;
   return true;
 }
+// can the current operator create a note in the active scope?
+function canCreateHere(){if(NOTESCOPE==="gm")return false;if(NOTESCOPE==="briefs")return !!ADMIN;return true;}
 // persist whichever notebook the active note lives in
-function persistScope(){if(NOTESCOPE==="shared")return saveShared();return saveMe();}
+function persistScope(){if(NOTESCOPE==="shared")return saveShared();if(NOTESCOPE==="briefs")return saveBriefs();return saveMe();}
 function noteById(id){return scopeNotes().find(n=>n.id===id)||null}
 function noteTitleMap(){const m={};for(const n of scopeNotes())m[(n.title||"").trim().toLowerCase()]=n.id;return m}
 function noteUID(){return "n"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
@@ -1496,10 +1507,11 @@ async function setNoteScope(s){
   const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing notebook…</div>`;
   if(s==="shared")await loadShared();
   if(s==="gm")await loadGMNotes();
+  if(s==="briefs"){await loadBriefs();if(ADMIN)await loadBriefOps();}
   renderTab();
 }
 function scopeTabsHTML(){
-  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"]];
+  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"],["briefs","⚑ BRIEFINGS"]];
   if(ADMIN)tabs.push(["gm","⚙ OPERATORS"]);
   return `<div class="chips" style="margin-top:12px">${tabs.map(t=>`<button class="chip ${NOTESCOPE===t[0]?"on":""}" onclick="setNoteScope('${t[0]}')">${t[1]}</button>`).join("")}</div>`;
 }
@@ -1508,14 +1520,17 @@ function renderNotes(v){
   const sel=NOTESEL&&noteById(NOTESEL);
   if(sel)return renderNoteEditor(v,sel);
   if(NOTESCOPE==="gm")return renderGMNotes(v);
-  const shared=NOTESCOPE==="shared";
+  const shared=NOTESCOPE==="shared", briefs=NOTESCOPE==="briefs";
   const tags=allTags();
+  const dot=briefs?"var(--amber)":shared?"var(--up)":"var(--vio)";
+  const head=briefs?(ADMIN?"GM BRIEFINGS · COMPOSE":"INCOMING BRIEFINGS"):shared?"SHARED OPERATOR NOTEBOOK":"PRIVATE FIELD NOTES";
+  const sub=briefs?(ADMIN?"Notes you compose here are visible <b>only to the operators you select</b> as recipients.":"Directives the gamemaster has addressed to you. Read-only."):shared?"Visible to all operators — you can edit notes you authored.":"Only you can read these. Use ⇪ on a note to publish it to the shared notebook.";
   v.innerHTML=`
     ${scopeTabsHTML()}
     <div class="card" style="margin-top:10px"><div class="hud-row">
-      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:${shared?"var(--up)":"var(--vio)"};box-shadow:0 0 8px ${shared?"var(--up)":"var(--vio)"}"></span>${shared?"SHARED OPERATOR NOTEBOOK":"PRIVATE FIELD NOTES"} · ${scopeNotes().length} ENTRIES</div>
-        <div class="dim" style="font-size:11px;margin-top:6px">${shared?"Visible to all operators — you can edit notes you authored.":"Only you can read these. Use ⇪ on a note to publish it to the shared notebook."} Group with folders, link with <b>[[Title]]</b>.</div></div>
-      <button class="btn vio" onclick="newNote()">+ NEW</button>
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:${dot};box-shadow:0 0 8px ${dot}"></span>${head} · ${scopeNotes().length} ENTRIES</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">${sub} Group with folders, link with <b>[[Title]]</b>.</div></div>
+      ${canCreateHere()?`<button class="btn vio" onclick="newNote()">+ NEW</button>`:""}
     </div></div>
     <div style="padding-top:10px"><input id="note-q" placeholder="Search notes…" value="${esc(NOTEQ)}"></div>
     ${tags.length?`<div class="chips">${[["",""]].concat(tags.map(t=>[t,t])).map(t=>
@@ -1542,7 +1557,7 @@ function newNoteInFolder(f){NOTEFOLDER=f;createNote("");NOTEFOLDER=null;}
 function folderTreeHTML(){
   const notes=scopeNotes();
   if(!notes.length){
-    const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":"No notes yet. Hit + NEW to start your logbook.";
+    const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":NOTESCOPE==="briefs"?(ADMIN?"No briefings yet. Hit + NEW to compose one and pick its recipients.":"No briefings have been sent to you."):"No notes yet. Hit + NEW to start your logbook.";
     return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
   }
   const byFolder={},unfiled=[];
@@ -1556,7 +1571,7 @@ function folderTreeHTML(){
       <div class="tree-folder-h" onclick="toggleFolder('${fe}')">
         <span class="tree-caret">${col?"▸":"▾"}</span><span class="tree-fic">🗂</span>
         <span class="tree-fname">${esc(f)}</span><span class="tree-count">${items.length}</span>
-        ${NOTESCOPE!=="gm"?`<button class="tree-add" title="New note in folder" onclick="event.stopPropagation();newNoteInFolder('${fe}')">+</button>`:""}
+        ${canCreateHere()?`<button class="tree-add" title="New note in folder" onclick="event.stopPropagation();newNoteInFolder('${fe}')">+</button>`:""}
       </div>
       ${col?"":`<div class="tree-children">${items.map(treeNoteRow).join("")}</div>`}
     </div>`;
@@ -1574,7 +1589,7 @@ function treeNoteRow(n){
 }
 function noteListHTML(list){
   if(list.length)return list.map(noteCard).join("");
-  const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":scopeNotes().length?"No notes match.":"No notes yet. Hit + NEW to start your logbook.";
+  const empty=scopeNotes().length?"No notes match.":NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":NOTESCOPE==="briefs"?(ADMIN?"No briefings yet.":"No briefings have been sent to you."):"No notes yet. Hit + NEW to start your logbook.";
   return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
 }
 function renderGMNotes(v){
@@ -1608,6 +1623,7 @@ function noteCard(n){
     </div>
     ${snip?`<div class="note-card-s">${esc(snip)}${plain(n.body).length>110?"…":""}</div>`:`<div class="note-card-s dim">Empty note</div>`}
     <div class="note-cardmeta">
+      ${n.to?`<span class="note-folder" style="color:var(--amber);border-color:color-mix(in srgb,var(--amber) 32%,transparent);background:color-mix(in srgb,var(--amber) 12%,transparent)">⚑ ${ADMIN?(n.to.length?"to "+n.to.map(x=>"@"+esc(x)).join(" "):"no recipients"):"briefing"}</span>`:""}
       ${n.shared?`<span class="note-folder" style="color:var(--up);border-color:color-mix(in srgb,var(--up) 32%,transparent);background:color-mix(in srgb,var(--up) 12%,transparent)">⇪ shared</span>`:""}
       ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
       ${n.owner&&NOTESCOPE!=="private"?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
@@ -1620,16 +1636,25 @@ function setNoteFolder(f){NOTEFOLDER=f;renderTab()}
 function createNote(title){
   const n={id:noteUID(),title:title||"",body:"",tags:[],folder:(NOTEFOLDER||""),pinned:false,created:Date.now(),updated:Date.now()};
   if(NOTESCOPE==="shared"){n.owner=ME.n;SHNOTES.unshift(n);saveShared();}
+  else if(NOTESCOPE==="briefs"){n.owner="GM";n.to=[];BRIEFS.unshift(n);saveBriefs();}
   else{notesArr().unshift(n);saveMe();}
   NOTESEL=n.id;NOTEEDIT=true;renderTab();
 }
-function newNote(){if(NOTESCOPE!=="gm")createNote("");}
+function newNote(){if(canCreateHere())createNote("");}
 function openNote(id){if(!noteById(id))return;NOTESEL=id;NOTEEDIT=false;renderTab()}
 function openNoteByTitle(title){
   const t=title.trim();const id=noteTitleMap()[t.toLowerCase()];
   if(id){openNote(id);return}
   if(NOTESCOPE==="gm")return;
   createNote(t);
+}
+// GM: toggle a briefing recipient (commit text first so it isn't lost on re-render)
+function toggleBriefRecipient(op){
+  const n=NOTESEL&&noteById(NOTESEL);if(!n||!ADMIN||NOTESCOPE!=="briefs")return;
+  commitNote();
+  n.to=n.to||[];const i=n.to.indexOf(op);
+  if(i>=0)n.to.splice(i,1);else n.to.push(op);
+  n.updated=Date.now();saveBriefs();renderTab();
 }
 function backToNotes(){commitNote();NOTESEL=null;NOTEEDIT=false;renderTab()}
 // read the editor fields back into the selected note (no-op when not editing or read-only)
@@ -1651,8 +1676,9 @@ async function deleteNote(){
   const n=noteById(NOTESEL);if(!canEditNote(n))return;
   if(!await iconfirm("Delete “"+esc(n.title||"this note")+"” permanently?"))return;
   if(NOTESCOPE==="shared"){SHNOTES=SHNOTES.filter(x=>x.id!==n.id);await saveShared();}
+  else if(NOTESCOPE==="briefs"){BRIEFS=BRIEFS.filter(x=>x.id!==n.id);await saveBriefs();}
   else{ME.notes=notesArr().filter(x=>x.id!==n.id);saveMe();}
-  NOTESEL=null;NOTEEDIT=false;renderTab();toast("Note deleted.");
+  NOTESEL=null;NOTEEDIT=false;renderTab();toast(NOTESCOPE==="briefs"?"Briefing deleted.":"Note deleted.");
 }
 // publish a private note to the shared operator notebook (or update the published copy)
 async function shareNote(){
@@ -1680,6 +1706,11 @@ function renderNoteEditor(v,n){
       <input id="note-title" placeholder="Note title…" value="${esc(n.title)}" style="font-family:'Orbitron';font-size:16px;margin-top:10px">
       <input id="note-folder" list="note-folders" placeholder="🗂 Folder / mission (optional)" value="${esc(n.folder||"")}" style="margin-top:8px">
       <datalist id="note-folders">${folders.map(f=>`<option value="${esc(f)}">`).join("")}</datalist>
+      ${NOTESCOPE==="briefs"&&ADMIN?`<div class="brief-recip">
+        <div class="brief-recip-h">⚑ VISIBLE TO ${(n.to||[]).length?`· ${(n.to||[]).length} SELECTED`:"· NOBODY YET"}</div>
+        <div class="chips">${BRIEFOPS.length?BRIEFOPS.map(o=>`<button class="chip ${(n.to||[]).includes(o)?"on":""}" onclick="toggleBriefRecipient('${esc(o).replace(/'/g,"\\'")}')">${esc(o)}</button>`).join(""):`<span class="dim" style="font-size:12px">No operators found yet.</span>`}</div>
+        <div class="dim" style="font-size:11px;margin-top:4px">Only the highlighted operators will see this briefing.</div>
+      </div>`:""}
       <div class="note-tools">
         ${[["B","md('**','**','bold')","font-weight:800"],["I","md('*','*','italic')","font-style:italic"],
            ["H","mdLine('## ')",""],["•","mdLine('- ')",""],["1.","mdLine('1. ')",""],["❝","mdLine('> ')",""],
@@ -1707,6 +1738,7 @@ function renderNoteEditor(v,n){
     </div>
     <h1 class="note-view-title">${esc(n.title||"Untitled note")}</h1>
     <div class="note-cardmeta" style="margin:6px 0 2px">
+      ${n.to?`<span class="note-folder" style="color:var(--amber);border-color:color-mix(in srgb,var(--amber) 32%,transparent);background:color-mix(in srgb,var(--amber) 12%,transparent)">⚑ ${ADMIN?(n.to.length?"to "+n.to.map(x=>"@"+esc(x)).join(" "):"no recipients"):"GM briefing"}</span>`:""}
       ${n.folder?`<span class="note-folder">🗂 ${esc(n.folder)}</span>`:""}
       ${n.owner?`<span class="note-owner">@${esc(n.owner)}</span>`:""}
       ${(n.tags||[]).map(t=>`<span class="note-tag">#${esc(t)}</span>`).join("")}
