@@ -1459,12 +1459,14 @@ async function setNoteScope(s){
   NOTESCOPE=s;NOTESEL=null;NOTEEDIT=false;NOTEQ="";NOTETAG=null;NOTEFOLDER=null;
   const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing notebook…</div>`;
   if(s==="shared")await loadShared();
-  if(s==="gm")await loadGMNotes();
+  if(s==="gm"&&ADMIN)await loadGMNotes();
   renderTab();
 }
 function scopeTabsHTML(){
-  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"]];
-  if(ADMIN)tabs.push(["gm","⚙ OPERATORS"]);
+  // OPERATORS is always offered; tapping it prompts for the GM code if the
+  // gamemaster hasn't authenticated this session (so it works without first
+  // visiting the GM Controls app).
+  const tabs=[["private","◈ PRIVATE"],["shared","⇪ SHARED"],["gm","⚙ OPERATORS"]];
   return `<div class="chips" style="margin-top:12px">${tabs.map(t=>`<button class="chip ${NOTESCOPE===t[0]?"on":""}" onclick="setNoteScope('${t[0]}')">${t[1]}</button>`).join("")}</div>`;
 }
 
@@ -1542,6 +1544,21 @@ function noteListHTML(list){
   return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
 }
 function renderGMNotes(v){
+  if(!ADMIN){
+    v.innerHTML=`${scopeTabsHTML()}
+      <div class="card" style="margin-top:14px;border-color:var(--amber)">
+        <h3 style="color:var(--amber)">⚙ GAMEMASTER OVERSIGHT</h3>
+        <div class="dim" style="font-size:12px;margin:8px 0 12px;line-height:1.5">Read every operative's private logbook. Enter the GM override code to unlock.</div>
+        <div class="field"><label>OVERRIDE CODE</label><input id="gmnote-pass" type="password"></div>
+        <button class="btn amber" style="width:100%;margin-top:10px" id="gmnote-go">AUTHENTICATE</button>
+      </div>`;
+    $("#gmnote-go").onclick=async()=>{
+      if(await sha($("#gmnote-pass").value)===CFG.adminHash){ADMIN=true;await loadGMNotes();renderTab();}
+      else toast("Override code rejected.",true);
+    };
+    $("#gmnote-pass").addEventListener("keydown",e=>{if(e.key==="Enter")$("#gmnote-go").click();});
+    return;
+  }
   const groups=GMNOTES||[];
   const total=groups.reduce((s,g)=>s+g.notes.length,0);
   const q=NOTEQ.trim().toLowerCase();
@@ -1758,7 +1775,8 @@ function computeGraph(notes){
   return {nodes,edges,byId};
 }
 function renderNotesGraph(v){
-  if(NOTESCOPE==="gm"&&!GMNOTES){setNoteScope("gm");return;}
+  if(NOTESCOPE==="gm"&&!ADMIN)return renderGMNotes(v); // show the unlock gate
+  if(NOTESCOPE==="gm"&&ADMIN&&!GMNOTES){setNoteScope("gm");return;}
   const notes=scopeNotes();
   const head=`${scopeTabsHTML()}
     <div class="card" style="margin-top:10px"><div class="hud-tag"><span class="hud-dot" style="background:var(--vio);box-shadow:0 0 8px var(--vio)"></span>KNOWLEDGE GRAPH · ${notes.length} NODES</div>
