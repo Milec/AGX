@@ -422,6 +422,20 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 /* ── admin ── */
 .admin-grid{display:grid;gap:14px}
 .admin-grid h3{font-size:11px;letter-spacing:.22em;color:var(--amber);margin-bottom:12px;padding-left:10px;border-left:2px solid var(--amber);text-transform:uppercase}
+/* GM console sub-tab sections: show only the active section's cards */
+.admin-grid[data-active] .card[data-sec]{display:none}
+.admin-grid[data-active="market"] .card[data-sec="market"],
+.admin-grid[data-active="listings"] .card[data-sec="listings"],
+.admin-grid[data-active="ops"] .card[data-sec="ops"],
+.admin-grid[data-active="system"] .card[data-sec="system"]{display:block}
+/* operator activity log */
+.oplog{margin-top:8px;max-height:62vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.oplog-row{display:flex;align-items:baseline;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.oplog-op{flex:none;width:84px;font-family:'Orbitron';font-size:11px;color:var(--cyan);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oplog-row.session .oplog-op{color:var(--amber)}
+.oplog-txt{flex:1;min-width:0;font-family:'IBM Plex Mono';font-size:12px;color:var(--ink)}
+.oplog-row.session .oplog-txt{color:var(--dim)}
+.oplog-t{flex:none;font-family:'IBM Plex Mono';font-size:10px;color:var(--dim);white-space:nowrap}
 .inline{display:flex;gap:8px;flex-wrap:wrap}
 .inline>*{flex:1;min-width:110px}
 /* operator management cards */
@@ -1146,7 +1160,7 @@ async function auth(isNew){
     if(!ex||ex.p!==hp)return renderAuth("Callsign or access code not recognized.",true);
     ME=ex;MYKEY=key;
   }
-  await settleOptions();await housekeeping();snapshotEq();renderApp();
+  await settleOptions();await housekeeping();snapshotEq();logAct(isNew?"created an account":"logged in");renderApp();
 }
 function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
   const last=ME.eq[ME.eq.length-1];
@@ -1154,6 +1168,15 @@ function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
   const threshold=Math.max(10,Math.abs(last?last[1]:nw)*0.002);
   if(!last||Date.now()-last[0]>3e5&&Math.abs(nw-(last?last[1]:0))>threshold){
     ME.eq.push([Date.now(),nw]);if(ME.eq.length>400)ME.eq=ME.eq.slice(-400);saveMe()}}
+// lightweight session/activity log kept on the operator's own account; the GM
+// console aggregates these (plus each operator's trade history) into one feed.
+function logAct(action){
+  if(!ME)return;
+  ME.alog=ME.alog||[];
+  ME.alog.push({t:Date.now(),a:action});
+  if(ME.alog.length>150)ME.alog=ME.alog.slice(-150);
+  saveMe();
+}
 
 /* ---------- app shell ---------- */
 function renderApp(){
@@ -1188,7 +1211,7 @@ function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()
 function go(t){if(APP==="notes")commitNote();TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
 // open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
 // Locked apps still "open" — they just render an unauthorized-access wall.
-function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;renderApp()}
+function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;ADTAB="market";renderApp()}
 // return to the data-pad home screen
 function goHome(){APP=null;OPEN=null;renderApp()}
 // market-status chips for the running ticker — shown only when the dedicated
@@ -3138,6 +3161,56 @@ async function spinSlots(){
 }
 
 /* ---------- admin ---------- */
+/* ---------- GM console: sub-tabs + operator activity log ---------- */
+let ADTAB="market", OPLOG=[], OPLOGFILTER=null;
+async function setAdTab(t){
+  ADTAB=t;OPLOGFILTER=null;
+  if(t==="log"){const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Compiling operator activity…</div>`;await loadOpLog();}
+  renderTab();
+}
+function setOpLogFilter(op){OPLOGFILTER=op||null;renderTab();}
+// readable one-line summary of a trade-history entry
+function histText(h){
+  const L=(HIST_LBL[h.side]||[h.side,""])[0];
+  if(h.side==="ADJ")return L+" "+fmt(h.d);
+  if(h.side==="DIV")return L+" "+(h.d>=0?"+":"")+fmt(h.d);
+  if(h.side==="INT")return L+" "+fmt(h.d);
+  if(h.side==="BET")return L+" "+(h.d>=0?"+":"")+fmt(h.d)+(h.o?" · "+h.o:"");
+  if(h.side==="XFER")return L+" "+(h.d>=0?"+":"")+fmt(h.d);
+  if(h.side==="PAY")return L+" "+(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" from ":" to ")+h.with:"")+(h.memo?" · “"+h.memo+"”":"");
+  if(h.side==="GRANT")return L+" "+(+(+h.q).toFixed(4))+" "+h.sym;
+  return L+" "+(+(+h.q).toFixed(4))+" "+h.sym+(h.o?" · "+h.o:"")+(h.p!==undefined?" @ "+fmt(h.p):"");
+}
+// aggregate every operator's session log (alog) + trade history (hist) into one feed
+async function loadOpLog(){
+  const keys=await SG.list("u:");
+  const users=await Promise.all(keys.slice(0,80).map(k=>SG.get(k)));
+  const out=[];
+  for(const u of users){
+    if(!u||!u.n)continue;
+    for(const e of (u.alog||[]))out.push({t:e.t,op:u.n,txt:e.a,session:true});
+    for(const h of (u.hist||[]))if(h&&h.at)out.push({t:h.at,op:u.n,txt:histText(h)});
+  }
+  out.sort((a,b)=>b.t-a.t);
+  OPLOG=out.slice(0,400);
+}
+function renderOpLogSection(){
+  const ops=[...new Set(OPLOG.map(e=>e.op))].sort();
+  const list=OPLOGFILTER?OPLOG.filter(e=>e.op===OPLOGFILTER):OPLOG;
+  return `<div class="card" style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h3>OPERATOR ACTIVITY LOG</h3>
+      <button class="btn ghost" style="padding:7px 12px;font-size:11px" onclick="setAdTab('log')">⟳ REFRESH</button>
+    </div>
+    <div class="dim" style="font-size:11px;margin:6px 0 8px">Every operative action across the exchange — logins, GM access, trades, casino, transfers, dividends and GM adjustments. Newest first.</div>
+    <div class="chips">${[["","ALL"]].concat(ops.map(o=>[o,o])).map(o=>`<button class="chip ${(OPLOGFILTER||"")===o[0]?"on":""}" onclick="setOpLogFilter('${o[0]?esc(o[0]).replace(/'/g,"\\'"):""}')">${o[0]?esc(o[0]):"ALL"}</button>`).join("")}</div>
+    <div class="oplog">${list.length?list.map(e=>`<div class="oplog-row${e.session?" session":""}">
+        <span class="oplog-op">${esc(e.op)}</span>
+        <span class="oplog-txt">${esc(e.txt)}</span>
+        <span class="oplog-t">${ago(e.t)}</span>
+      </div>`).join(""):`<div class="dim" style="padding:24px;text-align:center">No operator activity recorded yet.</div>`}</div>
+  </div>`;
+}
 function renderAdmin(v){
   if(!ADMIN){
     v.innerHTML=`<div class="auth" style="min-height:50vh"><div class="card">
@@ -3148,19 +3221,22 @@ function renderAdmin(v){
       <div class="dim" style="font-size:11px;margin-top:12px;text-align:center">Default code: <span class="mono">gamemaster</span> — change it after first login.</div>
     </div></div>`;
     $("#ad-go").onclick=async()=>{
-      if(await sha($("#ad-pass").value)===CFG.adminHash){ADMIN=true;renderAdmin(v)}
+      if(await sha($("#ad-pass").value)===CFG.adminHash){ADMIN=true;logAct("opened the Gamemaster console");renderAdmin(v)}
       else toast("Override code rejected.",true);
     };
     return;
   }
   const symOpts=ASSETS.map(a=>`<option value="${a.sym}">${a.sym} — ${esc(a.name)}</option>`).join("");
-  v.innerHTML=`
-  <div class="admin-grid" style="padding-top:16px">
-   <div class="card"><h3>MARKET REGIME</h3>
+  const ADTABS=[["market","MARKET"],["listings","LISTINGS"],["ops","OPERATIVES"],["log","ACTIVITY LOG"],["system","SYSTEM"]];
+  const adChips=`<div class="chips" style="margin-top:14px">${ADTABS.map(t=>`<button class="chip ${ADTAB===t[0]?"on":""}" onclick="setAdTab('${t[0]}')">${t[1]}</button>`).join("")}</div>`;
+  if(ADTAB==="log"){v.innerHTML=adChips+`<div id="adlog">${renderOpLogSection()}</div>`;return;}
+  v.innerHTML=adChips+`
+  <div class="admin-grid" data-active="${ADTAB}" style="padding-top:14px">
+   <div class="card" data-sec="market"><h3>MARKET REGIME</h3>
      <div class="inline">${Object.keys(REGIME_DEFS).map(k=>
        `<button class="btn ghost" style="border-color:${REGIME_DEFS[k].col};color:${REGIME_DEFS[k].col}" onclick="adRegime('${k}')">${REGIME_DEFS[k].label}</button>`).join("")}</div>
    </div>
-   <div class="card"><h3>RIG A LISTING (PUMP / DUMP)</h3>
+   <div class="card" data-sec="market"><h3>RIG A LISTING (PUMP / DUMP)</h3>
      <div class="inline" style="margin-bottom:8px"><select id="ad-sym">${symOpts}</select></div>
      <div class="inline">
        <input id="ad-mag" type="number" inputmode="decimal" placeholder="% move (e.g. 80 or -60)">
@@ -3188,11 +3264,11 @@ function renderAdmin(v){
      </div>
      <div class="dim" style="font-size:11px;margin-top:4px">Moves every listing in the sector by the same amount on top of their normal behavior.</div>
    </div>
-   <div class="card"><h3>OPERATIVE ACCOUNTS</h3>
+   <div class="card" data-sec="ops"><h3>OPERATIVE ACCOUNTS</h3>
      <div class="inline" style="margin-bottom:8px"><button class="btn ghost" onclick="adLoadUsers()">LOAD ACCOUNTS</button></div>
      <div id="ad-users" class="dim" style="font-size:13px">Tap load to list accounts.</div>
    </div>
-   <div class="card"><h3>LAUNCH CUSTOM IPO</h3>
+   <div class="card" data-sec="listings"><h3>LAUNCH CUSTOM IPO</h3>
      <div class="inline" style="margin-bottom:8px">
        <input id="ipo-sym" placeholder="SYMBOL (2-5)" maxlength="5" style="text-transform:uppercase">
        <input id="ipo-name" placeholder="Company name" style="flex:2" maxlength="40">
@@ -3211,13 +3287,13 @@ function renderAdmin(v){
         <span>${i.sym} — ${esc(i.name)}${i.bm?" \u2620":""}</span>
         <button class="btn red" style="padding:5px 9px;font-size:11px" onclick="adDelist('${i.sym}')">DELIST</button></div>`).join(""))||"No custom listings yet."}</div>
    </div>
-   <div class="card"><h3>BLACK MARKET</h3>
+   <div class="card" data-sec="listings"><h3>BLACK MARKET</h3>
      <div class="inline">
        <button class="btn ${CFG.bmOpen?"red":"vio"}" onclick="adBM()">${CFG.bmOpen?"CLOSE BLACK MARKET":"OPEN BLACK MARKET"}</button>
      </div>
      <div class="dim" style="font-size:11px;margin-top:8px">When open, players get a \u2620 Black Market tab with 6 contraband listings (plus any black-market IPOs) at extreme volatility. Positions survive closure — players just can't trade them.</div>
    </div>
-   <div class="card"><h3>RENAME LISTING</h3>
+   <div class="card" data-sec="listings"><h3>RENAME LISTING</h3>
      <div class="inline" style="margin-bottom:8px"><select id="ad-rsym" onchange="adRenameFill()">${symOpts}</select></div>
      <div class="inline">
        <input id="ad-rname" placeholder="New company name" style="flex:2" maxlength="40">
@@ -3229,7 +3305,7 @@ function renderAdmin(v){
      </div>
      <div class="dim" style="font-size:11px;margin-top:8px">Ticker symbols and price history stay the same — only the display name changes for everyone.</div>
    </div>
-   <div class="card"><h3>BROADCAST NEWSWIRE</h3>
+   <div class="card" data-sec="market"><h3>BROADCAST NEWSWIRE</h3>
      <div class="inline"><input id="ad-news" placeholder="e.g. AbadarCorp announces drift-engine recall…" style="flex:3">
      <button class="btn amber" onclick="adNews()">SEND</button></div>
      <div class="inline" style="margin-top:8px">
@@ -3238,7 +3314,7 @@ function renderAdmin(v){
      </div>
      <div class="dim" style="font-size:11px;margin-top:6px">CLEAR NEWSFEED removes all stories. CLEAR PUMPS removes all active pump/sector-pump events, letting prices recover to their natural level.</div>
    </div>
-   <div class="card"><h3>EXCHANGE CONTROLS</h3>
+   <div class="card" data-sec="system"><h3>EXCHANGE CONTROLS</h3>
      <div class="inline">
       <button class="btn red" onclick="adHalt(true)">HALT TRADING</button>
       <button class="btn" onclick="adHalt(false)">RESUME TRADING</button>
@@ -3284,7 +3360,7 @@ function renderAdmin(v){
       <button class="btn ghost" onclick="adPass()">CHANGE CODE</button>
      </div>
    </div>
-   <div class="card" style="border-color:var(--down)"><h3 style="color:var(--down)">DANGER ZONE</h3>
+   <div class="card" data-sec="system" style="border-color:var(--down)"><h3 style="color:var(--down)">DANGER ZONE</h3>
      <div class="inline">
       <button class="btn red" onclick="adResetMarket()">RESET MARKET PRICES</button>
       <button class="btn ghost" onclick="adRebasePrices()">RE-BASELINE TO NOW</button>
