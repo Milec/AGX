@@ -3578,10 +3578,13 @@ function renderAdmin(v){
    <div class="card" data-sec="listings"><h3>LAUNCH CUSTOM IPO</h3>
      <div class="inline" style="margin-bottom:8px">
        <input id="ipo-sym" placeholder="SYMBOL (2-5)" maxlength="5" style="text-transform:uppercase">
-       <input id="ipo-name" placeholder="Company name" style="flex:2" maxlength="40">
+       <input id="ipo-name" placeholder="Listing name" style="flex:2" maxlength="40">
      </div>
      <div class="inline" style="margin-bottom:8px">
+       <select id="ipo-type" onchange="ipoTypeChange()"><option value="S" selected>STOCK</option><option value="X">CRYPTO</option><option value="E">ETF</option><option value="C">COMMODITY</option></select>
        <input id="ipo-sec" placeholder="Sector" maxlength="20">
+     </div>
+     <div class="inline" style="margin-bottom:8px">
        <input id="ipo-px" type="number" step="any" inputmode="decimal" placeholder="Start price \u20A2">
        <select id="ipo-vol"><option value="0.06">LOW VOL</option><option value="0.13" selected>MED VOL</option><option value="0.22">HIGH VOL</option><option value="0.4">INSANE VOL</option></select>
      </div>
@@ -3591,7 +3594,7 @@ function renderAdmin(v){
      </div>
      <div id="ipo-list" class="dim" style="font-size:12px;margin-top:10px">${((CFG.ipos||[]).map(i=>
        `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)">
-        <span>${i.sym} — ${esc(i.name)}${i.bm?" \u2620":""}</span>
+        <span>${i.sym} — ${esc(i.name)} <span class="dim">\u00b7 ${({S:"STOCK",X:"CRYPTO",E:"ETF",C:"COMMODITY",B:"BOND"})[i.type||"S"]}</span>${i.bm?" \u2620":""}</span>
         <button class="btn red" style="padding:5px 9px;font-size:11px" onclick="adDelist('${i.sym}')">DELIST</button></div>`).join(""))||"No custom listings yet."}</div>
    </div>
    <div class="card" data-sec="listings"><h3>BLACK MARKET</h3>
@@ -3702,19 +3705,26 @@ async function adRenameReset(){
   if(!await SG.set("cfg",CFG))return toast("Save failed — try again.",true);
   applyNames();adRenameFill();toast(sym+" reset to "+BYSYM[sym].name0);
 }
+// sensible default volatility when the listing type changes
+function ipoTypeChange(){
+  const t=$("#ipo-type"),v=$("#ipo-vol");if(!t||!v)return;
+  v.value={X:"0.22",C:"0.13",E:"0.06",S:"0.13"}[t.value]||"0.13";
+}
 async function adIPO(){
   const sym=$("#ipo-sym").value.trim().toUpperCase(),name=$("#ipo-name").value.trim(),
-    sec=$("#ipo-sec").value.trim()||"New Listing",base=parseFloat($("#ipo-px").value),
+    type=($("#ipo-type")&&$("#ipo-type").value)||"S",
+    sec=$("#ipo-sec").value.trim()||(type==="X"?"Crypto":type==="E"?"ETF":type==="C"?"Commodity":"New Listing"),
+    base=parseFloat($("#ipo-px").value),
     vol=parseFloat($("#ipo-vol").value),bm=$("#ipo-bm").checked;
   if(!/^[A-Z0-9]{2,5}$/.test(sym))return toast("Symbol: 2-5 letters/numbers.",true);
-  if(!name)return toast("Enter a company name.",true);
+  if(!name)return toast("Enter a listing name.",true);
   if(!base||base<=0)return toast("Enter a start price.",true);
   CFG=migrateCfg(await SG.get("cfg"))||CFG;CFG.ipos=CFG.ipos||[];
   if(BYSYM[sym]||CFG.ipos.some(i=>i.sym===sym))return toast("Symbol already in use.",true);
-  CFG.ipos.push({sym,name,sec,base,vol,bm,at:gameNow()});
+  CFG.ipos.push({sym,name,type,sec,base,vol,bm,at:gameNow()});
   if(!await SG.set("cfg",CFG))return toast("Save failed.",true);
   rebuildAssets();
-  if(!bm)await pushEv({t:"news",msg:"IPO: "+name+" ("+sym+") begins trading at "+fmt(base)});
+  if(!bm){const verb=type==="X"?"Token launch: "+name+" ("+sym+") goes live at ":"IPO: "+name+" ("+sym+") begins trading at ";await pushEv({t:"news",msg:verb+fmt(base)});}
   toast(sym+" is now listed"+(bm?" on the black market.":"."));renderApp();go("admin");
 }
 async function adDelist(sym){
