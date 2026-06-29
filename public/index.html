@@ -550,6 +550,9 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .pm-out-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .pm-pct{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700}
 .pm-opt{display:block;width:100%}
+.pm-seed-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pm-seed-lbl{flex:1;min-width:0;display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-seed-row input{flex:0 0 120px;width:120px}
 
 /* ── stardeck arcade ── */
 .ar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -3165,8 +3168,11 @@ async function loadPredictions(){try{PREDICTIONS=(await SG.get("predmarkets"))||
 async function savePredictions(){return await SG.set("predmarkets",PREDICTIONS)}
 function predById(id){return PREDICTIONS.find(x=>x.id===id)||null}
 function predUID(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-function predPools(m){const p=m.opts.map(()=>0);let tot=0;
+function predPools(m){
+  // start each outcome's pool with any GM-seeded house liquidity, then add real bets
+  const p=m.opts.map((o,i)=>(m.seed&&m.seed[i])||0);let tot=p.reduce((a,b)=>a+b,0);
   for(const b of m.bets||[]){if(b.opt>=0&&b.opt<p.length){p[b.opt]+=b.amt;tot+=b.amt}}return{p,tot};}
+function predSeedTotal(m){return (m.seed||[]).reduce((a,b)=>a+(b||0),0);}
 function predMine(m){return (m.bets||[]).filter(b=>b.u===ME.n);}
 function predMyStake(m,opt){return predMine(m).filter(b=>opt==null||b.opt===opt).reduce((s,b)=>s+b.amt,0);}
 function canManagePred(m){return ADMIN||m.creator===ME.n;}
@@ -3288,6 +3294,20 @@ function renderPredDetail(v,m){
           <button class="btn" style="background:var(--cyan);color:#001" onclick="placeBet()">PLACE BET</button></div>
         <div id="pm-quote" class="dim mono" style="font-size:11px;margin-top:6px"></div>
       </div>`:""}
+    ${ADMIN&&m.status==="open"?`
+      <div class="card" style="margin-top:12px;border-color:var(--vio)">
+        <h3 style="color:var(--vio)">GM · SEED MARKET LIQUIDITY</h3>
+        <div class="dim" style="font-size:11px;margin:4px 0 10px">Inject house credits into each side to make this read like a deeper, busier market. Seed money shapes the odds and enriches the winners' payout — it is not refunded if the market is voided.</div>
+        ${m.opts.map((o,i)=>`<div class="pm-seed-row">
+          <span class="pm-seed-lbl"><span class="pm-dot" style="background:${PM_COLS[i%PM_COLS.length]}"></span>${esc(o)}${m.seed&&m.seed[i]?` <span class="dim">(${fmt(m.seed[i])})</span>`:""}</span>
+          <input id="pm-seed-${i}" type="number" step="any" inputmode="decimal" placeholder="+ ₢">
+        </div>`).join("")}
+        <div class="inline" style="margin-top:8px">
+          <button class="btn" style="background:var(--vio)" onclick="seedMarket()">ADD LIQUIDITY</button>
+          ${predSeedTotal(m)>0?`<button class="btn ghost" onclick="clearSeed()">CLEAR SEED</button>`:""}
+        </div>
+        ${predSeedTotal(m)>0?`<div class="dim mono" style="font-size:11px;margin-top:6px">House liquidity in pool: ${fmt(predSeedTotal(m))}</div>`:""}
+      </div>`:""}
     ${manage&&m.status==="open"?`
       <div class="card" style="margin-top:12px;border-color:var(--amber)">
         <h3 style="color:var(--amber)">SETTLE MARKET</h3>
@@ -3310,6 +3330,34 @@ function updatePredQuote(){
   const winPool=p[PREDOPT]+x, newTot=tot+x;
   const payout=winPool>0?x/winPool*newTot:x;
   q.textContent=`If "${m.opts[PREDOPT]}" wins: ~${fmt(payout)} back (${(payout/x).toFixed(2)}×) at current pool.`;
+}
+// GM: add house liquidity to one or more outcomes of an open market
+async function seedMarket(){
+  if(!ADMIN||PREDBUSY)return;
+  const m0=predById(PREDSEL);if(!m0)return;
+  const adds=m0.opts.map((o,i)=>{const el=$("#pm-seed-"+i);const v=el?parseFloat(el.value):NaN;return isFinite(v)&&v>0?Math.round(v*100)/100:0;});
+  const total=adds.reduce((a,b)=>a+b,0);
+  if(total<=0)return toast("Enter an amount to add to at least one side.",true);
+  PREDBUSY=true;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||m.status!=="open"){PREDBUSY=false;toast("Market is closed.",true);return renderTab();}
+  m.seed=m.seed&&m.seed.length===m.opts.length?m.seed:m.opts.map(()=>0);
+  for(let i=0;i<m.opts.length;i++)m.seed[i]=(m.seed[i]||0)+adds[i];
+  m.updated=Date.now();
+  const ok=await savePredictions();PREDBUSY=false;
+  toast(ok?"Added "+fmt(total)+" in house liquidity.":"Failed to sync.",!ok);
+  renderTab();
+}
+async function clearSeed(){
+  if(!ADMIN||PREDBUSY)return;
+  const m0=predById(PREDSEL);if(!m0)return;
+  if(!await iconfirm("Remove all house liquidity from this market?"))return;
+  PREDBUSY=true;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m){PREDBUSY=false;return;}
+  m.seed=m.opts.map(()=>0);m.updated=Date.now();
+  const ok=await savePredictions();PREDBUSY=false;
+  toast(ok?"House liquidity cleared.":"Failed to sync.",!ok);renderTab();
 }
 async function placeBet(){
   if(PREDBUSY)return;const m0=predById(PREDSEL);if(!m0)return;
