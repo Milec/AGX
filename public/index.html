@@ -3807,7 +3807,7 @@ function solAuto(){
 }
 
 /* ---------- casino ---------- */
-let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false,VP=null,PKBUSY=false;
+let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false,VP=null,PKBUSY=false,PKBALLS=1;
 const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
@@ -4032,10 +4032,13 @@ function paintCasino(){
   }else if(CGAME==="pachinko"){
     el.innerHTML=`
      <canvas id="pk-cv" width="340" height="380" class="pk-cv"></canvas>
-     <div class="inline" style="margin-top:8px"><input id="pk-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
-     <button class="btn vio" id="pk-go" onclick="dropBall()">DROP BALL</button></div>
+     <div class="inline" style="margin-top:8px">
+       <input id="pk-count" type="number" min="1" max="999" step="1" inputmode="numeric" value="${PKBALLS}" placeholder="Balls (1-999)" oninput="pkCountChange()">
+       <input id="pk-bet" type="number" step="any" inputmode="decimal" placeholder="Bet per ball \u20A2">
+     </div>
+     <button class="btn vio" id="pk-go" style="width:100%;margin-top:8px" onclick="dropBalls()">DROP ${PKBALLS} BALL${PKBALLS>1?"S":""}</button>
      <div id="pk-res" class="disp" style="text-align:center;padding:10px;font-size:15px;min-height:20px"></div>
-     <div class="dim mono" style="font-size:11px;text-align:center">A ball tumbles through the pin field into a multiplier slot. Edges pay big, the middle bites.</div>`;
+     <div class="dim mono" style="font-size:11px;text-align:center">Drop 1\u2013999 balls at once. Each tumbles into a multiplier slot \u2014 edges pay big, the middle bites. The stake is <b>per ball</b>.</div>`;
     pachinkoInit();
   }else if(CGAME==="hilo"){
     el.innerHTML=`
@@ -4406,7 +4409,15 @@ async function vpDraw(){
 /* ── pachinko: a Plinko pin field with multiplier slots and flashy lights ── */
 const PK_MULT=[12,5,2,1,0.4,0.2,0.4,1,2,5,12];   // 11 slots, edges pay big
 const PK_COLS=["#ff4d8d","#ff9a3d","#ffe14d","#5dff8f","#4dd2ff","#9a6bff","#4dd2ff","#5dff8f","#ffe14d","#ff9a3d","#ff4d8d"];
-let _pkPins=[],_pkAnim=null,_pkLit=-1;
+let _pkPins=[],_pkAnim=null,_pkLit=[];   // _pkLit = slots currently lit (multi-ball)
+// keep PKBALLS in sync with the balls-per-drop input (1–999) and update the button
+function pkCountChange(){
+  const el=$("#pk-count");if(!el)return;
+  let n=parseInt(el.value,10);
+  if(!isFinite(n))n=1;
+  n=Math.max(1,Math.min(999,n));PKBALLS=n;
+  const go=$("#pk-go");if(go)go.textContent="DROP "+n+" BALL"+(n>1?"S":"");
+}
 function pachinkoInit(){
   const cv=$("#pk-cv");if(!cv)return;
   _pkPins=[];
@@ -4426,7 +4437,7 @@ function pachinkoIdle(){
   if(!PKBUSY)pachinkoDraw(null);   // twinkle pins + slot glow while idle
   _pkIdle=requestAnimationFrame(pachinkoIdle);
 }
-function pachinkoDraw(ball){
+function pachinkoDraw(balls){
   const cv=$("#pk-cv");if(!cv)return;const g=cv.getContext("2d"),W=cv.width,H=cv.height;
   g.clearRect(0,0,W,H);
   g.fillStyle="rgba(8,10,24,0.9)";g.fillRect(0,0,W,H);
@@ -4437,74 +4448,110 @@ function pachinkoDraw(ball){
     g.beginPath();g.arc(p.x,p.y,3.2,0,7);
     g.fillStyle=`rgba(${120+tw*135|0},${180+tw*70|0},255,${0.55+tw*0.45})`;g.fill();
   }
-  // slots
+  // slots — any slot in _pkLit glows (multiple balls can land in the same slot)
   const slots=PK_MULT.length,sw=W/slots,sy=H-44;
+  const litCount=i=>{let c=0;for(const s of (_pkLit||[]))if(s===i)c++;return c;};
   for(let i=0;i<slots;i++){
-    const lit=i===_pkLit, fl=lit?0.5+0.5*Math.sin(tnow/80):0;
+    const hits=litCount(i),lit=hits>0, fl=lit?0.5+0.5*Math.sin(tnow/80):0;
     g.fillStyle=PK_COLS[i];g.globalAlpha=lit?0.55+fl*0.45:0.22;
     g.fillRect(i*sw+1,sy,sw-2,40);
     g.globalAlpha=1;
     g.fillStyle=lit?"#fff":"rgba(255,255,255,0.85)";
     g.font="bold 11px 'IBM Plex Mono',monospace";g.textAlign="center";
     g.fillText(PK_MULT[i]+"×",i*sw+sw/2,sy+25);
+    if(hits>1){g.fillStyle="#fff";g.font="bold 9px 'IBM Plex Mono',monospace";g.fillText("×"+hits,i*sw+sw/2,sy+37);}
   }
-  // ball
-  if(ball){
-    g.beginPath();g.arc(ball.x,ball.y,6,0,7);
-    g.fillStyle="#fff";g.shadowColor="#4dd2ff";g.shadowBlur=14;g.fill();g.shadowBlur=0;
+  // balls (each carries its own colour for a flashy cascade). For big drops we
+  // shrink the balls and skip per-ball glow so hundreds stay smooth.
+  if(balls&&balls.length){
+    const glow=balls.length<=40, rad=balls.length>200?3:balls.length>60?4.5:6;
+    for(const ball of balls){if(!ball)continue;
+      g.beginPath();g.arc(ball.x,ball.y,rad,0,7);
+      g.fillStyle=ball.col||"#fff";
+      if(glow){g.shadowColor=ball.col||"#4dd2ff";g.shadowBlur=14;}
+      g.fill();if(glow)g.shadowBlur=0;
+    }
   }
 }
-async function dropBall(){
-  if(PKBUSY)return;
-  const bet=betVal("#pk-bet");if(!bet)return toast("Enter a bet.",true);
-  await refreshMe();
-  if(casinoBarred())return toast("You are barred from the casino.",true);
-  if(bet>ME.cash)return toast("Insufficient credits.",true);
+// land one ball in a slot via 10 left/right hops (binomial → centre-weighted),
+// nudged by GM luck toward / away from the high-paying edges
+function pkPickSlot(luck){
   const slots=PK_MULT.length;
-  // landing slot via 10 left/right hops (binomial → center-weighted)
   let rights=0;for(let i=0;i<slots-1;i++)if(Math.random()<0.5)rights++;
-  const luck=luckOf(ME);
   if(luck){
     let r2=0;for(let i=0;i<slots-1;i++)if(Math.random()<0.5)r2++;
-    const edge=v=>Math.abs(v-(slots-1)/2); // bigger edge dist = bigger mult
+    const edge=v=>Math.abs(v-(slots-1)/2);
     rights = luck>0 ? (edge(r2)>edge(rights)?r2:rights) : (edge(r2)<edge(rights)?r2:rights);
   }
-  const slot=rights;
-  const mult=PK_MULT[slot];
-  const delta=bet*mult-bet;
-  PKBUSY=true;_pkLit=-1;const go=$("#pk-go");if(go)go.disabled=true;$("#pk-res").textContent="";
+  return rights;
+}
+async function dropBalls(){
+  if(PKBUSY)return;
+  const bet=betVal("#pk-bet");if(!bet)return toast("Enter a bet.",true);
+  let count=PKBALLS||1;
+  const cel=$("#pk-count");if(cel){const n=parseInt(cel.value,10);if(isFinite(n))count=n;}
+  count=Math.max(1,Math.min(999,Math.round(count)));PKBALLS=count;
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  const cost=bet*count;
+  if(cost>ME.cash)return toast("Insufficient credits for "+count+" ball"+(count>1?"s":"")+" ("+fmt(cost)+").",true);
+  const luck=luckOf(ME);
+  const results=[];let gross=0;
+  for(let i=0;i<count;i++){const s=pkPickSlot(luck),m=PK_MULT[s];results.push({slot:s,mult:m});gross+=bet*m;}
+  const delta=gross-cost;
+  PKBUSY=true;_pkLit=[];const go=$("#pk-go");if(go)go.disabled=true;$("#pk-res").textContent="";
   await wager(delta,"PACHINKO");
   const cv=$("#pk-cv");
   const finish=()=>{
-    PKBUSY=false;const b=$("#pk-go");if(b)b.disabled=false;_pkLit=slot;pachinkoDraw(null);
-    const res=$("#pk-res");if(res)res.innerHTML=mult>=1
-      ?`<span class="win-flash" style="display:inline-block">Slot ${mult}× — ${delta>=0?"WIN +"+fmt(delta):"back "+fmt(bet*mult)}</span>`
-      :`<span class="lose-shake" style="display:inline-block">Slot ${mult}× — lose ${fmt(-delta)}</span>`;
+    PKBUSY=false;const b=$("#pk-go");if(b)b.disabled=false;
+    _pkLit=results.map(r=>r.slot);pachinkoDraw(null);
+    const res=$("#pk-res");
+    if(res){
+      if(count===1){
+        const m=results[0].mult;
+        res.innerHTML=m>=1
+          ?`<span class="win-flash" style="display:inline-block">Slot ${m}× — ${delta>=0?"WIN +"+fmt(delta):"back "+fmt(gross)}</span>`
+          :`<span class="lose-shake" style="display:inline-block">Slot ${m}× — lose ${fmt(-delta)}</span>`;
+      }else{
+        const win=delta>=0;
+        const hits={};results.forEach(r=>{hits[r.mult]=(hits[r.mult]||0)+1;});
+        const breakdown=Object.keys(hits).map(Number).sort((a,b)=>b-a).map(m=>`${hits[m]}×${m}×`).join(" · ");
+        res.innerHTML=`<span class="${win?"win-flash":"lose-shake"}" style="display:inline-block">${count} balls · ${win?"WIN +"+fmt(delta):"LOSE "+fmt(-delta)}</span>`
+          +`<div class="dim mono" style="font-size:11px;margin-top:4px">staked ${fmt(cost)} · returned ${fmt(gross)}<br>${breakdown}</div>`;
+      }
+    }
     afterCasinoResult();
   };
   if(!cv||RM()){finish();return}
-  // animate the ball bouncing down to the target slot. Interval-driven (not
-  // rAF) so it always completes even when the compositor throttles frames.
-  const W=cv.width,H=cv.height,sw=W/slots,targetX=slot*sw+sw/2;
+  // animate every ball concurrently, staggered, into its slot. Interval-driven
+  // (not rAF) so it always completes even when the compositor throttles frames.
+  const W=cv.width,H=cv.height,slots=PK_MULT.length,sw=W/slots;
   const rows=10,top=40,bot=H-58,gap=(bot-top)/(rows-1);
-  const path=[];
-  let cx=W/2;path.push({x:cx,y:18});
-  for(let r=0;r<rows;r++){
-    const t=(r+1)/rows;cx=W/2+(targetX-W/2)*t+(Math.random()*16-8)*(1-t);
-    path.push({x:cx,y:top+r*gap});
-  }
-  path.push({x:targetX,y:bot+6});path.push({x:targetX,y:H-30});
-  let seg=0,p=0,done=false;
+  const mkPath=slot=>{const targetX=slot*sw+sw/2,path=[];let cx=W/2;path.push({x:cx,y:18});
+    for(let r=0;r<rows;r++){const t=(r+1)/rows;cx=W/2+(targetX-W/2)*t+(Math.random()*16-8)*(1-t);path.push({x:cx,y:top+r*gap});}
+    path.push({x:targetX,y:bot+6});path.push({x:targetX,y:H-30});return path;};
+  // bound the launch stagger so even 999 balls all release within ~1.8s
+  const perDelay=Math.min(140,1800/count);
+  const anims=results.map((r,i)=>({path:mkPath(r.slot),seg:0,p:0,landed:false,delay:i*perDelay,slot:r.slot,col:PK_COLS[r.slot%PK_COLS.length]}));
+  const t0=Date.now();let done=false;
   const end=()=>{if(done)return;done=true;if(_pkAnim){clearInterval(_pkAnim);_pkAnim=null;}finish();};
   _pkAnim=setInterval(()=>{
-    if(seg>=path.length-1){end();return;}
-    p+=0.2;
-    if(p>=1){p=0;seg++;return;}
-    const a=path[seg],b=path[seg+1];
-    const bx=a.x+(b.x-a.x)*p, by=a.y+(b.y-a.y)*p-Math.sin(p*Math.PI)*10;
-    pachinkoDraw({x:bx,y:by});
+    const elapsed=Date.now()-t0;const balls=[];let pending=false;
+    for(const a of anims){
+      if(a.landed)continue;
+      if(elapsed<a.delay){pending=true;continue;}
+      a.p+=0.2;
+      if(a.p>=1){a.p=0;a.seg++;}
+      if(a.seg>=a.path.length-1){a.landed=true;_pkLit.push(a.slot);continue;}
+      pending=true;
+      const s=a.path[a.seg],e=a.path[a.seg+1];
+      const bx=s.x+(e.x-s.x)*a.p, by=s.y+(e.y-s.y)*a.p-Math.sin(a.p*Math.PI)*10;
+      balls.push({x:bx,y:by,col:a.col});
+    }
+    pachinkoDraw(balls);
+    if(!pending)end();
   },24);
-  setTimeout(end,2400);   // guaranteed completion
+  setTimeout(end,(count-1)*perDelay+5200);   // guaranteed completion
 }
 
 /* ---------- admin ---------- */
