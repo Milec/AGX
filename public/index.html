@@ -87,14 +87,14 @@ h1,h2,h3,.disp{font-family:'Orbitron',sans-serif;letter-spacing:.06em}
 
 /* ── controls ── */
 button{font-family:inherit;cursor:pointer;border:none;border-radius:var(--r-md);font-size:14px;letter-spacing:.03em}
-input,select{
+input,select,textarea{
   font-family:'IBM Plex Mono',monospace;background:var(--input-bg);
   border:1px solid var(--line2);
   color:var(--ink);border-radius:var(--r-md);padding:12px 14px;font-size:16px;width:100%;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 var(--hi);
   transition:border-color .15s,box-shadow .15s,background-color .35s ease,color .35s ease;
 }
-input:focus,select:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 22%,transparent),inset 0 1px 0 var(--hi)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 22%,transparent),inset 0 1px 0 var(--hi)}
 .btn{position:relative;overflow:hidden;background:linear-gradient(180deg,#48f4e5,#18c6bc);color:#012b27;font-weight:700;padding:12px 18px;box-shadow:0 8px 22px -10px rgba(54,239,224,.7),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .12s,filter .2s,box-shadow .2s}
 .btn::after{content:'';position:absolute;top:0;left:0;height:100%;width:45%;pointer-events:none;background:linear-gradient(110deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-200%)}
 .btn:hover::after{animation:sheen .6s ease}
@@ -522,6 +522,78 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .flash-up{animation:flUp .8s ease-out}
 .flash-down{animation:flDown .8s ease-out}
 @media (prefers-reduced-motion:reduce){body::before{animation:none}.viewin,.flash-up,.flash-down,.modal,.modal-bg,.iconfirm,.iconfirm-bg{animation:none}}
+
+/* ── video poker ── */
+.vp-row{display:flex;gap:6px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.vp-card{flex:1;min-width:52px;max-width:64px;aspect-ratio:.7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--glass-strong);border:1px solid var(--line2);border-radius:10px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .12s,border-color .12s;box-shadow:inset 0 1px 0 var(--hi)}
+.vp-card.redsuit .vp-cv{color:var(--down)}
+.vp-card .vp-cv{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700}
+.vp-card .vp-hold{font-family:'Orbitron';font-size:8px;letter-spacing:.1em;color:var(--dim)}
+.vp-card.held{border-color:var(--amber);transform:translateY(-6px);box-shadow:0 6px 16px -6px var(--amber)}
+.vp-card.held .vp-hold{color:var(--amber)}
+.vp-pay{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.vp-pay-row{display:flex;justify-content:space-between;padding:5px 10px;font-size:12px;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--line)}
+.vp-pay-row:last-child{border-bottom:none}
+
+/* ── pachinko ── */
+.pk-cv{display:block;width:100%;max-width:340px;margin:6px auto;border:1px solid var(--line2);border-radius:14px;background:#080a18}
+
+/* ── oracle prediction markets ── */
+.pm-bar{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin-top:10px}
+.pm-seg{display:flex;align-items:center;justify-content:center;min-width:0;transition:flex .4s ease}
+.pm-seg span{font-size:9px;font-weight:700;color:rgba(0,0,0,.7);font-family:'IBM Plex Mono',monospace}
+.pm-out{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line2);border-left:3px solid var(--c,var(--cyan));border-radius:10px;margin-bottom:8px;background:var(--glass);transition:transform .12s,border-color .12s}
+.pm-out.sel{border-color:var(--c);box-shadow:0 0 0 1px var(--c) inset;transform:translateX(2px)}
+.pm-out[onclick]{cursor:pointer}
+.pm-out-l{display:flex;align-items:center;gap:8px;font-size:14px}
+.pm-dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 8px var(--c)}
+.pm-out-r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.pm-pct{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700}
+.pm-opt{display:block;width:100%}
+.pm-seed-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.pm-seed-lbl{flex:1;min-width:0;display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-seed-row input{flex:0 0 120px;width:120px}
+
+/* ── stardeck arcade ── */
+.ar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ar-tile{border:1px solid var(--line2);border-top:2px solid var(--acc);border-radius:14px;padding:16px 14px;background:var(--glass);cursor:pointer;transition:transform .12s,border-color .12s;text-align:center}
+.ar-tile:active{transform:scale(.97)}
+.ar-glyph{font-size:34px;line-height:1}
+.ar-name{font-family:'Orbitron';font-size:12px;letter-spacing:.05em;margin-top:8px;color:var(--ink)}
+.ar-desc{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.4;min-height:30px}
+.ar-best{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--acc);margin-top:6px;letter-spacing:.08em}
+.ar-bar-title{font-family:'Orbitron';font-size:13px;letter-spacing:.05em}
+.ar-host{margin-top:12px}
+.ar-cv{display:block;width:100%;max-width:340px;margin:0 auto;border:1px solid var(--line2);border-radius:14px;background:#080a18;touch-action:none}
+.ar-score{display:flex;justify-content:space-between;align-items:center;max-width:340px;margin:10px auto 0;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700}
+.ar-hint{font-size:11px;text-align:center;margin:10px auto;max-width:340px;line-height:1.5}
+.ar-controls{display:flex;gap:8px;justify-content:center;max-width:340px;margin:10px auto 0}
+.ar-controls .btn{flex:1}
+.ar-dpad{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:12px}
+.ar-dpad-mid{display:flex;gap:48px}
+.ar-dpad button{width:56px;height:48px;border-radius:12px;background:var(--panel2);border:1px solid var(--line2);color:var(--cyan);font-size:20px}
+.ar-dpad button:active{background:var(--cyan);color:#001}
+/* minesweeper */
+.ms-grid{display:grid;gap:3px;max-width:340px;margin:10px auto 0}
+.ms-cell{aspect-ratio:1;border:1px solid var(--line2);border-radius:5px;background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;padding:0;-webkit-user-select:none;user-select:none}
+.ms-cell.rev{background:var(--inset-bg);border-color:var(--line);box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.ms-cell.mine{background:#ff5c7a;border-color:#ff5c7a}
+.ms-cell.flag{background:color-mix(in srgb,var(--amber) 22%,var(--panel))}
+.ms-cell.n1{color:#4dd2ff}.ms-cell.n2{color:#5dff8f}.ms-cell.n3{color:#ffd24d}.ms-cell.n4{color:#ff9a3d}
+.ms-cell.n5{color:#ff7aa8}.ms-cell.n6{color:#9a6bff}.ms-cell.n7,.ms-cell.n8{color:#ff5c7a}
+/* solitaire */
+.sol-top{display:flex;gap:5px;max-width:360px;margin:6px auto 0;align-items:flex-start}
+.sol-gap{flex:1}
+.sol-slot{width:13.2%;aspect-ratio:.7;cursor:pointer}
+.sol-board{display:flex;gap:1.2%;max-width:360px;margin:10px auto 0}
+.sol-col{flex:1;min-height:80px;cursor:pointer}
+.sol-stackcard{position:relative}
+.sol-card{aspect-ratio:.7;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(11px,3.4vw,15px);background:#f4f7ff;color:#0a1230;border:1px solid #0a1230;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.sol-card.red{color:#d11d4b}
+.sol-card.back{background:repeating-linear-gradient(45deg,#2a3a7a,#2a3a7a 4px,#1c2a5e 4px,#1c2a5e 8px);border:1px solid #4a5fa8}
+.sol-card.sel{outline:2px solid var(--amber);box-shadow:0 0 10px var(--amber);transform:translateY(-2px)}
+.sol-empty{aspect-ratio:.7;border:1px dashed var(--line2);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:16px}
+.sol-empty.tabempty{min-height:62px}
 </style>
 </head>
 <body>
@@ -1094,11 +1166,15 @@ const APPS={
     tabs:[["pay","WALLET"]]},
   bounties:{name:"BOUNTY BOARD",tag:"Contracts · Rewards",glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="14" y="12" width="36" height="44" rx="3"/><path d="M22 12v-3h20v3" stroke-width="2"/><circle cx="32" cy="34" r="9"/><circle cx="32" cy="34" r="2" fill="currentColor" stroke="none"/><path d="M32 22v-3M32 49v-3M21 34h-3M46 34h-3" stroke-width="2"/></svg>`,col:"var(--amber)",
     tabs:[["bounties","BOARD"]]},
+  predict:{name:"ORACLE MARKETS",tag:"Prediction bets · Live odds",glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><circle cx="32" cy="32" r="22"/><path d="M22 40 42 22"/><circle cx="25" cy="26" r="4"/><circle cx="39" cy="38" r="4"/></svg>`,col:"var(--cyan)",
+    tabs:[["predict","MARKETS"]]},
+  arcade:{name:"STARDECK ARCADE",tag:"Mini-games · High scores",glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="10" y="18" width="44" height="30" rx="8"/><path d="M22 28v8M18 32h8" stroke-width="3"/><circle cx="42" cy="30" r="2.6" fill="currentColor" stroke="none"/><circle cx="48" cy="38" r="2.6" fill="currentColor" stroke="none"/></svg>`,col:"var(--vio)",
+    tabs:[["arcade","GAMES"]]},
   gm:{name:"GM CONTROLS",tag:"Gamemaster override",glyph:`<svg class="gm-sigil" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M32 8 53 20 53 44 32 56 11 44 11 20Z"/><path d="M32 32 32 8M32 32 53 20M32 32 53 44M32 32 32 56M32 32 11 44M32 32 11 20" stroke-width="1.5" opacity=".8"/><circle cx="32" cy="32" r="5.5" fill="currentColor" stroke="none"/><circle cx="32" cy="32" r="9" stroke-width="1.2" opacity=".5"/><circle cx="32" cy="8" r="2.4" fill="currentColor" stroke="none"/><circle cx="53" cy="20" r="2.4" fill="currentColor" stroke="none"/><circle cx="53" cy="44" r="2.4" fill="currentColor" stroke="none"/><circle cx="32" cy="56" r="2.4" fill="currentColor" stroke="none"/><circle cx="11" cy="44" r="2.4" fill="currentColor" stroke="none"/><circle cx="11" cy="20" r="2.4" fill="currentColor" stroke="none"/></svg>`,col:"var(--amber)",
     tabs:[["admin","CONSOLE"]]}
 };
 // every app is always shown on the pad; locked ones throw up an access wall
-function launcherApps(){return ["exchange","casino","blackmarket","notes","pay","bounties","gm"]}
+function launcherApps(){return ["exchange","casino","arcade","predict","blackmarket","notes","pay","bounties","gm"]}
 // is an app currently locked to this player? (GM config / clearance)
 function appLocked(id){
   if(id==="casino")return !!(CFG&&CFG.casino===false);
@@ -1191,7 +1267,7 @@ async function auth(isNew){
     if(!ex||ex.p!==hp)return renderAuth("Callsign or access code not recognized.",true);
     ME=ex;MYKEY=key;
   }
-  await settleOptions();await housekeeping();snapshotEq();logAct(isNew?"created an account":"logged in");renderApp();
+  await settleOptions();await housekeeping();snapshotEq();logAct(isNew?"created an account":"logged in");maybeSimBots();renderApp();
 }
 function snapshotEq(){if(!ME)return;ME.eq=ME.eq||[];const nw=netWorth(ME);
   const last=ME.eq[ME.eq.length-1];
@@ -1238,13 +1314,13 @@ function renderApp(){
   <div id="scan-sweep"></div>`;
   buildTicker();renderTab();tick();
 }
-function logout(){ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
-function go(t){if(APP==="notes")commitNote();TAB=t;OPEN=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
+function logout(){if(typeof arcadeStop==="function")arcadeStop();ME=null;MYKEY=null;ADMIN=false;OPEN=null;APP=null;renderAuth()}
+function go(t){if(APP==="notes")commitNote();if(typeof arcadeStop==="function"&&!(APP==="arcade"&&t==="arcade"))arcadeStop();TAB=t;OPEN=null;LBSEL=null;$("#modal-slot").innerHTML="";document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.textContent===TAB.toUpperCase()||b.getAttribute("onclick").includes("'"+t+"'")));renderTab();const vw=$("#view");if(vw){vw.classList.remove("viewin");void vw.offsetWidth;vw.classList.add("viewin")}}
 // open a data-pad app (lands on its first tab); re-renders the shell so the nav swaps.
 // Locked apps still "open" — they just render an unauthorized-access wall.
-function openApp(id){if(!APPS[id])return;APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;ADTAB="market";BOUNTYSEL=null;BOUNTYFILTER="open";BOUNTYLOADED=false;renderApp()}
+function openApp(id){if(!APPS[id])return;if(typeof arcadeStop==="function")arcadeStop();APP=id;TAB=APPS[id].tabs[0][0];OPEN=null;NOTESEL=null;NOTESCOPE="private";NOTEFOLDER=null;PAYUSERS=null;ADTAB="market";BOUNTYSEL=null;BOUNTYFILTER="open";BOUNTYLOADED=false;LBSEL=null;PREDSEL=null;PREDLOADED=false;ARGAME=null;renderApp()}
 // return to the data-pad home screen
-function goHome(){APP=null;OPEN=null;renderApp()}
+function goHome(){if(typeof arcadeStop==="function")arcadeStop();APP=null;OPEN=null;renderApp()}
 // market-status chips for the running ticker — shown only when the dedicated
 // banners aren't visible (i.e. anywhere outside the AGX Exchange app)
 function statusTickerBits(){
@@ -1272,6 +1348,8 @@ function renderTab(){
   if(TAB==="notesgraph")return renderNotesGraph(v);
   if(TAB==="pay")return renderPay(v);
   if(TAB==="bounties")return renderBounties(v);
+  if(TAB==="predict")return renderPredict(v);
+  if(TAB==="arcade")return renderArcade(v);
   if(TAB==="portfolio")return renderPortfolio(v);
   if(TAB==="leaders")return renderLeaders(v);
   if(TAB==="feed")return renderFeed(v);
@@ -2729,7 +2807,7 @@ function portfolioSeries(ms,n=110){
     if(e.side==="BUY"){cash-=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)+e.q}
     else if(e.side==="SELL"){cash+=e.q*e.p;hold[e.sym]=(hold[e.sym]||0)-e.q}
     else if(e.side==="GRANT"){hold[e.sym]=(hold[e.sym]||0)+e.q}
-    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"||e.side==="BOUNTY"){cash+=e.d}
+    else if(e.side==="ADJ"||e.side==="DIV"||e.side==="BET"||e.side==="XFER"||e.side==="PAY"||e.side==="BOUNTY"||e.side==="PRED"){cash+=e.d}
     else if(e.side==="OBUY"){cash-=e.q*e.p}
     else if(e.side==="OSELL"||e.side==="OEXP"){cash+=e.q*e.p}
     else if(e.side==="SHORT"){cash+=e.q*e.p;shorts[e.sym]=(shorts[e.sym]||0)+e.q}
@@ -2751,7 +2829,7 @@ function portfolioSeries(ms,n=110){
 const HIST_LBL={BUY:["BUY","up"],SELL:["SELL","down"],GRANT:["GM GRANT","amber"],ADJ:["GM CREDIT ADJ","amber"],
   OBUY:["BUY OPT","up"],OSELL:["CLOSE OPT","down"],OEXP:["OPT EXPIRED","dim"],
   SHORT:["SHORT","amber"],COVER:["COVER","cyan"],DIV:["DIVIDEND","up"],INT:["MARGIN INT","down"],
-  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"],BOUNTY:["BOUNTY","amber"]};
+  BET:["CASINO","vio"],OFAIL:["ORDER FAILED","dim"],XFER:["FOUNDRY XFER","cyan"],PAY:["AGX PAY","up"],BOUNTY:["BOUNTY","amber"],PRED:["ORACLE MARKET","cyan"]};
 function histLine(h){
   const L=HIST_LBL[h.side]||[h.side,"dim"];
   let body=h.side==="ADJ"?fmt(h.d)+" by gamemaster":
@@ -2761,6 +2839,7 @@ function histLine(h){
     h.side==="XFER"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+h.o:""):
     h.side==="PAY"?(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" \u00B7 from ":" \u00B7 to ")+esc(h.with):"")+(h.memo?" \u00B7 \u201C"+esc(h.memo)+"\u201D":""):
     h.side==="BOUNTY"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+esc(h.o):" reward"):
+    h.side==="PRED"?(h.d>=0?"+":"")+fmt(h.d)+(h.o?" \u00B7 "+esc(h.o):""):
     `${+(+h.q).toFixed(4)} ${h.sym}${h.o?" \u00B7 "+h.o:""} @ ${fmt(h.p)}`;
   return `<div class="feed-item"><div><b class="${L[1]}">${L[0]}</b> <span class="mono">${body}</span></div>
    <div class="t">${ago(h.at)}</div></div>`;
@@ -2841,41 +2920,145 @@ function renderPortfolio(v){
 }
 
 /* ---------- leaderboard ---------- */
+/* ── synthetic traders ────────────────────────────────────────────────────
+   Persistent bot accounts that actually hold positions and place simulated
+   trades over time. They share the same account shape as real operatives, so
+   netWorth()/trueRet() work on them directly and their P&L is driven by the
+   real price engine. Each bot has a trading "style" that biases its picks. */
 const BOT_NAMES=["Zo_Prime","Ratrod","Cpt_Valeros","Unit-734","YsokiTrader","LadyNova","GrimVesk","DriftDiva","Skitter_S","Obozaya_Fan"];
-function botEntries(){
-  if(CFG.bots===false)return[];
-  const t=gameNow(),ep=CFG.epoch;
-  const years=(t-ep)/(365*864e5);
-  return BOT_NAMES.map(n=>{
-    const sd=h32("bot:"+n);
-    const tr=rnd(sd,1)*0.18+0.03;   // -15% … +21% annual log-drift
-    const nw=CFG.startCash*Math.exp(
-      tr*years
-      +0.09*noise(sd,t/1.3e8)
-      +0.05*noise(sd^7,t/2.5e7)
-    );
-    return {n,nw,ret:(nw/CFG.startCash-1)*100,
-      pos:2+(sd%7),joined:ep+(sd%24)*864e5};
-  });
+const BOT_STYLES=["value","momentum","degenerate","indexer","balanced"];
+function botKey(n){return "bot:"+n.toLowerCase().replace(/[^a-z0-9_-]/g,"_");}
+function botTradeable(){return ASSETS.filter(a=>!a.bm&&a.type!=="B");}
+// fresh synthetic account, pre-seeded with a handful of real positions
+function newBot(n){
+  const sd=h32("bot:"+n);
+  const created=CFG.epoch+(sd%48)*432e5;
+  const b={n,bot:true,cash:CFG.startCash,sc:CFG.startCash,dep:0,hold:{},hist:[],
+    created,g0:created,eq:[],lastSim:gameNow(),style:BOT_STYLES[sd%BOT_STYLES.length]};
+  for(let i=0;i<3+(sd%3);i++)botTradeOnce(b,true);   // open some starting positions
+  b.eq.push([Date.now(),netWorth(b)]);
+  return b;
 }
+// pick a target asset for a bot according to its style
+function botPick(b){
+  const pool=botTradeable();if(!pool.length)return null;
+  const sample=[];for(let i=0;i<6;i++)sample.push(pool[Math.floor(Math.random()*pool.length)]);
+  const m=a=>chgMs(a.sym,2592e6);   // 1-month change
+  if(b.style==="value")return sample.sort((x,y)=>m(x)-m(y))[0];        // most beaten-down
+  if(b.style==="momentum")return sample.sort((x,y)=>m(y)-m(x))[0];     // hottest
+  if(b.style==="degenerate"){const x=pool.filter(a=>a.type==="X");if(x.length&&Math.random()<0.7)return x[Math.floor(Math.random()*x.length)];}
+  if(b.style==="indexer"){const e=pool.filter(a=>a.type==="E");if(e.length&&Math.random()<0.7)return e[Math.floor(Math.random()*e.length)];}
+  return sample[Math.floor(Math.random()*sample.length)];
+}
+// one simulated trade for a bot (buyBias forces a buy, used when seeding)
+function botTradeOnce(b,buyBias){
+  b.hold=b.hold||{};b.hist=b.hist||[];
+  const f=feeFrac(),held=Object.keys(b.hold);
+  const wantSell=!buyBias&&held.length&&Math.random()<0.4;
+  if(wantSell){
+    const sym=held[Math.floor(Math.random()*held.length)],a=BYSYM[sym];if(!a)return;
+    const frac=Math.random()<0.5?1:0.3+Math.random()*0.4;
+    const pEff=tradePx(sym,-1)*(1-f),q=b.hold[sym].q*frac;
+    if(q<=0)return;
+    b.cash+=q*pEff;const pos=b.hold[sym];pos.c-=pos.c*(q/pos.q);pos.q-=q;
+    if(pos.q<=1e-9)delete b.hold[sym];
+    b.hist.push({at:Date.now(),g:gameNow(),sym,side:"SELL",q,p:pEff});
+  }else{
+    const a=botPick(b);if(!a)return;
+    const spend=b.cash*(0.1+Math.random()*0.25);
+    if(spend<1)return;
+    const pEff=tradePx(a.sym,1)*(1+f),q=spend/pEff;
+    if(q<=0||spend>b.cash)return;
+    b.cash-=spend;const pos=b.hold[a.sym]||{q:0,c:0};pos.q+=q;pos.c+=spend;b.hold[a.sym]=pos;
+    b.hist.push({at:Date.now(),g:gameNow(),sym:a.sym,side:"BUY",q,p:pEff});
+  }
+  if(b.hist.length>200)b.hist=b.hist.slice(-200);
+}
+// load every bot account, seeding any that don't exist yet
+async function loadBots(){
+  if(CFG.bots===false)return[];
+  const got=await Promise.all(BOT_NAMES.map(n=>SG.get(botKey(n))));
+  const out=[];
+  for(let i=0;i<BOT_NAMES.length;i++){
+    let b=got[i];
+    if(!b||!b.n){b=newBot(BOT_NAMES[i]);try{await SG.set(botKey(BOT_NAMES[i]),b);}catch(e){}}
+    out.push(b);
+  }
+  return out;
+}
+// advance the synthetic traders — globally throttled so one client steps them
+// every ~45s of real time, avoiding every terminal hammering the store.
+async function maybeSimBots(){
+  if(CFG.bots===false)return;
+  let mark;try{mark=await SG.get("botsim");}catch(e){return;}
+  const now=Date.now();
+  if(mark&&mark.at&&now-mark.at<45000)return;
+  try{await SG.set("botsim",{at:now});}catch(e){return;}   // claim the slot
+  const got=await Promise.all(BOT_NAMES.map(n=>SG.get(botKey(n))));
+  for(let i=0;i<BOT_NAMES.length;i++){
+    const n=BOT_NAMES[i];let b=got[i];
+    if(!b||!b.n)b=newBot(n);
+    const g=gameNow(),elapsed=g-(b.lastSim||g);
+    const trades=Math.min(6,Math.max(1,Math.floor(elapsed/(3*36e5))));
+    for(let k=0;k<trades;k++)botTradeOnce(b);
+    b.lastSim=g;
+    b.eq=b.eq||[];b.eq.push([Date.now(),netWorth(b)]);if(b.eq.length>200)b.eq=b.eq.slice(-200);
+    try{await SG.set(botKey(n),b);}catch(e){}
+  }
+}
+let LBSEL=null,LB_CACHE={};
 async function renderLeaders(v){
+  if(LBSEL&&LB_CACHE[LBSEL])return renderTraderProfile(v,LB_CACHE[LBSEL]);
   v.innerHTML=`<div class="dim" style="padding:30px;text-align:center">Scanning operative accounts…</div>`;
   const keys=await SG.list("u:");
-  const entries=[];
+  const entries=[];LB_CACHE={};
   const users=await Promise.all(keys.slice(0,60).map(k=>SG.get(k)));
-  for(const u of users){if(u)
-    entries.push({n:u.n,nw:netWorth(u),ret:trueRet(u),pos:Object.keys(u.hold||{}).length,joined:u.created||Date.now(),me:u.n===ME.n})}
-  for(const b of botEntries())entries.push(b);
+  for(const u of users){if(u&&u.n){
+    LB_CACHE[u.n]=u;
+    entries.push({n:u.n,nw:netWorth(u),ret:trueRet(u),pos:Object.keys(u.hold||{}).length,joined:u.created||Date.now(),me:u.n===ME.n})}}
+  const bots=await loadBots();
+  for(const b of bots){LB_CACHE[b.n]=b;
+    entries.push({n:b.n,nw:netWorth(b),ret:trueRet(b),pos:Object.keys(b.hold||{}).length,joined:b.created||Date.now(),bot:true})}
   entries.sort((a,b)=>{const x=a.ret,y=b.ret;return (isNaN(y)?-1e9:y)-(isNaN(x)?-1e9:x)});
   v.innerHTML=`<div class="sect" style="margin-top:18px">OPERATIVE LEADERBOARD</div>
-   <div class="dim" style="font-size:11px;margin-bottom:4px">Ranked by true return — gamemaster credit injections don't count.</div>`+
+   <div class="dim" style="font-size:11px;margin-bottom:4px">Ranked by true return — gamemaster credit injections don't count. Tap a trader to inspect their positions.</div>`+
    entries.map((u,i)=>{
-     return `<div class="row" style="cursor:default">
+     return `<div class="row" onclick="openTrader('${esc(u.n).replace(/'/g,"\\'")}')">
       <div class="lb-rank">${i===0?"🥇":i===1?"🥈":i===2?"🥉":String(i+1).padStart(2,"0")}</div>
-      <div class="nm"><div class="n1" style="font-weight:700">${esc(u.n)}${u.me?' <span class="cyan">(you)</span>':""}</div>
+      <div class="nm"><div class="n1" style="font-weight:700">${esc(u.n)}${u.me?' <span class="cyan">(you)</span>':u.bot?' <span class="dim" style="font-size:10px">⛭ SYNTH</span>':""}</div>
       <div class="n2">${u.pos} POSITIONS · JOINED ${ago(u.joined)}</div></div>
       <div class="pxc"><div class="p">${fmt(u.nw)}</div><div class="c ${isNaN(u.ret)?"dim":cls(u.ret)}">${isNaN(u.ret)?"—":pct(u.ret)}</div></div></div>`;
    }).join("");
+}
+function openTrader(n){if(LB_CACHE[n]){LBSEL=n;renderTab();}}
+function backToLeaders(){LBSEL=null;renderTab();}
+function renderTraderProfile(v,u){
+  const nw=netWorth(u),tr=trueRet(u);
+  const holds=Object.keys(u.hold||{}).filter(s=>BYSYM[s]&&u.hold[s].q>1e-9)
+    .map(s=>{const pos=u.hold[s],val=pos.q*px(s),pl=val-pos.c;return{s,q:pos.q,val,pl,plp:pos.c>0?pl/pos.c*100:0}})
+    .sort((a,b)=>b.val-a.val);
+  const trades=(u.hist||[]).filter(h=>h.side==="BUY"||h.side==="SELL").slice(-14).reverse();
+  v.innerHTML=`
+   <div class="note-bar"><button class="btn ghost note-back" onclick="backToLeaders()">‹ LEADERBOARD</button></div>
+   <div class="card" style="margin-top:10px">
+     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+       <div style="font-family:'Orbitron';font-size:17px">${esc(u.n)}${u.bot?' <span class="dim" style="font-size:10px">⛭ SYNTHETIC'+(u.style?" · "+esc(u.style).toUpperCase():"")+'</span>':u.n===ME.n?' <span class="cyan" style="font-size:11px">(you)</span>':""}</div>
+     </div>
+     <div class="hud-split" style="margin-top:10px">
+       <div class="hud-readout"><div class="hud-k">NET WORTH</div><div class="hud-v cyan">${fmt(nw)}</div></div>
+       <div class="hud-readout"><div class="hud-k">TRUE RETURN</div><div class="hud-v ${isNaN(tr)?"dim":cls(tr)}">${isNaN(tr)?"—":pct(tr)}</div></div>
+       <div class="hud-readout"><div class="hud-k">CASH</div><div class="hud-v">${fmt(u.cash||0)}</div></div>
+     </div>
+   </div>
+   <div class="sect" style="margin-top:16px">POSITIONS · ${holds.length}</div>
+   ${holds.length?holds.map(h=>`<div class="row" onclick="openAsset('${h.s}')">
+       <div class="sym">${h.s}</div>
+       <div class="nm"><div class="n1">${esc(BYSYM[h.s].name)}</div><div class="n2">${(+h.q.toFixed(4))} UNITS · MKT ${fmt(h.val)}</div></div>
+       <div class="pxc"><div class="p">${fmt(h.val)}</div><div class="c ${cls(h.pl)}">${pct(h.plp)}</div></div></div>`).join("")
+     :`<div class="dim" style="padding:20px;text-align:center">No open positions — holding cash.</div>`}
+   <div class="sect" style="margin-top:18px">RECENT TRADES</div>
+   ${trades.length?trades.map(histLine).join(""):`<div class="dim" style="padding:20px;text-align:center">No trades on record.</div>`}
+   <div style="height:20px"></div>`;
 }
 
 /* ---------- guide + recommendations ---------- */
@@ -2951,7 +3134,7 @@ function renderGuide(v){
    ${guideSection("Margin","Toggle MARGIN ON to borrow and buy more than your cash allows (up to your buying-power limit). You pay interest over time, and if your net worth drops too low you get a <b>margin call</b> — positions force-sold to repay the loan. Powerful but dangerous.")}
    ${guideSection("Short selling","SHORT profits when a price <i>falls</i> — you borrow shares, sell now, buy back cheaper. If the price rises against you, losses mount and you can be margin-called. The way to profit in a crash.")}
    ${guideSection("Limit & stop orders","Set automated orders on any asset: a <b>limit</b> buys/sells when price reaches your target; a <b>stop</b> (stop-loss) sells if price drops to a floor. They trigger even while you're offline — set traps before logging off.")}
-   ${guideSection("The casino","Roulette, blackjack, over/under, and slots. Pure gambling with a real house edge — fun for a flutter, but the math favors the house. Don't bet the portfolio.")}
+   ${guideSection("The casino","Roulette, blackjack, video poker, pachinko, over/under, and slots. Pure gambling with a real house edge — fun for a flutter, but the math favors the house. Don't bet the portfolio.")}
    ${guideSection("Tips from the floor","• Beaten-down quality names often recover — buy fear, sell greed.<br>• A stock that already ran 100% may be late in its cycle.<br>• Diversify across sectors; they don't all move together.<br>• Park idle credits in TBIL to earn the risk-free rate.<br>• Any risky bet should beat the ~3% bond yield to be worth it.")}
    <div style="height:20px"></div>`;
 }
@@ -2974,8 +3157,657 @@ function renderFeed(v){
    }).join("")||`<div class="dim" style="padding:24px;text-align:center">All quiet on the infosphere.</div>`);
 }
 
+/* ---------- ORACLE MARKETS (player + GM prediction betting) ----------
+   Kalshi-style parimutuel markets. Any operative — or the GM — can host a
+   yes/no (or multi-outcome) question. Others stake credits on an outcome; the
+   host or GM resolves it, and the entire pool is split among the winners in
+   proportion to their stake. Stakes and payouts move real credits and count
+   toward true return, since the money comes from other players, not the GM. */
+let PREDICTIONS=[],PREDLOADED=false,PREDSEL=null,PREDFILTER="open",PREDBUSY=false,PREDOPT=0,PREDNEW=false;
+async function loadPredictions(){try{PREDICTIONS=(await SG.get("predmarkets"))||[]}catch(e){PREDICTIONS=PREDICTIONS||[]}}
+async function savePredictions(){return await SG.set("predmarkets",PREDICTIONS)}
+function predById(id){return PREDICTIONS.find(x=>x.id===id)||null}
+function predUID(){return "p"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function predPools(m){
+  // start each outcome's pool with any GM-seeded house liquidity, then add real bets
+  const p=m.opts.map((o,i)=>(m.seed&&m.seed[i])||0);let tot=p.reduce((a,b)=>a+b,0);
+  for(const b of m.bets||[]){if(b.opt>=0&&b.opt<p.length){p[b.opt]+=b.amt;tot+=b.amt}}return{p,tot};}
+function predSeedTotal(m){return (m.seed||[]).reduce((a,b)=>a+(b||0),0);}
+function predMine(m){return (m.bets||[]).filter(b=>b.u===ME.n);}
+function predMyStake(m,opt){return predMine(m).filter(b=>opt==null||b.opt===opt).reduce((s,b)=>s+b.amt,0);}
+function canManagePred(m){return ADMIN||m.creator===ME.n;}
+async function refreshPredict(){
+  const v=$("#view");if(v)v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing markets…</div>`;
+  await loadPredictions();PREDLOADED=true;renderTab();
+}
+function renderPredict(v){
+  if(!PREDLOADED){v.innerHTML=`<div class="dim" style="padding:34px;text-align:center">Syncing markets…</div>`;refreshPredict();return;}
+  if(PREDNEW)return renderPredNew(v);
+  const sel=PREDSEL&&predById(PREDSEL);
+  if(sel)return renderPredDetail(v,sel);
+  let list=PREDICTIONS.slice().sort((a,b)=>(b.updated||0)-(a.updated||0)).filter(m=>{
+    if(PREDFILTER==="open")return m.status==="open";
+    if(PREDFILTER==="mine")return m.creator===ME.n||predMine(m).length;
+    if(PREDFILTER==="resolved")return m.status==="resolved"||m.status==="void";
+    return true;
+  });
+  const openCount=PREDICTIONS.filter(m=>m.status==="open").length;
+  v.innerHTML=`
+    <div class="card" style="margin-top:14px;border-color:var(--cyan)"><div class="hud-row">
+      <div style="flex:1;min-width:0"><div class="hud-tag"><span class="hud-dot" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></span>ORACLE PREDICTION MARKETS · ${openCount} OPEN</div>
+        <div class="dim" style="font-size:11px;margin-top:6px">Stake credits on outcomes. When a market resolves, the whole pool is split among winners by stake. Anyone can host a market — the host${ADMIN?" or you as GM":""} settles it.</div></div>
+      <div style="display:flex;gap:6px"><button class="btn ghost" style="padding:9px 11px" onclick="refreshPredict()">⟳</button><button class="btn" style="background:var(--cyan);color:#001" onclick="startNewPred()">+ HOST</button></div>
+    </div></div>
+    <div class="chips">${[["open","OPEN"],["mine","MINE"],["resolved","SETTLED"],["all","ALL"]].map(f=>`<button class="chip ${PREDFILTER===f[0]?"on":""}" onclick="setPredFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
+    <div>${list.length?list.map(predCard).join(""):`<div class="dim" style="padding:34px;text-align:center">No markets here yet. Hit + HOST to open one.</div>`}</div>`;
+}
+function setPredFilter(f){PREDFILTER=f;renderTab();}
+const PRED_STAT={open:["LIVE","var(--up)"],resolved:["SETTLED","var(--dim)"],void:["VOIDED","var(--amber)"]};
+function predOddsBar(m){
+  const {p,tot}=predPools(m);
+  return `<div class="pm-bar">${m.opts.map((o,i)=>{
+    const frac=tot>0?p[i]/tot:1/m.opts.length, pc=Math.round(frac*100);
+    const col=PM_COLS[i%PM_COLS.length];
+    return `<div class="pm-seg" style="flex:${Math.max(frac,0.06)};background:${col}" title="${esc(o)} ${pc}%"><span>${pc}%</span></div>`;
+  }).join("")}</div>`;
+}
+const PM_COLS=["#4dd2ff","#ff7aa8","#ffd24d","#5dff8f","#9a6bff","#ff9a3d"];
+function predCard(m){
+  const {tot}=predPools(m), st=PRED_STAT[m.status]||PRED_STAT.open, mine=predMyStake(m);
+  return `<div class="bounty-card ${m.status!=="open"?"done":""}" style="--bd:var(--cyan)" onclick="openPred('${m.id}')">
+    <div class="bounty-h"><span class="bounty-title">${esc(m.q||"Untitled market")}</span>
+      <span class="bounty-reward">${fmt(tot)} <span class="dim" style="font-size:10px">POOL</span></span></div>
+    <div class="bounty-meta">
+      <span class="bounty-tag" style="--c:${st[1]}">${st[0]}</span>
+      <span class="bounty-tag" style="--c:var(--dim)">HOST @${esc(m.creator)}${m.gm?" · GM":""}</span>
+      ${mine>0?`<span class="bounty-tag" style="--c:var(--cyan)">YOUR STAKE ${fmt(mine)}</span>`:""}
+      ${m.status==="resolved"?`<span class="bounty-tag" style="--c:var(--up)">✓ ${esc(m.opts[m.outcome]||"")}</span>`:""}
+    </div>
+    ${predOddsBar(m)}</div>`;
+}
+function openPred(id){if(predById(id)){PREDSEL=id;PREDOPT=0;renderTab();}}
+function backToPred(){PREDSEL=null;PREDNEW=false;renderTab();}
+function startNewPred(){PREDNEW=true;PREDSEL=null;renderTab();}
+function renderPredNew(v){
+  v.innerHTML=`
+    <div class="note-bar"><button class="btn ghost note-back" onclick="backToPred()">‹ MARKETS</button>
+      <div class="note-bar-r"><button class="btn" style="background:var(--cyan);color:#001" onclick="createPred()">OPEN MARKET</button></div></div>
+    <div class="card" style="margin-top:10px">
+      <h3>HOST A PREDICTION MARKET</h3>
+      <div class="dim" style="font-size:11px;margin:4px 0 10px">Pose a question with a clear, verifiable outcome. You'll settle it once the result is known. The pool is split among winners — you take no cut.</div>
+      <input id="pm-q" placeholder="Will the AGXT index close above ₢150 this session?" maxlength="140" style="margin-bottom:8px">
+      <textarea id="pm-desc" placeholder="Optional details / resolution criteria…" style="width:100%;min-height:64px;margin-bottom:10px"></textarea>
+      <label class="dim" style="font-size:11px;letter-spacing:.1em">OUTCOMES</label>
+      <div id="pm-opts" style="margin-top:6px">
+        ${[0,1].map(i=>`<input class="pm-opt" placeholder="Outcome ${i+1}" value="${i===0?"YES":"NO"}" maxlength="40" style="margin-bottom:6px">`).join("")}
+      </div>
+      <button class="btn ghost" style="font-size:12px" onclick="addPredOpt()">+ ADD OUTCOME</button>
+    </div>`;
+}
+function addPredOpt(){
+  const box=$("#pm-opts");if(!box)return;const n=box.querySelectorAll(".pm-opt").length;if(n>=6)return toast("Up to 6 outcomes.",true);
+  const inp=document.createElement("input");inp.className="pm-opt";inp.placeholder="Outcome "+(n+1);inp.maxLength=40;inp.style.marginBottom="6px";box.appendChild(inp);
+}
+async function createPred(){
+  const q=($("#pm-q").value||"").trim();
+  if(q.length<6)return toast("Write a clearer question.",true);
+  const opts=[...document.querySelectorAll(".pm-opt")].map(i=>i.value.trim()).filter(Boolean);
+  if(opts.length<2)return toast("Need at least two outcomes.",true);
+  if(new Set(opts.map(o=>o.toLowerCase())).size!==opts.length)return toast("Outcomes must be distinct.",true);
+  const desc=($("#pm-desc").value||"").trim().slice(0,400);
+  await loadPredictions();
+  const m={id:predUID(),q,desc,opts,bets:[],status:"open",creator:ME.n,gm:!!ADMIN,created:Date.now(),updated:Date.now()};
+  PREDICTIONS.unshift(m);await savePredictions();
+  PREDNEW=false;PREDSEL=m.id;toast("Market opened. May the odds find you.");renderTab();
+}
+function renderPredDetail(v,m){
+  const {p,tot}=predPools(m), st=PRED_STAT[m.status]||PRED_STAT.open;
+  const myBets=predMine(m), manage=canManagePred(m);
+  const betList=(m.bets||[]).slice().sort((a,b)=>b.at-a.at).slice(0,30);
+  v.innerHTML=`
+    <div class="note-bar"><button class="btn ghost note-back" onclick="backToPred()">‹ MARKETS</button>
+      ${manage&&m.status==="open"?`<div class="note-bar-r"><button class="btn ghost" style="color:var(--down)" onclick="voidPred()">VOID</button></div>`:""}</div>
+    <div class="card" style="margin-top:10px;border-color:var(--cyan)">
+      <div style="font-family:'Orbitron';font-size:16px;line-height:1.35">${esc(m.q)}</div>
+      <div class="bounty-meta" style="margin-top:8px">
+        <span class="bounty-tag" style="--c:${st[1]}">${st[0]}</span>
+        <span class="bounty-tag" style="--c:var(--dim)">HOST @${esc(m.creator)}${m.gm?" · GM":""}</span>
+        <span class="bounty-tag" style="--c:var(--cyan)">POOL ${fmt(tot)}</span>
+      </div>
+      ${m.desc?`<div class="dim" style="font-size:12px;line-height:1.5;margin-top:8px;white-space:pre-wrap">${esc(m.desc)}</div>`:""}
+    </div>
+    <div class="sect" style="margin-top:14px">OUTCOMES & ODDS</div>
+    ${m.opts.map((o,i)=>{
+      const frac=tot>0?p[i]/tot:1/m.opts.length, pc=(frac*100).toFixed(1);
+      const myb=predMyStake(m,i);
+      const win=m.status==="resolved"&&m.outcome===i;
+      const col=PM_COLS[i%PM_COLS.length];
+      return `<div class="pm-out ${PREDOPT===i&&m.status==="open"?"sel":""}" style="--c:${col}" ${m.status==="open"?`onclick="PREDOPT=${i};renderTab()"`:""}>
+        <div class="pm-out-l"><span class="pm-dot" style="background:${col}"></span><b>${esc(o)}</b>${win?' <span class="up">✓ WON</span>':""}</div>
+        <div class="pm-out-r"><span class="pm-pct">${pc}%</span>${myb>0?`<span class="dim" style="font-size:11px">you ${fmt(myb)}</span>`:""}</div>
+      </div>`;
+    }).join("")}
+    ${m.status==="open"?`
+      <div class="card" style="margin-top:12px">
+        <div class="dim" style="font-size:11px;margin-bottom:8px">Staking on <b style="color:${PM_COLS[PREDOPT%PM_COLS.length]}">${esc(m.opts[PREDOPT])}</b> — if it wins you'll take your share of the ${fmt(tot)} pool.</div>
+        <div class="inline"><input id="pm-amt" type="number" step="any" inputmode="decimal" placeholder="Stake ₢">
+          <button class="btn" style="background:var(--cyan);color:#001" onclick="placeBet()">PLACE BET</button></div>
+        <div id="pm-quote" class="dim mono" style="font-size:11px;margin-top:6px"></div>
+      </div>`:""}
+    ${ADMIN&&m.status==="open"?`
+      <div class="card" style="margin-top:12px;border-color:var(--vio)">
+        <h3 style="color:var(--vio)">GM · SEED MARKET LIQUIDITY</h3>
+        <div class="dim" style="font-size:11px;margin:4px 0 10px">Inject house credits into each side to make this read like a deeper, busier market. Seed money shapes the odds and enriches the winners' payout — it is not refunded if the market is voided.</div>
+        ${m.opts.map((o,i)=>`<div class="pm-seed-row">
+          <span class="pm-seed-lbl"><span class="pm-dot" style="background:${PM_COLS[i%PM_COLS.length]}"></span>${esc(o)}${m.seed&&m.seed[i]?` <span class="dim">(${fmt(m.seed[i])})</span>`:""}</span>
+          <input id="pm-seed-${i}" type="number" step="any" inputmode="decimal" placeholder="+ ₢">
+        </div>`).join("")}
+        <div class="inline" style="margin-top:8px">
+          <button class="btn" style="background:var(--vio)" onclick="seedMarket()">ADD LIQUIDITY</button>
+          ${predSeedTotal(m)>0?`<button class="btn ghost" onclick="clearSeed()">CLEAR SEED</button>`:""}
+        </div>
+        ${predSeedTotal(m)>0?`<div class="dim mono" style="font-size:11px;margin-top:6px">House liquidity in pool: ${fmt(predSeedTotal(m))}</div>`:""}
+      </div>`:""}
+    ${manage&&m.status==="open"?`
+      <div class="card" style="margin-top:12px;border-color:var(--amber)">
+        <h3 style="color:var(--amber)">SETTLE MARKET</h3>
+        <div class="dim" style="font-size:11px;margin:4px 0 8px">Declare the winning outcome — the pool pays out to everyone who staked it.</div>
+        <div class="inline" style="flex-wrap:wrap;gap:6px">${m.opts.map((o,i)=>`<button class="btn ghost" onclick="resolvePred(${i})">${esc(o)}</button>`).join("")}</div>
+        <button class="btn ghost" style="margin-top:8px;color:var(--down)" onclick="deletePred()">DELETE MARKET</button>
+      </div>`:""}
+    ${m.status==="resolved"?`<div class="card" style="margin-top:12px"><div class="up" style="font-size:13px">✓ Resolved: <b>${esc(m.opts[m.outcome])}</b> — ${fmt(m.paidPool||0)} paid to ${m.winners||0} winner${m.winners===1?"":"s"}.</div></div>`:""}
+    ${m.status==="void"?`<div class="card" style="margin-top:12px"><div class="amber" style="font-size:13px">Market voided — all stakes refunded.</div></div>`:""}
+    <div class="sect" style="margin-top:16px">ORDER FLOW · ${(m.bets||[]).length}</div>
+    ${betList.length?betList.map(b=>`<div class="feed-item"><div><b>@${esc(b.u)}</b> <span class="mono">staked ${fmt(b.amt)} on ${esc(m.opts[b.opt]||"?")}</span></div><div class="t">${ago(b.at)}</div></div>`).join(""):`<div class="dim" style="padding:18px;text-align:center">No bets yet — be the first.</div>`}
+    <div style="height:20px"></div>`;
+  const amt=$("#pm-amt");if(amt)amt.addEventListener("input",updatePredQuote);
+}
+function updatePredQuote(){
+  const m=predById(PREDSEL);if(!m)return;const q=$("#pm-quote");if(!q)return;
+  const x=parseFloat($("#pm-amt").value);
+  const {p,tot}=predPools(m);
+  if(!x||x<=0){q.textContent="d100 of certainty — your share scales with the pool.";return;}
+  const winPool=p[PREDOPT]+x, newTot=tot+x;
+  const payout=winPool>0?x/winPool*newTot:x;
+  q.textContent=`If "${m.opts[PREDOPT]}" wins: ~${fmt(payout)} back (${(payout/x).toFixed(2)}×) at current pool.`;
+}
+// GM: add house liquidity to one or more outcomes of an open market
+async function seedMarket(){
+  if(!ADMIN||PREDBUSY)return;
+  const m0=predById(PREDSEL);if(!m0)return;
+  const adds=m0.opts.map((o,i)=>{const el=$("#pm-seed-"+i);const v=el?parseFloat(el.value):NaN;return isFinite(v)&&v>0?Math.round(v*100)/100:0;});
+  const total=adds.reduce((a,b)=>a+b,0);
+  if(total<=0)return toast("Enter an amount to add to at least one side.",true);
+  PREDBUSY=true;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||m.status!=="open"){PREDBUSY=false;toast("Market is closed.",true);return renderTab();}
+  m.seed=m.seed&&m.seed.length===m.opts.length?m.seed:m.opts.map(()=>0);
+  for(let i=0;i<m.opts.length;i++)m.seed[i]=(m.seed[i]||0)+adds[i];
+  m.updated=Date.now();
+  const ok=await savePredictions();PREDBUSY=false;
+  toast(ok?"Added "+fmt(total)+" in house liquidity.":"Failed to sync.",!ok);
+  renderTab();
+}
+async function clearSeed(){
+  if(!ADMIN||PREDBUSY)return;
+  const m0=predById(PREDSEL);if(!m0)return;
+  if(!await iconfirm("Remove all house liquidity from this market?"))return;
+  PREDBUSY=true;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m){PREDBUSY=false;return;}
+  m.seed=m.opts.map(()=>0);m.updated=Date.now();
+  const ok=await savePredictions();PREDBUSY=false;
+  toast(ok?"House liquidity cleared.":"Failed to sync.",!ok);renderTab();
+}
+async function placeBet(){
+  if(PREDBUSY)return;const m0=predById(PREDSEL);if(!m0)return;
+  const x=parseFloat($("#pm-amt").value);
+  if(!x||x<=0)return toast("Enter a stake.",true);
+  await refreshMe();
+  if(x>ME.cash)return toast("Insufficient credits.",true);
+  PREDBUSY=true;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||m.status!=="open"){PREDBUSY=false;toast("Market is closed.",true);return renderTab();}
+  ME.cash-=x;
+  ME.hist=ME.hist||[];ME.hist.push({at:Date.now(),g:gameNow(),side:"PRED",d:-x,o:m.opts[PREDOPT]+" · "+m.q.slice(0,40)});
+  if(ME.hist.length>500)ME.hist=ME.hist.slice(-500);
+  m.bets=m.bets||[];m.bets.push({u:ME.n,opt:PREDOPT,amt:Math.round(x*100)/100,at:Date.now()});
+  m.updated=Date.now();
+  const okM=await savePredictions();const okU=await saveMe();
+  PREDBUSY=false;
+  if(!okM||!okU){toast("Bet failed to sync — retry.",true);await refreshMe();}
+  else toast("Staked "+fmt(x)+" on "+m.opts[PREDOPT]+".");
+  snapshotEq();renderTab();
+}
+async function resolvePred(outcome){
+  if(PREDBUSY)return;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||!canManagePred(m)||m.status!=="open")return;
+  if(!await iconfirm(`Settle "${esc(m.q)}"<br>Winning outcome: <b style="color:var(--cyan)">${esc(m.opts[outcome])}</b>?<br><span class="dim">This pays out the pool and cannot be undone.</span>`))return;
+  PREDBUSY=true;
+  const {p,tot}=predPools(m);
+  const winPool=p[outcome];
+  // tally each winner's total stake on the winning outcome
+  const stakes={};for(const b of m.bets||[])if(b.opt===outcome)stakes[b.u]=(stakes[b.u]||0)+b.amt;
+  let paid=0,winners=0;
+  const refundAll=winPool<=0;   // nobody backed the winner → refund every stake
+  const tally={};
+  if(refundAll){for(const b of m.bets||[])tally[b.u]=(tally[b.u]||0)+b.amt;}
+  else{for(const u in stakes){tally[u]=stakes[u]/winPool*tot;}}
+  const now=Date.now(),g=gameNow();let failed=0;
+  for(const name in tally){
+    const amt=Math.round(tally[name]*100)/100;if(amt<=0)continue;
+    const key="u:"+name.toLowerCase().replace(/[^a-z0-9_-]/g,"_");
+    let u;try{u=await SG.get(key);}catch(e){u=null;}
+    if(!u){failed++;continue;}
+    u.cash=(u.cash||0)+amt;
+    u.hist=u.hist||[];u.hist.push({at:now,g,side:"PRED",d:amt,o:(refundAll?"REFUND: ":"WON: ")+m.q.slice(0,40)});
+    if(u.hist.length>500)u.hist=u.hist.slice(-500);
+    const ok=await SG.set(key,u);
+    if(ok){paid+=amt;winners++;if(name===ME.n){ME.cash=u.cash;ME.hist=u.hist;}}else failed++;
+  }
+  m.status=refundAll?"void":"resolved";m.outcome=outcome;m.paidPool=paid;m.winners=winners;m.resolvedAt=now;m.updated=now;
+  await savePredictions();
+  PREDBUSY=false;
+  toast(refundAll?"No winners — pool refunded.":`Settled. ${fmt(paid)} paid to ${winners} winner${winners===1?"":"s"}.`+(failed?` ${failed} unreachable.`:""),failed>0);
+  renderTab();
+}
+async function voidPred(){
+  if(PREDBUSY)return;
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||!canManagePred(m)||m.status!=="open")return;
+  if(!await iconfirm(`Void "${esc(m.q)}" and refund all stakes?`))return;
+  PREDBUSY=true;
+  const now=Date.now(),g=gameNow();const tally={};
+  for(const b of m.bets||[])tally[b.u]=(tally[b.u]||0)+b.amt;
+  let failed=0;
+  for(const name in tally){
+    const amt=Math.round(tally[name]*100)/100;if(amt<=0)continue;
+    const key="u:"+name.toLowerCase().replace(/[^a-z0-9_-]/g,"_");
+    let u;try{u=await SG.get(key);}catch(e){u=null;}
+    if(!u){failed++;continue;}
+    u.cash=(u.cash||0)+amt;u.hist=u.hist||[];u.hist.push({at:now,g,side:"PRED",d:amt,o:"REFUND: "+m.q.slice(0,40)});
+    const ok=await SG.set(key,u);if(ok){if(name===ME.n){ME.cash=u.cash;ME.hist=u.hist;}}else failed++;
+  }
+  m.status="void";m.updated=now;await savePredictions();
+  PREDBUSY=false;toast("Market voided, stakes refunded."+(failed?` ${failed} unreachable.`:""),failed>0);renderTab();
+}
+async function deletePred(){
+  await loadPredictions();const m=predById(PREDSEL);
+  if(!m||!canManagePred(m))return;
+  if((m.bets||[]).length&&m.status==="open")return toast("Void the market to refund stakes before deleting.",true);
+  if(!await iconfirm("Delete this market permanently?"))return;
+  PREDICTIONS=PREDICTIONS.filter(x=>x.id!==m.id);await savePredictions();PREDSEL=null;renderTab();toast("Market deleted.");
+}
+
+/* ---------- STARDECK ARCADE (mini-games) ----------
+   Four self-contained mini-games rendered into the arcade view. A single
+   lifecycle object (AR) holds the active game's animation frame, interval and
+   key handler so they can all be torn down cleanly when leaving a game. */
+let ARGAME=null;
+const AR={raf:null,timer:null,key:null,state:null};
+function arcadeStop(){
+  if(AR.raf){cancelAnimationFrame(AR.raf);AR.raf=null;}
+  if(AR.timer){clearInterval(AR.timer);AR.timer=null;}
+  if(AR.key){window.removeEventListener("keydown",AR.key);AR.key=null;}
+  AR.state=null;
+}
+function arHS(id,score){
+  let hi=0;try{hi=+localStorage.getItem("agx-hs-"+id)||0;}catch(e){}
+  if(score!=null&&score>hi){hi=score;try{localStorage.setItem("agx-hs-"+id,String(hi));}catch(e){}}
+  return hi;
+}
+const AR_GAMES={
+  mines:{name:"SPACE MINESWEEPER",glyph:"💣",col:"#ff7aa8",desc:"Clear the asteroid field without striking a mine.",init:arInitMines},
+  breaker:{name:"SPACE BLOCK BREAKER",glyph:"🧱",col:"#4dd2ff",desc:"Bounce the probe to shatter every hull block.",init:arInitBreak},
+  snake:{name:"SPACE SNAKE",glyph:"🐍",col:"#5dff8f",desc:"Grow your tail-drone by collecting stars.",init:arInitSnake},
+  solitaire:{name:"SPACE SOLITAIRE",glyph:"♠",col:"#ffd24d",desc:"Stack the star-deck up by suit — classic Klondike.",init:arInitSol}
+};
+function renderArcade(v){
+  arcadeStop();
+  if(!ARGAME)return renderArcadeMenu(v);
+  const g=AR_GAMES[ARGAME];if(!g){ARGAME=null;return renderArcadeMenu(v);}
+  v.innerHTML=`
+    <div class="note-bar"><button class="btn ghost note-back" onclick="exitGame()">‹ ARCADE</button>
+      <div class="ar-bar-title" style="color:${g.col}">${g.glyph} ${g.name}</div></div>
+    <div id="ar-host" class="ar-host"></div>`;
+  g.init($("#ar-host"));
+}
+function renderArcadeMenu(v){
+  v.innerHTML=`
+    <div class="sect" style="margin-top:18px">STARDECK ARCADE <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· four games, zero stakes</span></div>
+    <div class="ar-grid">${Object.keys(AR_GAMES).map(id=>{const g=AR_GAMES[id];return `
+      <div class="ar-tile" style="--acc:${g.col}" onclick="setArGame('${id}')">
+        <div class="ar-glyph">${g.glyph}</div>
+        <div class="ar-name">${g.name}</div>
+        <div class="ar-desc">${g.desc}</div>
+        <div class="ar-best">BEST ${arHS(id)}</div>
+      </div>`;}).join("")}</div>
+    <div class="dim" style="font-size:11px;margin-top:14px;text-align:center">Just for fun — no credits at risk in the arcade. High scores are saved on this device.</div>`;
+}
+function setArGame(id){arcadeStop();ARGAME=id;renderTab();}
+function exitGame(){arcadeStop();ARGAME=null;renderTab();}
+
+/* ── SPACE SNAKE ── */
+function arInitSnake(host){
+  arcadeStop();
+  const COLS=15,ROWS=15,CELL=20;
+  host.innerHTML=`
+    <canvas id="sn-cv" width="${COLS*CELL}" height="${ROWS*CELL}" class="ar-cv"></canvas>
+    <div class="ar-score"><span id="sn-score">SCORE 0</span><span class="dim" id="sn-hi">BEST ${arHS('snake')}</span></div>
+    <div class="ar-dpad">
+      <button onclick="snDir(0,-1)">▲</button>
+      <div class="ar-dpad-mid"><button onclick="snDir(-1,0)">◀</button><button onclick="snDir(1,0)">▶</button></div>
+      <button onclick="snDir(0,1)">▼</button></div>
+    <div class="dim ar-hint">Arrow keys · WASD · swipe · D-pad. Eat stars, dodge your own tail.</div>`;
+  const cv=$("#sn-cv"),g=cv.getContext("2d");
+  const S={snake:[{x:7,y:7},{x:6,y:7},{x:5,y:7}],dir:{x:1,y:0},nd:{x:1,y:0},food:null,score:0,dead:false,cv,g,COLS,ROWS,CELL,host};
+  AR.state=S;
+  const place=()=>{let f;do{f={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}
+    while(S.snake.some(s=>s.x===f.x&&s.y===f.y));S.food=f;};
+  place();
+  const draw=()=>{
+    g.fillStyle="#080a18";g.fillRect(0,0,cv.width,cv.height);
+    g.strokeStyle="rgba(120,160,255,0.06)";for(let i=0;i<=COLS;i++){g.beginPath();g.moveTo(i*CELL,0);g.lineTo(i*CELL,cv.height);g.stroke();}
+    for(let i=0;i<=ROWS;i++){g.beginPath();g.moveTo(0,i*CELL);g.lineTo(cv.width,i*CELL);g.stroke();}
+    if(S.food){g.fillStyle="#ffd24d";g.shadowColor="#ffd24d";g.shadowBlur=12;
+      g.font=CELL+"px sans-serif";g.textAlign="center";g.textBaseline="middle";
+      g.fillText("★",S.food.x*CELL+CELL/2,S.food.y*CELL+CELL/2+1);g.shadowBlur=0;}
+    S.snake.forEach((s,i)=>{const t=1-i/(S.snake.length+2);
+      g.fillStyle=`rgba(${80+t*40|0},${230*t+25|0},${150+t*60|0},1)`;
+      g.shadowColor="#5dff8f";g.shadowBlur=i===0?12:4;
+      const pad=2;g.fillRect(s.x*CELL+pad,s.y*CELL+pad,CELL-pad*2,CELL-pad*2);g.shadowBlur=0;});
+    if(S.dead){g.fillStyle="rgba(4,6,16,0.78)";g.fillRect(0,0,cv.width,cv.height);
+      g.fillStyle="#ff5c7a";g.font="bold 22px Orbitron,monospace";g.textAlign="center";g.textBaseline="middle";
+      g.fillText("GAME OVER",cv.width/2,cv.height/2-14);
+      g.fillStyle="#cfe";g.font="12px IBM Plex Mono,monospace";
+      g.fillText("Score "+S.score+" · tap to retry",cv.width/2,cv.height/2+14);}
+  };
+  S.draw=draw;
+  const step=()=>{
+    if(S.dead)return;
+    S.dir=S.nd;
+    const head={x:(S.snake[0].x+S.dir.x+COLS)%COLS,y:(S.snake[0].y+S.dir.y+ROWS)%ROWS};
+    if(S.snake.some(s=>s.x===head.x&&s.y===head.y)){S.dead=true;arHS('snake',S.score);
+      const hi=$("#sn-hi");if(hi)hi.textContent="BEST "+arHS('snake');draw();return;}
+    S.snake.unshift(head);
+    if(S.food&&head.x===S.food.x&&head.y===S.food.y){S.score+=10;const sc=$("#sn-score");if(sc)sc.textContent="SCORE "+S.score;place();}
+    else S.snake.pop();
+    draw();
+  };
+  AR.timer=setInterval(step,110);
+  AR.key=e=>{const k=(e.key||"").toLowerCase();
+    if(k==="arrowup"||k==="w")snDir(0,-1);else if(k==="arrowdown"||k==="s")snDir(0,1);
+    else if(k==="arrowleft"||k==="a")snDir(-1,0);else if(k==="arrowright"||k==="d")snDir(1,0);else return;
+    e.preventDefault();};
+  window.addEventListener("keydown",AR.key);
+  // swipe + tap-to-retry
+  let sx=0,sy=0;
+  cv.addEventListener("touchstart",e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
+  cv.addEventListener("touchend",e=>{const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<14&&Math.abs(dy)<14){if(S.dead)arInitSnake(host);return;}
+    if(Math.abs(dx)>Math.abs(dy))snDir(dx>0?1:-1,0);else snDir(0,dy>0?1:-1);},{passive:true});
+  cv.addEventListener("click",()=>{if(S.dead)arInitSnake(host);});
+  draw();
+}
+function snDir(dx,dy){const S=AR.state;if(!S||!S.snake)return;
+  if(dx===-S.dir.x&&dy===-S.dir.y)return; // no reversing
+  S.nd={x:dx,y:dy};}
+
+/* ── SPACE BLOCK BREAKER ── */
+function arInitBreak(host){
+  arcadeStop();
+  const W=320,H=440;
+  host.innerHTML=`
+    <canvas id="bk-cv" width="${W}" height="${H}" class="ar-cv"></canvas>
+    <div class="ar-score"><span id="bk-score">SCORE 0 · ♥♥♥</span><span class="dim" id="bk-hi">BEST ${arHS('breaker')}</span></div>
+    <div class="dim ar-hint">Drag / arrow keys to steer. Tap or press Space to launch.</div>`;
+  const cv=$("#bk-cv"),g=cv.getContext("2d");
+  const cols=8,rows=5,bw=W/cols,bh=20,top=44;
+  const bricks=[];const cols5=["#ff5c7a","#ff9a3d","#ffd24d","#5dff8f","#4dd2ff"];
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)bricks.push({x:c*bw,y:top+r*bh,alive:true,col:cols5[r]});
+  const S={cv,g,W,H,bw,bh,bricks,pad:{w:64,x:W/2-32,y:H-26,h:10},
+    ball:{x:W/2,y:H-40,vx:0,vy:0,r:6},live:false,lives:3,score:0,over:false,won:false,host};
+  AR.state=S;
+  const launch=()=>{if(S.live||S.over)return;S.live=true;S.ball.vx=2.6*(Math.random()<.5?-1:1);S.ball.vy=-3.6;};
+  S.launch=launch;
+  const reset=()=>{S.ball.x=S.pad.x+S.pad.w/2;S.ball.y=S.pad.y-8;S.ball.vx=0;S.ball.vy=0;S.live=false;};
+  const setScore=()=>{const el=$("#bk-score");if(el)el.textContent="SCORE "+S.score+" · "+"♥".repeat(S.lives)+"♡".repeat(Math.max(0,3-S.lives));};
+  const draw=()=>{
+    g.fillStyle="#080a18";g.fillRect(0,0,W,H);
+    S.bricks.forEach(b=>{if(!b.alive)return;g.fillStyle=b.col;g.shadowColor=b.col;g.shadowBlur=8;
+      g.fillRect(b.x+2,b.y+2,bw-4,bh-4);g.shadowBlur=0;});
+    g.fillStyle="#cfe7ff";g.shadowColor="#4dd2ff";g.shadowBlur=10;
+    g.fillRect(S.pad.x,S.pad.y,S.pad.w,S.pad.h);g.shadowBlur=0;
+    g.beginPath();g.arc(S.ball.x,S.ball.y,S.ball.r,0,7);g.fillStyle="#fff";g.shadowColor="#fff";g.shadowBlur=12;g.fill();g.shadowBlur=0;
+    if(S.over||S.won){g.fillStyle="rgba(4,6,16,0.8)";g.fillRect(0,0,W,H);
+      g.fillStyle=S.won?"#5dff8f":"#ff5c7a";g.font="bold 22px Orbitron,monospace";g.textAlign="center";g.textBaseline="middle";
+      g.fillText(S.won?"FIELD CLEARED":"GAME OVER",W/2,H/2-14);
+      g.fillStyle="#cfe";g.font="12px IBM Plex Mono,monospace";g.fillText("Score "+S.score+" · tap to retry",W/2,H/2+14);}
+    else if(!S.live){g.fillStyle="#9fb4d8";g.font="12px IBM Plex Mono,monospace";g.textAlign="center";g.fillText("TAP / SPACE TO LAUNCH",W/2,H-46);}
+  };
+  const loop=()=>{
+    if(!S.over&&!S.won){
+      if(S.live){
+        const b=S.ball;b.x+=b.vx;b.y+=b.vy;
+        if(b.x<b.r){b.x=b.r;b.vx*=-1;}if(b.x>W-b.r){b.x=W-b.r;b.vx*=-1;}
+        if(b.y<b.r){b.y=b.r;b.vy*=-1;}
+        // paddle
+        if(b.y+b.r>=S.pad.y&&b.y+b.r<=S.pad.y+S.pad.h+6&&b.x>=S.pad.x-4&&b.x<=S.pad.x+S.pad.w+4&&b.vy>0){
+          const hit=(b.x-(S.pad.x+S.pad.w/2))/(S.pad.w/2);b.vy=-Math.abs(b.vy);b.vx=hit*4;b.y=S.pad.y-b.r-1;
+          const sp=Math.min(7,Math.hypot(b.vx,b.vy)+0.08);const a=Math.atan2(b.vy,b.vx);b.vx=Math.cos(a)*sp;b.vy=Math.sin(a)*sp;}
+        // bricks
+        for(const br of S.bricks){if(!br.alive)continue;
+          if(b.x>br.x&&b.x<br.x+bw&&b.y-b.r<br.y+bh&&b.y+b.r>br.y){
+            br.alive=false;S.score+=10;setScore();
+            const overlapL=b.x-br.x,overlapR=br.x+bw-b.x,overlapT=b.y-br.y,overlapB=br.y+bh-b.y;
+            const m=Math.min(overlapL,overlapR,overlapT,overlapB);
+            if(m===overlapT||m===overlapB)b.vy*=-1;else b.vx*=-1;break;}}
+        if(S.bricks.every(br=>!br.alive)){S.won=true;arHS('breaker',S.score);const hi=$("#bk-hi");if(hi)hi.textContent="BEST "+arHS('breaker');}
+        if(b.y-b.r>H){S.lives--;setScore();if(S.lives<=0){S.over=true;arHS('breaker',S.score);const hi=$("#bk-hi");if(hi)hi.textContent="BEST "+arHS('breaker');}else reset();}
+      }
+    }
+    draw();AR.raf=requestAnimationFrame(loop);
+  };
+  const movePad=cx=>{const rect=cv.getBoundingClientRect();const x=(cx-rect.left)*(W/rect.width);
+    S.pad.x=Math.max(0,Math.min(W-S.pad.w,x-S.pad.w/2));if(!S.live){S.ball.x=S.pad.x+S.pad.w/2;}};
+  cv.addEventListener("pointermove",e=>movePad(e.clientX));
+  cv.addEventListener("touchmove",e=>{movePad(e.touches[0].clientX);e.preventDefault();},{passive:false});
+  cv.addEventListener("click",()=>{if(S.over||S.won)arInitBreak(host);else launch();});
+  AR.key=e=>{const k=(e.key||"").toLowerCase();
+    if(k==="arrowleft"){S.pad.x=Math.max(0,S.pad.x-22);if(!S.live)S.ball.x=S.pad.x+S.pad.w/2;}
+    else if(k==="arrowright"){S.pad.x=Math.min(W-S.pad.w,S.pad.x+22);if(!S.live)S.ball.x=S.pad.x+S.pad.w/2;}
+    else if(k===" "||k==="spacebar"){if(S.over||S.won)arInitBreak(host);else launch();}else return;e.preventDefault();};
+  window.addEventListener("keydown",AR.key);
+  setScore();AR.raf=requestAnimationFrame(loop);
+}
+
+/* ── SPACE MINESWEEPER ── */
+function arInitMines(host){
+  arcadeStop();
+  const COLS=9,ROWS=12,MINES=18;
+  const S={COLS,ROWS,MINES,cells:[],started:false,dead:false,won:false,flagMode:false,t0:0,host,flags:0};
+  for(let i=0;i<COLS*ROWS;i++)S.cells.push({mine:false,adj:0,rev:false,flag:false});
+  AR.state=S;
+  arMinesRender();
+}
+function arMinesGen(safe){
+  const S=AR.state,{COLS,ROWS,MINES}=S;
+  const banned=new Set([safe]);
+  const sx=safe%COLS,sy=(safe/COLS)|0;
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=sx+dx,y=sy+dy;if(x>=0&&x<COLS&&y>=0&&y<ROWS)banned.add(y*COLS+x);}
+  let placed=0;
+  while(placed<MINES){const i=Math.floor(Math.random()*COLS*ROWS);if(S.cells[i].mine||banned.has(i))continue;S.cells[i].mine=true;placed++;}
+  for(let i=0;i<COLS*ROWS;i++){if(S.cells[i].mine)continue;let n=0;const x=i%COLS,y=(i/COLS)|0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&S.cells[ny*COLS+nx].mine)n++;}
+    S.cells[i].adj=n;}
+  S.started=true;S.t0=Date.now();
+}
+function arMinesReveal(i){
+  const S=AR.state;if(S.dead||S.won)return;const c=S.cells[i];
+  if(!S.started)arMinesGen(i);
+  if(c.flag||c.rev)return;
+  if(c.mine){c.rev=true;S.dead=true;S.cells.forEach(x=>{if(x.mine)x.rev=true;});arMinesRender();return;}
+  // flood fill
+  const stack=[i];
+  while(stack.length){const j=stack.pop(),cc=S.cells[j];if(cc.rev||cc.flag||cc.mine)continue;cc.rev=true;
+    if(cc.adj===0){const x=j%S.COLS,y=(j/S.COLS)|0;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;
+        if(nx>=0&&nx<S.COLS&&ny>=0&&ny<S.ROWS)stack.push(ny*S.COLS+nx);}}}
+  const revCount=S.cells.filter(x=>x.rev).length;
+  if(revCount===S.COLS*S.ROWS-S.MINES){S.won=true;
+    const sec=Math.max(1,Math.round((Date.now()-S.t0)/1000));const sco=Math.max(50,2000-sec*5);arHS('mines',sco);}
+  arMinesRender();
+}
+function arMinesClick(i){
+  const S=AR.state;if(!S||S.dead||S.won)return;
+  if(S.flagMode)arMinesFlag(i);else arMinesReveal(i);
+}
+function arMinesFlag(i){
+  const S=AR.state;if(!S||S.dead||S.won)return;const c=S.cells[i];if(c.rev)return;
+  c.flag=!c.flag;S.flags+=c.flag?1:-1;arMinesRender();
+}
+function arToggleFlagMode(){const S=AR.state;if(!S)return;S.flagMode=!S.flagMode;arMinesRender();}
+function arMinesRender(){
+  const S=AR.state,host=S.host;if(!host)return;
+  const left=S.MINES-S.flags;
+  const status=S.dead?'<span style="color:#ff5c7a">💥 BOOM — tap NEW GAME</span>':S.won?'<span style="color:#5dff8f">✓ FIELD CLEARED</span>':`MINES LEFT ${left}`;
+  host.innerHTML=`
+    <div class="ar-score"><span>${status}</span><span class="dim">BEST ${arHS('mines')}</span></div>
+    <div class="ms-grid" style="grid-template-columns:repeat(${S.COLS},1fr)">
+      ${S.cells.map((c,i)=>{
+        let cls="ms-cell",txt="";
+        if(c.rev){cls+=" rev";if(c.mine){cls+=" mine";txt="💣";}else if(c.adj>0){txt=c.adj;cls+=" n"+c.adj;}}
+        else if(c.flag){txt="🚩";cls+=" flag";}
+        return `<button class="${cls}" oncontextmenu="event.preventDefault();arMinesFlag(${i});return false" onclick="arMinesClick(${i})">${txt}</button>`;
+      }).join("")}
+    </div>
+    <div class="ar-controls">
+      <button class="btn ${S.flagMode?"amber":"ghost"}" onclick="arToggleFlagMode()">${S.flagMode?"🚩 FLAG MODE ON":"🚩 FLAG MODE"}</button>
+      <button class="btn ghost" onclick="arInitMines(AR.state.host)">NEW GAME</button>
+    </div>
+    <div class="dim ar-hint">Tap to clear. Toggle FLAG MODE (or long-press / right-click) to mark mines. Numbers count adjacent mines.</div>`;
+  // long-press to flag
+  host.querySelectorAll(".ms-cell").forEach((el,i)=>{
+    let tmr=null;
+    const start=()=>{tmr=setTimeout(()=>{tmr=null;arMinesFlag(i);},380);};
+    const cancel=()=>{if(tmr){clearTimeout(tmr);tmr=null;}};
+    el.addEventListener("touchstart",start,{passive:true});
+    el.addEventListener("touchend",cancel);el.addEventListener("touchmove",cancel,{passive:true});
+  });
+}
+
+/* ── SPACE SOLITAIRE (Klondike) ── */
+function arInitSol(host){
+  arcadeStop();
+  const deck=[];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)deck.push({r,s,up:false});
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  const tab=[[],[],[],[],[],[],[]];
+  for(let i=0;i<7;i++)for(let j=0;j<=i;j++){const c=deck.pop();c.up=(j===i);tab[i].push(c);}
+  const S={tab,found:[[],[],[],[]],stock:deck,waste:[],sel:null,moves:0,host,won:false};
+  AR.state=S;
+  arSolRender();
+}
+function solRed(c){return c.s===1||c.s===2;}
+function solRank(r){return r===1?"A":r===11?"J":r===12?"Q":r===13?"K":r;}
+function solCardHTML(c,extra){
+  if(!c)return"";
+  if(!c.up)return `<div class="sol-card back ${extra||""}"></div>`;
+  return `<div class="sol-card ${solRed(c)?"red":""} ${extra||""}"><span>${solRank(c.r)}${SUITS[c.s]}</span></div>`;
+}
+function arSolRender(){
+  const S=AR.state,host=S.host;if(!host)return;
+  if(S.found.every(f=>f.length===13))S.won=true;
+  const selKey=S.sel?S.sel.pile+":"+S.sel.idx+":"+(S.sel.ci==null?"":S.sel.ci):"";
+  // top row
+  const stock=`<div class="sol-slot" onclick="solStock()">${S.stock.length?'<div class="sol-card back"></div>':'<div class="sol-empty">↻</div>'}</div>`;
+  const wasteTop=S.waste[S.waste.length-1];
+  const waste=`<div class="sol-slot" onclick="solWaste()">${wasteTop?solCardHTML(wasteTop,(S.sel&&S.sel.pile==="waste")?"sel":""):'<div class="sol-empty"></div>'}</div>`;
+  const founds=S.found.map((f,fi)=>{const t=f[f.length-1];
+    return `<div class="sol-slot" onclick="solFound(${fi})">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
+  const cols=S.tab.map((pile,ci)=>{
+    let inner="";
+    if(!pile.length)inner=`<div class="sol-empty tabempty" onclick="solTab(${ci},-1)"></div>`;
+    else inner=pile.map((c,idx)=>{
+      const sel=S.sel&&S.sel.pile==="tab"&&S.sel.idx===ci&&idx>=S.sel.ci;
+      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-44:-56)}px" onclick="event.stopPropagation();solTab(${ci},${idx})">${solCardHTML(c,sel?"sel":"")}</div>`;
+    }).join("");
+    return `<div class="sol-col">${inner}</div>`;
+  }).join("");
+  host.innerHTML=`
+    <div class="ar-score"><span>${S.won?'<span style="color:#5dff8f">✓ YOU WIN!</span>':"MOVES "+S.moves}</span><span class="dim">BEST ${arHS('solitaire')}</span></div>
+    <div class="sol-top">${stock}${waste}<div class="sol-gap"></div>${founds}</div>
+    <div class="sol-board">${cols}</div>
+    <div class="ar-controls">
+      <button class="btn ghost" onclick="solAuto()">⤴ AUTO</button>
+      <button class="btn ghost" onclick="arInitSol(AR.state.host)">NEW GAME</button>
+    </div>
+    <div class="dim ar-hint">Tap a card to pick it up, tap a pile to drop. Tap the stock to deal. Build foundations A→K by suit; stack the board down in alternating colors.</div>`;
+}
+function solClearSel(){AR.state.sel=null;}
+function solStock(){
+  const S=AR.state;if(S.won)return;S.sel=null;
+  if(S.stock.length){const c=S.stock.pop();c.up=true;S.waste.push(c);}
+  else{while(S.waste.length){const c=S.waste.pop();c.up=false;S.stock.push(c);}}
+  S.moves++;arSolRender();
+}
+function solCanFound(c,f){if(!c)return false;if(!f.length)return c.r===1;const t=f[f.length-1];return t.s===c.s&&c.r===t.r+1;}
+function solCanTab(c,pile){if(!c)return false;if(!pile.length)return c.r===13;const t=pile[pile.length-1];return t.up&&solRed(t)!==solRed(c)&&c.r===t.r-1;}
+function solSelectedCards(){
+  const S=AR.state,s=S.sel;if(!s)return null;
+  if(s.pile==="waste")return[S.waste[S.waste.length-1]];
+  if(s.pile==="tab")return S.tab[s.idx].slice(s.ci);
+  return null;
+}
+function solRemoveSelected(){
+  const S=AR.state,s=S.sel;
+  if(s.pile==="waste")return[S.waste.pop()];
+  if(s.pile==="tab"){const moved=S.tab[s.idx].splice(s.ci);
+    const p=S.tab[s.idx];if(p.length&&!p[p.length-1].up)p[p.length-1].up=true;return moved;}
+}
+function solWaste(){
+  const S=AR.state;if(S.won)return;const t=S.waste[S.waste.length-1];if(!t)return;
+  if(S.sel&&S.sel.pile==="waste"){S.sel=null;arSolRender();return;}
+  S.sel={pile:"waste",idx:0,ci:0};arSolRender();
+}
+function solFound(fi){
+  const S=AR.state;if(S.won)return;
+  const cards=solSelectedCards();
+  if(cards&&cards.length===1&&solCanFound(cards[0],S.found[fi])){
+    solRemoveSelected();S.found[fi].push(cards[0]);S.sel=null;S.moves++;
+    if(S.found.every(f=>f.length===13)){S.won=true;arHS('solitaire',Math.max(100,1500-S.moves*3));}
+    arSolRender();return;}
+  S.sel=null;arSolRender();
+}
+function solTab(ci,idx){
+  const S=AR.state;if(S.won)return;const pile=S.tab[ci];
+  if(S.sel){
+    // attempt move onto this column
+    const cards=solSelectedCards();
+    if(cards&&cards.length&&!(S.sel.pile==="tab"&&S.sel.idx===ci)&&solCanTab(cards[0],pile)){
+      const moved=solRemoveSelected();S.tab[ci].push(...moved);S.sel=null;S.moves++;arSolRender();return;}
+    S.sel=null;arSolRender();return;
+  }
+  if(idx<0)return; // empty column, nothing selected
+  const c=pile[idx];if(!c)return;
+  if(!c.up){if(idx===pile.length-1){c.up=true;S.moves++;arSolRender();}return;}
+  S.sel={pile:"tab",idx:ci,ci:idx};arSolRender();
+}
+function solAuto(){
+  const S=AR.state;if(S.won)return;let moved=true,any=false;
+  while(moved){moved=false;
+    const tryCard=(c,remove)=>{for(let fi=0;fi<4;fi++)if(solCanFound(c,S.found[fi])){S.found[fi].push(c);remove();moved=true;any=true;return true;}return false;};
+    const w=S.waste[S.waste.length-1];
+    if(w&&tryCard(w,()=>S.waste.pop()))continue;
+    for(let ci=0;ci<7;ci++){const p=S.tab[ci],c=p[p.length-1];
+      if(c&&c.up&&tryCard(c,()=>{p.pop();if(p.length&&!p[p.length-1].up)p[p.length-1].up=true;}))break;}
+  }
+  if(any){S.moves++;if(S.found.every(f=>f.length===13)){S.won=true;arHS('solitaire',Math.max(100,1500-S.moves*3));}}
+  arSolRender();
+}
+
 /* ---------- casino ---------- */
-let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false;
+let CGAME="roulette",BJ=null,RHIST=[],SPINNING=false,VP=null,PKBUSY=false;
 const REDS=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
 const RM=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rlCol=n=>n===0?"var(--up)":REDS.has(n)?"var(--down)":"var(--ink)";
@@ -3124,8 +3956,8 @@ function renderCasino(v){
   v.innerHTML=`
    <div class="sect" style="margin-top:18px">THE DRIFT CASINO <span class="dim" style="letter-spacing:0;font-family:'Space Grotesk'">· house always wins, eventually</span></div>
    <div id="cas-banner"></div>
-   <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
-     `<button class="chip ${CGAME===g[0]?"on":""}" data-f="${g[0]}" onclick="if(!SPINNING){CGAME='${g[0]}';BJ=null;renderTab()}">${g[1]}</button>`).join("")}</div>
+   <div class="chips">${[["roulette","ROULETTE"],["blackjack","BLACKJACK"],["poker","VIDEO POKER"],["pachinko","PACHINKO"],["hilo","OVER / UNDER"],["slots","SLOTS"]].map(g=>
+     `<button class="chip ${CGAME===g[0]?"on":""}" data-f="${g[0]}" onclick="if(!SPINNING){CGAME='${g[0]}';BJ=null;VP=null;renderTab()}">${g[1]}</button>`).join("")}</div>
    <div class="card" id="cas"></div>
    <div class="dim" style="font-size:11px;margin-top:10px">Wins and losses hit your cash instantly and count toward your true return. Gamble responsibly, operative.</div>
    <div id="cas-banner2"></div>`;
@@ -3191,6 +4023,20 @@ function paintCasino(){
      <div class="inline"><input id="bj-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
      <button class="btn vio" onclick="bjDeal()">DEAL</button></div>
      <div class="dim" style="font-size:11px;margin-top:8px">Dealer stands on 17. Blackjack pays 3:2.</div>`;
+  }else if(CGAME==="poker"){
+    el.innerHTML=VP?vpHTML():`
+     <div class="inline"><input id="vp-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+     <button class="btn vio" onclick="vpDeal()">DEAL</button></div>
+     <div class="vp-pay">${VP_PAY.map(r=>`<div class="vp-pay-row"><span>${r[0]}</span><span class="cyan">${r[1]}\u00D7</span></div>`).join("")}</div>
+     <div class="dim" style="font-size:11px;margin-top:8px">Jacks-or-Better draw poker. Deal, lock the cards you want to keep, then draw. Pays on a pair of jacks or better.</div>`;
+  }else if(CGAME==="pachinko"){
+    el.innerHTML=`
+     <canvas id="pk-cv" width="340" height="380" class="pk-cv"></canvas>
+     <div class="inline" style="margin-top:8px"><input id="pk-bet" type="number" step="any" inputmode="decimal" placeholder="Bet \u20A2">
+     <button class="btn vio" id="pk-go" onclick="dropBall()">DROP BALL</button></div>
+     <div id="pk-res" class="disp" style="text-align:center;padding:10px;font-size:15px;min-height:20px"></div>
+     <div class="dim mono" style="font-size:11px;text-align:center">A ball tumbles through the pin field into a multiplier slot. Edges pay big, the middle bites.</div>`;
+    pachinkoInit();
   }else if(CGAME==="hilo"){
     el.innerHTML=`
      <div class="inline" style="margin-bottom:8px">
@@ -3467,6 +4313,200 @@ async function spinSlots(){
   setTimeout(finish,DUR[2]*1000+150);
 }
 
+/* ── video poker: Jacks-or-Better draw poker ──
+   Reuses the blackjack card model {r:1-13, s:0-3}. Deck dealt without
+   replacement. Paytable is per-credit multipliers on the total bet. */
+const VP_PAY=[["Royal Flush","250"],["Straight Flush","50"],["Four of a Kind","25"],
+  ["Full House","9"],["Flush","6"],["Straight","4"],["Three of a Kind","3"],
+  ["Two Pair","2"],["Jacks or Better","1"]];
+function vpDeck(){const d=[];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)d.push({r,s});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d;}
+// rank a 5-card hand → {name, mult}
+function vpRank(h){
+  const rs=h.map(c=>c.r).slice().sort((a,b)=>a-b);
+  const ss=h.map(c=>c.s);
+  const flush=ss.every(s=>s===ss[0]);
+  // straight (Ace high or low)
+  const uniq=[...new Set(rs)];
+  let straight=false,hi=0;
+  if(uniq.length===5){
+    if(rs[4]-rs[0]===4){straight=true;hi=rs[4];}
+    else if(rs.join()==="1,10,11,12,13"){straight=true;hi=14;} // A-K-Q-J-10
+  }
+  const cnt={};rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const groups=Object.entries(cnt).sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
+  const top=groups[0][1],second=groups[1]?groups[1][1]:0;
+  if(straight&&flush&&hi===14)return{name:"Royal Flush",mult:250};
+  if(straight&&flush)return{name:"Straight Flush",mult:50};
+  if(top===4)return{name:"Four of a Kind",mult:25};
+  if(top===3&&second===2)return{name:"Full House",mult:9};
+  if(flush)return{name:"Flush",mult:6};
+  if(straight)return{name:"Straight",mult:4};
+  if(top===3)return{name:"Three of a Kind",mult:3};
+  if(top===2&&second===2)return{name:"Two Pair",mult:2};
+  if(top===2){const pr=+groups[0][0];if(pr===1||pr>=11)return{name:"Jacks or Better",mult:1};}
+  return{name:"No pay",mult:0};
+}
+function vpFace(c,held,idx){
+  const r=c.r===1?"A":c.r===11?"J":c.r===12?"Q":c.r===13?"K":c.r;
+  const red=c.s===1||c.s===2;
+  return `<div class="vp-card${held?" held":""}${red?" redsuit":""}" onclick="vpToggle(${idx})">
+    <span class="vp-cv">${r}${SUITS[c.s]}</span>
+    <span class="vp-hold">${held?"HELD":"HOLD"}</span></div>`;
+}
+function vpHTML(){
+  const cards=VP.hand.map((c,i)=>vpFace(c,VP.held[i],i)).join("");
+  if(VP.phase==="draw"){
+    return `<div class="vp-row">${cards}</div>
+     <button class="btn vio" style="width:100%;margin-top:10px" onclick="vpDraw()">DRAW</button>
+     <div class="dim" style="font-size:11px;margin-top:8px;text-align:center">Tap cards to HOLD them, then DRAW to replace the rest.</div>`;
+  }
+  const r=VP.result;
+  return `<div class="vp-row">${cards}</div>
+   <div class="disp" style="text-align:center;padding:12px;font-size:15px">
+     <span class="${r.mult>0?"win-flash":"lose-shake"}" style="display:inline-block">${r.mult>0?r.name+" — WIN +"+fmt(VP.bet*r.mult):"No pay — lose "+fmt(VP.bet)}</span></div>
+   <button class="btn vio" style="width:100%" onclick="VP=null;paintCasino()">NEW HAND</button>`;
+}
+async function vpDeal(){
+  if(SPINNING)return;
+  const bet=betVal("#vp-bet");if(!bet)return toast("Enter a bet.",true);
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  if(bet>ME.cash)return toast("Insufficient credits.",true);
+  await wager(-bet,"VIDEO POKER");
+  const deck=vpDeck();
+  VP={deck,hand:deck.splice(0,5),held:[false,false,false,false,false],bet,phase:"draw",result:null};
+  $("#cas").innerHTML=vpHTML();
+}
+function vpToggle(i){if(!VP||VP.phase!=="draw")return;VP.held[i]=!VP.held[i];$("#cas").innerHTML=vpHTML();}
+async function vpDraw(){
+  if(!VP||VP.phase!=="draw"||SPINNING)return;
+  SPINNING=true;
+  // luck: re-draw replacements once and keep the better-ranked board for the GM's favored
+  const luck=luckOf(ME);
+  const replace=()=>VP.hand.map((c,i)=>VP.held[i]?c:VP.deck.shift());
+  let hand=replace();
+  if(luck){
+    // peek a second deal from a fresh shuffle of the unheld pool not trivial; instead
+    // bias by re-shuffling remaining deck and comparing
+    const save=VP.deck.slice();
+    VP.deck=save.slice().sort(()=>Math.random()-0.5);
+    const alt=VP.hand.map((c,i)=>VP.held[i]?c:VP.deck.shift());
+    const a=vpRank(hand).mult,b=vpRank(alt).mult;
+    hand = luck>0 ? (b>a?alt:hand) : (b<a?alt:hand);
+  }
+  VP.hand=hand;
+  VP.result=vpRank(VP.hand);VP.phase="done";
+  if(VP.result.mult>0)await wager(VP.bet*VP.result.mult,"VIDEO POKER WIN");
+  SPINNING=false;
+  $("#cas").innerHTML=vpHTML();
+  afterCasinoResult();
+}
+
+/* ── pachinko: a Plinko pin field with multiplier slots and flashy lights ── */
+const PK_MULT=[12,5,2,1,0.4,0.2,0.4,1,2,5,12];   // 11 slots, edges pay big
+const PK_COLS=["#ff4d8d","#ff9a3d","#ffe14d","#5dff8f","#4dd2ff","#9a6bff","#4dd2ff","#5dff8f","#ffe14d","#ff9a3d","#ff4d8d"];
+let _pkPins=[],_pkAnim=null,_pkLit=-1;
+function pachinkoInit(){
+  const cv=$("#pk-cv");if(!cv)return;
+  _pkPins=[];
+  const rows=10,W=cv.width,H=cv.height,top=40,bot=H-58,gap=(bot-top)/(rows-1);
+  for(let r=0;r<rows;r++){
+    const n=r+3,span=W*0.86,x0=(W-span)/2,dx=span/(n-1);
+    for(let i=0;i<n;i++)_pkPins.push({x:x0+i*dx,y:top+r*gap});
+  }
+  pachinkoDraw(null);
+  if(_pkIdle)cancelAnimationFrame(_pkIdle);
+  if(!RM())pachinkoIdle();
+}
+let _pkIdle=null;
+function pachinkoIdle(){
+  const cv=$("#pk-cv");
+  if(!cv||CGAME!=="pachinko"||APP!=="casino"){_pkIdle=null;return;}
+  if(!PKBUSY)pachinkoDraw(null);   // twinkle pins + slot glow while idle
+  _pkIdle=requestAnimationFrame(pachinkoIdle);
+}
+function pachinkoDraw(ball){
+  const cv=$("#pk-cv");if(!cv)return;const g=cv.getContext("2d"),W=cv.width,H=cv.height;
+  g.clearRect(0,0,W,H);
+  g.fillStyle="rgba(8,10,24,0.9)";g.fillRect(0,0,W,H);
+  // pins
+  const tnow=Date.now();
+  for(const p of _pkPins){
+    const tw=0.5+0.5*Math.sin(tnow/300+p.x*0.1+p.y*0.05);
+    g.beginPath();g.arc(p.x,p.y,3.2,0,7);
+    g.fillStyle=`rgba(${120+tw*135|0},${180+tw*70|0},255,${0.55+tw*0.45})`;g.fill();
+  }
+  // slots
+  const slots=PK_MULT.length,sw=W/slots,sy=H-44;
+  for(let i=0;i<slots;i++){
+    const lit=i===_pkLit, fl=lit?0.5+0.5*Math.sin(tnow/80):0;
+    g.fillStyle=PK_COLS[i];g.globalAlpha=lit?0.55+fl*0.45:0.22;
+    g.fillRect(i*sw+1,sy,sw-2,40);
+    g.globalAlpha=1;
+    g.fillStyle=lit?"#fff":"rgba(255,255,255,0.85)";
+    g.font="bold 11px 'IBM Plex Mono',monospace";g.textAlign="center";
+    g.fillText(PK_MULT[i]+"×",i*sw+sw/2,sy+25);
+  }
+  // ball
+  if(ball){
+    g.beginPath();g.arc(ball.x,ball.y,6,0,7);
+    g.fillStyle="#fff";g.shadowColor="#4dd2ff";g.shadowBlur=14;g.fill();g.shadowBlur=0;
+  }
+}
+async function dropBall(){
+  if(PKBUSY)return;
+  const bet=betVal("#pk-bet");if(!bet)return toast("Enter a bet.",true);
+  await refreshMe();
+  if(casinoBarred())return toast("You are barred from the casino.",true);
+  if(bet>ME.cash)return toast("Insufficient credits.",true);
+  const slots=PK_MULT.length;
+  // landing slot via 10 left/right hops (binomial → center-weighted)
+  let rights=0;for(let i=0;i<slots-1;i++)if(Math.random()<0.5)rights++;
+  const luck=luckOf(ME);
+  if(luck){
+    let r2=0;for(let i=0;i<slots-1;i++)if(Math.random()<0.5)r2++;
+    const edge=v=>Math.abs(v-(slots-1)/2); // bigger edge dist = bigger mult
+    rights = luck>0 ? (edge(r2)>edge(rights)?r2:rights) : (edge(r2)<edge(rights)?r2:rights);
+  }
+  const slot=rights;
+  const mult=PK_MULT[slot];
+  const delta=bet*mult-bet;
+  PKBUSY=true;_pkLit=-1;const go=$("#pk-go");if(go)go.disabled=true;$("#pk-res").textContent="";
+  await wager(delta,"PACHINKO");
+  const cv=$("#pk-cv");
+  const finish=()=>{
+    PKBUSY=false;const b=$("#pk-go");if(b)b.disabled=false;_pkLit=slot;pachinkoDraw(null);
+    const res=$("#pk-res");if(res)res.innerHTML=mult>=1
+      ?`<span class="win-flash" style="display:inline-block">Slot ${mult}× — ${delta>=0?"WIN +"+fmt(delta):"back "+fmt(bet*mult)}</span>`
+      :`<span class="lose-shake" style="display:inline-block">Slot ${mult}× — lose ${fmt(-delta)}</span>`;
+    afterCasinoResult();
+  };
+  if(!cv||RM()){finish();return}
+  // animate the ball bouncing down to the target slot. Interval-driven (not
+  // rAF) so it always completes even when the compositor throttles frames.
+  const W=cv.width,H=cv.height,sw=W/slots,targetX=slot*sw+sw/2;
+  const rows=10,top=40,bot=H-58,gap=(bot-top)/(rows-1);
+  const path=[];
+  let cx=W/2;path.push({x:cx,y:18});
+  for(let r=0;r<rows;r++){
+    const t=(r+1)/rows;cx=W/2+(targetX-W/2)*t+(Math.random()*16-8)*(1-t);
+    path.push({x:cx,y:top+r*gap});
+  }
+  path.push({x:targetX,y:bot+6});path.push({x:targetX,y:H-30});
+  let seg=0,p=0,done=false;
+  const end=()=>{if(done)return;done=true;if(_pkAnim){clearInterval(_pkAnim);_pkAnim=null;}finish();};
+  _pkAnim=setInterval(()=>{
+    if(seg>=path.length-1){end();return;}
+    p+=0.2;
+    if(p>=1){p=0;seg++;return;}
+    const a=path[seg],b=path[seg+1];
+    const bx=a.x+(b.x-a.x)*p, by=a.y+(b.y-a.y)*p-Math.sin(p*Math.PI)*10;
+    pachinkoDraw({x:bx,y:by});
+  },24);
+  setTimeout(end,2400);   // guaranteed completion
+}
+
 /* ---------- admin ---------- */
 /* ---------- GM console: sub-tabs + operator activity log ---------- */
 let ADTAB="market", OPLOG=[], OPLOGFILTER=null;
@@ -3483,6 +4523,7 @@ function histText(h){
   if(h.side==="DIV")return L+" "+(h.d>=0?"+":"")+fmt(h.d);
   if(h.side==="INT")return L+" "+fmt(h.d);
   if(h.side==="BET")return L+" "+(h.d>=0?"+":"")+fmt(h.d)+(h.o?" · "+h.o:"");
+  if(h.side==="PRED")return L+" "+(h.d>=0?"+":"")+fmt(h.d)+(h.o?" · "+h.o:"");
   if(h.side==="XFER")return L+" "+(h.d>=0?"+":"")+fmt(h.d);
   if(h.side==="PAY")return L+" "+(h.d>=0?"+":"")+fmt(h.d)+(h.with?(h.d>=0?" from ":" to ")+h.with:"")+(h.memo?" · “"+h.memo+"”":"");
   if(h.side==="GRANT")return L+" "+(+(+h.q).toFixed(4))+" "+h.sym;
@@ -4695,6 +5736,7 @@ async function poll(){
   if(TAB==="bm"&&$("#bmlist"))paintBM();
   await loadEvents();await refreshMe();
   await settleOptions();await housekeeping();
+  maybeSimBots();   // advance synthetic traders (globally throttled, fire-and-forget)
   if(HALTED!==oldHalt||curRegime().k!==oldReg||isPaused()!==oldPause||speedNow()!==oldSpd||oldBM!==!!CFG.bmOpen||oldCas!==!(CFG.casino===false)){renderApp();go(TAB)}
   else if(EV.length!==oldEvLen){buildTicker();if(TAB==="feed")renderTab()}
   const rb=$("#regime-b");if(rb){const r=curRegime();rb.style.color=r.col;rb.textContent="◈ "+r.label+" ◈"}
