@@ -585,13 +585,15 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .sol-top{display:flex;gap:5px;max-width:360px;margin:6px auto 0;align-items:flex-start}
 .sol-gap{flex:1}
 .sol-slot{width:13.2%;aspect-ratio:.7;cursor:pointer}
-.sol-board{display:flex;gap:1.2%;max-width:360px;margin:10px auto 0}
-.sol-col{flex:1;min-height:80px;cursor:pointer}
+.sol-board{display:flex;gap:1.2%;max-width:360px;margin:10px auto 0;align-items:flex-start}
+.sol-col{flex:1;min-height:120px;padding-bottom:24px;cursor:pointer}
 .sol-stackcard{position:relative}
-.sol-card{aspect-ratio:.7;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(11px,3.4vw,15px);background:#f4f7ff;color:#0a1230;border:1px solid #0a1230;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+/* rank sits in the top-left corner so it stays visible when cards overlap */
+.sol-card{aspect-ratio:.7;border-radius:7px;display:flex;align-items:flex-start;justify-content:flex-start;padding:3px 0 0 5px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(11px,3.4vw,15px);line-height:1;background:#f4f7ff;color:#0a1230;border:1px solid #0a1230;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.sol-card span{white-space:nowrap}
 .sol-card.red{color:#d11d4b}
 .sol-card.back{background:repeating-linear-gradient(45deg,#2a3a7a,#2a3a7a 4px,#1c2a5e 4px,#1c2a5e 8px);border:1px solid #4a5fa8}
-.sol-card.sel{outline:2px solid var(--amber);box-shadow:0 0 10px var(--amber);transform:translateY(-2px)}
+.sol-card.sel{outline:2px solid var(--amber);box-shadow:0 0 10px var(--amber);transform:translateY(-2px);z-index:5}
 .sol-empty{aspect-ratio:.7;border:1px dashed var(--line2);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:16px}
 .sol-empty.tabempty{min-height:62px}
 </style>
@@ -3727,12 +3729,13 @@ function arSolRender(){
     return `<div class="sol-slot" onclick="solFound(${fi})">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
   const cols=S.tab.map((pile,ci)=>{
     let inner="";
-    if(!pile.length)inner=`<div class="sol-empty tabempty" onclick="solTab(${ci},-1)"></div>`;
+    if(!pile.length)inner=`<div class="sol-empty tabempty"></div>`;
     else inner=pile.map((c,idx)=>{
       const sel=S.sel&&S.sel.pile==="tab"&&S.sel.idx===ci&&idx>=S.sel.ci;
-      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-44:-56)}px" onclick="event.stopPropagation();solTab(${ci},${idx})">${solCardHTML(c,sel?"sel":"")}</div>`;
+      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-42:-54)}px" onclick="event.stopPropagation();solTab(${ci},${idx})">${solCardHTML(c,sel?"sel":"")}</div>`;
     }).join("");
-    return `<div class="sol-col">${inner}</div>`;
+    // the whole column is a drop target so dropping isn't limited to the tiny top card
+    return `<div class="sol-col" onclick="solTab(${ci},-1)">${inner}</div>`;
   }).join("");
   host.innerHTML=`
     <div class="ar-score"><span>${S.won?'<span style="color:#5dff8f">✓ YOU WIN!</span>':"MOVES "+S.moves}</span><span class="dim">BEST ${arHS('solitaire')}</span></div>
