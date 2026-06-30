@@ -586,7 +586,9 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .sol-gap{flex:1}
 .sol-slot{width:13.2%;aspect-ratio:.7;cursor:pointer}
 .sol-board{display:flex;gap:1.2%;max-width:360px;margin:10px auto 0;align-items:flex-start}
-.sol-col{flex:1;min-height:120px;padding-bottom:24px;cursor:pointer}
+.sol-top,.sol-board{touch-action:manipulation}
+.sol-slot,.sol-col,.sol-stackcard,.sol-card,.sol-empty{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sol-col{flex:1;min-height:120px;padding-bottom:24px}
 .sol-stackcard{position:relative}
 /* rank sits in the top-left corner so it stays visible when cards overlap */
 .sol-card{aspect-ratio:.7;border-radius:7px;display:flex;align-items:flex-start;justify-content:flex-start;padding:3px 0 0 5px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(11px,3.4vw,15px);line-height:1;background:#f4f7ff;color:#0a1230;border:1px solid #0a1230;box-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -596,6 +598,15 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .sol-card.sel{outline:2px solid var(--amber);box-shadow:0 0 10px var(--amber);transform:translateY(-2px);z-index:5}
 .sol-empty{aspect-ratio:.7;border:1px dashed var(--line2);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:16px}
 .sol-empty.tabempty{min-height:62px}
+/* legal drop targets glow green while a card is held */
+@keyframes solDropPulse{0%,100%{box-shadow:0 0 0 2px #5dff8f,0 0 10px rgba(93,255,143,.5)}50%{box-shadow:0 0 0 2px #5dff8f,0 0 18px rgba(93,255,143,.9)}}
+.sol-slot.drop,.sol-col.drop{border-radius:8px;animation:solDropPulse 1s ease-in-out infinite}
+.sol-col.drop{outline:2px dashed #5dff8f;outline-offset:1px}
+.sol-prompt{max-width:360px;margin:6px auto 0;text-align:center;font-size:12px;line-height:1.4;color:var(--ink);min-height:16px}
+.sol-help{max-width:360px;margin:10px auto 0;background:var(--glass);border:1px solid var(--line2);border-radius:12px;padding:12px 14px}
+.sol-help-h{font-family:'Orbitron';font-size:11px;letter-spacing:.08em;color:var(--cyan);margin-bottom:8px}
+.sol-help ul{margin:0;padding-left:18px}
+.sol-help li{font-size:12px;line-height:1.55;color:var(--ink);margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -3708,6 +3719,27 @@ function arInitSol(host){
   for(let i=0;i<7;i++)for(let j=0;j<=i;j++){const c=deck.pop();c.up=(j===i);tab[i].push(c);}
   const S={tab,found:[[],[],[],[]],stock:deck,waste:[],sel:null,moves:0,host,won:false};
   AR.state=S;
+  // Delegate taps on the host once. iOS Safari is unreliable about firing
+  // click on bare <div>s, so we listen on the host (a real handler high in the
+  // tree) and route by data-sol — and bind both click and touchend so a tap
+  // always lands. A short guard stops the synthetic click double-firing.
+  if(!host._solBound){
+    host._solBound=true;
+    let last=0;
+    const handle=e=>{
+      const el=e.target.closest&&e.target.closest("[data-sol]");if(!el)return;
+      if(e.type==="touchend"){last=Date.now();e.preventDefault();}
+      else if(Date.now()-last<500)return;   // ignore the click that follows touchend
+      const kind=el.getAttribute("data-sol");
+      if(kind==="stock")solStock();
+      else if(kind==="waste")solWaste();
+      else if(kind==="found")solFound(+el.getAttribute("data-i"));
+      else if(kind==="card")solTab(+el.getAttribute("data-c"),+el.getAttribute("data-i"));
+      else if(kind==="col")solTab(+el.getAttribute("data-c"),-1);
+    };
+    host.addEventListener("click",handle);
+    host.addEventListener("touchend",handle,{passive:false});
+  }
   arSolRender();
 }
 function solRed(c){return c.s===1||c.s===2;}
@@ -3717,35 +3749,61 @@ function solCardHTML(c,extra){
   if(!c.up)return `<div class="sol-card back ${extra||""}"></div>`;
   return `<div class="sol-card ${solRed(c)?"red":""} ${extra||""}"><span>${solRank(c.r)}${SUITS[c.s]}</span></div>`;
 }
+let SOL_HELP=false;
+function solToggleHelp(){SOL_HELP=!SOL_HELP;arSolRender();}
+function solName(c){return c?solRank(c.r)+SUITS[c.s]:"";}
 function arSolRender(){
   const S=AR.state,host=S.host;if(!host)return;
   if(S.found.every(f=>f.length===13))S.won=true;
-  const selKey=S.sel?S.sel.pile+":"+S.sel.idx+":"+(S.sel.ci==null?"":S.sel.ci):"";
-  // top row
-  const stock=`<div class="sol-slot" onclick="solStock()">${S.stock.length?'<div class="sol-card back"></div>':'<div class="sol-empty">↻</div>'}</div>`;
+  // when a card is held, work out which piles it can legally land on so we can
+  // light them up — this is what makes the controls self-explanatory.
+  const sel=S.sel, selCards=sel?solSelectedCards():null;
+  const canFoundHere=fi=>selCards&&selCards.length===1&&solCanFound(selCards[0],S.found[fi]);
+  const canColHere=ci=>selCards&&selCards.length&&!(sel&&sel.pile==="tab"&&sel.idx===ci)&&solCanTab(selCards[0],S.tab[ci]);
+  // top row (taps are delegated on the host via data-sol — see arInitSol)
+  const stock=`<div class="sol-slot" data-sol="stock">${S.stock.length?'<div class="sol-card back"></div>':'<div class="sol-empty">↻</div>'}</div>`;
   const wasteTop=S.waste[S.waste.length-1];
-  const waste=`<div class="sol-slot" onclick="solWaste()">${wasteTop?solCardHTML(wasteTop,(S.sel&&S.sel.pile==="waste")?"sel":""):'<div class="sol-empty"></div>'}</div>`;
+  const waste=`<div class="sol-slot" data-sol="waste">${wasteTop?solCardHTML(wasteTop,(sel&&sel.pile==="waste")?"sel":""):'<div class="sol-empty"></div>'}</div>`;
   const founds=S.found.map((f,fi)=>{const t=f[f.length-1];
-    return `<div class="sol-slot" onclick="solFound(${fi})">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
+    return `<div class="sol-slot${canFoundHere(fi)?" drop":""}" data-sol="found" data-i="${fi}">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
   const cols=S.tab.map((pile,ci)=>{
     let inner="";
     if(!pile.length)inner=`<div class="sol-empty tabempty"></div>`;
     else inner=pile.map((c,idx)=>{
-      const sel=S.sel&&S.sel.pile==="tab"&&S.sel.idx===ci&&idx>=S.sel.ci;
-      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-42:-54)}px" onclick="event.stopPropagation();solTab(${ci},${idx})">${solCardHTML(c,sel?"sel":"")}</div>`;
+      const isSel=sel&&sel.pile==="tab"&&sel.idx===ci&&idx>=sel.ci;
+      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-42:-54)}px" data-sol="card" data-c="${ci}" data-i="${idx}">${solCardHTML(c,isSel?"sel":"")}</div>`;
     }).join("");
     // the whole column is a drop target so dropping isn't limited to the tiny top card
-    return `<div class="sol-col" onclick="solTab(${ci},-1)">${inner}</div>`;
+    return `<div class="sol-col${canColHere(ci)?" drop":""}" data-sol="col" data-c="${ci}">${inner}</div>`;
   }).join("");
+  // a plain-language prompt for whatever the player should do next
+  let prompt;
+  if(S.won)prompt='<span style="color:#5dff8f">All cards home — you win! Tap NEW GAME.</span>';
+  else if(selCards&&selCards.length){
+    const extra=selCards.length>1?" +"+(selCards.length-1)+" more":"";
+    prompt=`Holding <b>${solName(selCards[0])}${extra}</b> — tap a <span style="color:#5dff8f">glowing</span> pile to drop it, or tap it again to cancel.`;
+  }else prompt="Tap a face-up card to pick it up.";
   host.innerHTML=`
     <div class="ar-score"><span>${S.won?'<span style="color:#5dff8f">✓ YOU WIN!</span>':"MOVES "+S.moves}</span><span class="dim">BEST ${arHS('solitaire')}</span></div>
+    <div class="sol-prompt">${prompt}</div>
     <div class="sol-top">${stock}${waste}<div class="sol-gap"></div>${founds}</div>
     <div class="sol-board">${cols}</div>
     <div class="ar-controls">
       <button class="btn ghost" onclick="solAuto()">⤴ AUTO</button>
       <button class="btn ghost" onclick="arInitSol(AR.state.host)">NEW GAME</button>
+      <button class="btn ghost" onclick="solToggleHelp()">${SOL_HELP?"✕ CLOSE":"? HOW TO PLAY"}</button>
     </div>
-    <div class="dim ar-hint">Tap a card to pick it up, tap a pile to drop. Tap the stock to deal. Build foundations A→K by suit; stack the board down in alternating colors.</div>`;
+    ${SOL_HELP?`<div class="sol-help">
+      <div class="sol-help-h">HOW TO PLAY · KLONDIKE SOLITAIRE</div>
+      <ul>
+        <li><b>Goal:</b> move all 52 cards onto the four foundations (top-right), each built up <b>by suit from A → K</b>.</li>
+        <li><b>Deal:</b> tap the deck (top-left) to flip cards into the pile beside it. When the deck runs out, tap it again to recycle.</li>
+        <li><b>Move a card:</b> tap it to pick it up — every legal landing spot lights up <span style="color:#5dff8f">green</span>. Tap a glowing pile to drop it. Tap the held card again to cancel.</li>
+        <li><b>On the board:</b> stack <b>down in alternating colours</b> — e.g. a red 6 goes on a black 7. Pick up a whole run by tapping its top card.</li>
+        <li><b>Empty columns:</b> only a <b>King</b> (or a run led by a King) can move there.</li>
+        <li><b>Foundations:</b> tap one to send the held card up, or hit <b>AUTO</b> to sweep every card that can go home.</li>
+      </ul>
+    </div>`:`<div class="dim ar-hint">Tap a card to pick it up — green piles show where it can go. Build foundations A→K by suit; stack the board down in alternating colours.</div>`}`;
 }
 function solClearSel(){AR.state.sel=null;}
 function solStock(){
