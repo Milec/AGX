@@ -586,7 +586,9 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .sol-gap{flex:1}
 .sol-slot{width:13.2%;aspect-ratio:.7;cursor:pointer}
 .sol-board{display:flex;gap:1.2%;max-width:360px;margin:10px auto 0;align-items:flex-start}
-.sol-col{flex:1;min-height:120px;padding-bottom:24px;cursor:pointer}
+.sol-top,.sol-board{touch-action:manipulation}
+.sol-slot,.sol-col,.sol-stackcard,.sol-card,.sol-empty{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sol-col{flex:1;min-height:120px;padding-bottom:24px}
 .sol-stackcard{position:relative}
 /* rank sits in the top-left corner so it stays visible when cards overlap */
 .sol-card{aspect-ratio:.7;border-radius:7px;display:flex;align-items:flex-start;justify-content:flex-start;padding:3px 0 0 5px;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:clamp(11px,3.4vw,15px);line-height:1;background:#f4f7ff;color:#0a1230;border:1px solid #0a1230;box-shadow:0 1px 2px rgba(0,0,0,.4)}
@@ -3708,6 +3710,27 @@ function arInitSol(host){
   for(let i=0;i<7;i++)for(let j=0;j<=i;j++){const c=deck.pop();c.up=(j===i);tab[i].push(c);}
   const S={tab,found:[[],[],[],[]],stock:deck,waste:[],sel:null,moves:0,host,won:false};
   AR.state=S;
+  // Delegate taps on the host once. iOS Safari is unreliable about firing
+  // click on bare <div>s, so we listen on the host (a real handler high in the
+  // tree) and route by data-sol — and bind both click and touchend so a tap
+  // always lands. A short guard stops the synthetic click double-firing.
+  if(!host._solBound){
+    host._solBound=true;
+    let last=0;
+    const handle=e=>{
+      const el=e.target.closest&&e.target.closest("[data-sol]");if(!el)return;
+      if(e.type==="touchend"){last=Date.now();e.preventDefault();}
+      else if(Date.now()-last<500)return;   // ignore the click that follows touchend
+      const kind=el.getAttribute("data-sol");
+      if(kind==="stock")solStock();
+      else if(kind==="waste")solWaste();
+      else if(kind==="found")solFound(+el.getAttribute("data-i"));
+      else if(kind==="card")solTab(+el.getAttribute("data-c"),+el.getAttribute("data-i"));
+      else if(kind==="col")solTab(+el.getAttribute("data-c"),-1);
+    };
+    host.addEventListener("click",handle);
+    host.addEventListener("touchend",handle,{passive:false});
+  }
   arSolRender();
 }
 function solRed(c){return c.s===1||c.s===2;}
@@ -3721,21 +3744,21 @@ function arSolRender(){
   const S=AR.state,host=S.host;if(!host)return;
   if(S.found.every(f=>f.length===13))S.won=true;
   const selKey=S.sel?S.sel.pile+":"+S.sel.idx+":"+(S.sel.ci==null?"":S.sel.ci):"";
-  // top row
-  const stock=`<div class="sol-slot" onclick="solStock()">${S.stock.length?'<div class="sol-card back"></div>':'<div class="sol-empty">↻</div>'}</div>`;
+  // top row (taps are delegated on the host via data-sol — see arInitSol)
+  const stock=`<div class="sol-slot" data-sol="stock">${S.stock.length?'<div class="sol-card back"></div>':'<div class="sol-empty">↻</div>'}</div>`;
   const wasteTop=S.waste[S.waste.length-1];
-  const waste=`<div class="sol-slot" onclick="solWaste()">${wasteTop?solCardHTML(wasteTop,(S.sel&&S.sel.pile==="waste")?"sel":""):'<div class="sol-empty"></div>'}</div>`;
+  const waste=`<div class="sol-slot" data-sol="waste">${wasteTop?solCardHTML(wasteTop,(S.sel&&S.sel.pile==="waste")?"sel":""):'<div class="sol-empty"></div>'}</div>`;
   const founds=S.found.map((f,fi)=>{const t=f[f.length-1];
-    return `<div class="sol-slot" onclick="solFound(${fi})">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
+    return `<div class="sol-slot" data-sol="found" data-i="${fi}">${t?solCardHTML(t):'<div class="sol-empty">'+["♠","♥","♦","♣"][fi]+'</div>'}</div>`;}).join("");
   const cols=S.tab.map((pile,ci)=>{
     let inner="";
     if(!pile.length)inner=`<div class="sol-empty tabempty"></div>`;
     else inner=pile.map((c,idx)=>{
       const sel=S.sel&&S.sel.pile==="tab"&&S.sel.idx===ci&&idx>=S.sel.ci;
-      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-42:-54)}px" onclick="event.stopPropagation();solTab(${ci},${idx})">${solCardHTML(c,sel?"sel":"")}</div>`;
+      return `<div class="sol-stackcard" style="margin-top:${idx===0?0:(c.up?-42:-54)}px" data-sol="card" data-c="${ci}" data-i="${idx}">${solCardHTML(c,sel?"sel":"")}</div>`;
     }).join("");
     // the whole column is a drop target so dropping isn't limited to the tiny top card
-    return `<div class="sol-col" onclick="solTab(${ci},-1)">${inner}</div>`;
+    return `<div class="sol-col" data-sol="col" data-c="${ci}">${inner}</div>`;
   }).join("");
   host.innerHTML=`
     <div class="ar-score"><span>${S.won?'<span style="color:#5dff8f">✓ YOU WIN!</span>':"MOVES "+S.moves}</span><span class="dim">BEST ${arHS('solitaire')}</span></div>
