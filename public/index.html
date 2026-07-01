@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
+  color-scheme:dark;
   /* shared shape scale — angular HUD geometry */
   --r:8px; --r-md:5px; --r-sm:3px;
   /* accents */
@@ -17,6 +18,7 @@
   --panel:rgba(20,28,48,.55); --panel2:rgba(14,20,38,.5);
   --line:rgba(150,178,228,.10); --line2:rgba(155,184,235,.18);
   --hi:rgba(255,255,255,.14);
+  --glass:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
   --glass-grad:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   --glass-strong:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02));
   --row-grad:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.01));
@@ -37,12 +39,14 @@
   --grid-dot:rgba(90,140,180,.16); --bracket:var(--cyan);
 }
 :root[data-theme="light"]{
+  color-scheme:light;
   --bg:#eef2fb; --ink:#0E1A2E; --dim:#5A6B86;
   --cyan:#08B6A6; --vio:#7C5CF0; --amber:#C97E00;
   --up:#0DA86C; --down:#E23857;
   --panel:rgba(255,255,255,.7); --panel2:rgba(255,255,255,.6);
   --line:rgba(20,40,80,.10); --line2:rgba(20,40,80,.16);
   --hi:rgba(255,255,255,.85);
+  --glass:linear-gradient(160deg,rgba(255,255,255,.66),rgba(255,255,255,.42));
   --glass-grad:linear-gradient(160deg,rgba(255,255,255,.78),rgba(255,255,255,.5));
   --glass-strong:linear-gradient(160deg,rgba(255,255,255,.92),rgba(255,255,255,.64));
   --row-grad:linear-gradient(160deg,rgba(255,255,255,.72),rgba(255,255,255,.46));
@@ -95,6 +99,10 @@ input,select,textarea{
   transition:border-color .15s,box-shadow .15s,background-color .35s ease,color .35s ease;
 }
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 0 3px color-mix(in srgb,var(--cyan) 22%,transparent),inset 0 1px 0 var(--hi)}
+/* native controls follow the theme: no white number spinners, cyan checks */
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=checkbox],input[type=radio]{width:auto;accent-color:var(--cyan)}
 .btn{position:relative;overflow:hidden;background:linear-gradient(180deg,#48f4e5,#18c6bc);color:#012b27;font-weight:700;padding:12px 18px;box-shadow:0 8px 22px -10px rgba(54,239,224,.7),inset 0 1px 0 rgba(255,255,255,.45);transition:transform .12s,filter .2s,box-shadow .2s}
 .btn::after{content:'';position:absolute;top:0;left:0;height:100%;width:45%;pointer-events:none;background:linear-gradient(110deg,transparent,rgba(255,255,255,.4),transparent);transform:translateX(-200%)}
 .btn:hover::after{animation:sheen .6s ease}
@@ -376,6 +384,10 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 /* ── filter chips ── */
 .chips{display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:12px 2px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
+/* edge fades hint that a chip row scrolls — classes managed by watchChipRows() */
+.chips.ovf-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent)}
+.chips.ovf-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 34px);mask-image:linear-gradient(90deg,transparent,#000 34px)}
+.chips.ovf-l.ovf-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(90deg,transparent,#000 34px,#000 calc(100% - 34px),transparent)}
 .chip{flex:none;background:var(--chip-bg);color:var(--dim);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 13px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:color .15s,background .15s,border-color .15s}
 .chip.on{color:#04201d;background:linear-gradient(180deg,#46f3e4,#1bcabf);border-color:transparent;box-shadow:0 6px 16px -8px rgba(54,239,224,.6),inset 0 1px 0 rgba(255,255,255,.4)}
 .sect{display:flex;align-items:center;gap:10px;font-family:'Orbitron';font-size:10px;letter-spacing:.28em;color:var(--dim);margin:20px 0 8px;padding-left:10px;border-left:2px solid var(--amber)}
@@ -419,7 +431,7 @@ nav button.home.on{color:var(--amber);background:color-mix(in srgb,var(--amber) 
 .grab{width:40px;height:4px;border-radius:999px;background:var(--grab);margin:0 auto 16px}
 .bigpx{font-family:'IBM Plex Mono';font-size:32px;font-weight:600;letter-spacing:-.01em}
 .ranges{display:flex;gap:5px;margin:12px 0}
-.ranges button{background:var(--chip-bg);color:var(--dim);padding:7px 12px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:10px;transition:all .15s}
+.ranges button{background:var(--chip-bg);color:var(--dim);padding:7px 12px;font-family:'IBM Plex Mono';font-size:12px;border:1px solid var(--line);border-radius:var(--r);transition:all .15s}
 .ranges button.on{color:#04201d;background:linear-gradient(180deg,#46f3e4,#1bcabf);font-weight:700;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
 canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .tradebox{display:flex;gap:8px;margin-top:10px}
@@ -483,6 +495,18 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 
 @media(min-width:700px){.modal-bg{align-items:center}.modal{border-radius:26px;max-width:560px}}
 
+/* ── shared HUD empty state ── */
+.empty{position:relative;max-width:340px;margin:26px auto;padding:26px 20px;text-align:center;border:1px dashed var(--line2);
+  background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  --ch:14px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)))}
+.empty::before,.empty::after{content:'';position:absolute;width:11px;height:11px;pointer-events:none;opacity:.6}
+.empty::before{top:0;left:0;border-top:2px solid var(--dim);border-left:2px solid var(--dim)}
+.empty::after{bottom:0;right:0;border-bottom:2px solid var(--dim);border-right:2px solid var(--dim)}
+.empty .eg{font-size:26px;line-height:1;color:var(--dim);opacity:.8}
+.empty .eg svg{width:34px;height:34px;display:block;margin:0 auto}
+.empty .et{font-family:'Orbitron';font-size:11px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-top:10px}
+.empty .es{font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:7px}
+
 /* ── confirm dialog ── */
 .iconfirm-bg{position:fixed;inset:0;background:var(--scrim);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
 .iconfirm{background:var(--modal-grad);border:1px solid var(--line2);border-top:1px solid var(--hi);border-radius:0;width:100%;max-width:920px;padding:24px 20px calc(24px + env(safe-area-inset-bottom));text-align:center;-webkit-backdrop-filter:blur(28px);backdrop-filter:blur(28px);box-shadow:0 -30px 80px -30px rgba(0,0,0,.6);animation:sheetUp .32s cubic-bezier(.2,.8,.2,1);
@@ -493,7 +517,7 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 /* ── casino ── */
 @keyframes cardIn{from{transform:translateY(14px) rotate(3deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes flipIn{0%{transform:rotateY(90deg);opacity:.4}100%{transform:rotateY(0);opacity:1}}
-.pcard{display:inline-block;background:var(--glass-strong);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;margin:3px;font-family:'IBM Plex Mono','SF Mono',monospace;font-size:17px;font-weight:600;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 var(--hi)}
+.pcard{display:inline-block;background:var(--glass-strong);border:1px solid var(--line2);border-radius:var(--r);padding:8px 10px;margin:3px;font-family:'IBM Plex Mono','SF Mono',monospace;font-size:17px;font-weight:600;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 var(--hi)}
 .pcard.deal{animation:cardIn .3s ease both}
 .pcard.flip{animation:flipIn .4s ease both}
 .pcard.redsuit{color:var(--down)}
@@ -501,12 +525,12 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .win-flash{animation:winPulse .4s ease 2;color:var(--up)}
 @keyframes loseShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .lose-shake{animation:loseShake .3s ease 2;color:var(--down)}
-.rl-wrap{overflow:hidden;border:1px solid var(--line2);border-radius:14px;position:relative;height:56px;margin:10px 0;background:var(--inset-bg)}
+.rl-wrap{overflow:hidden;border:1px solid var(--line2);border-radius:var(--r);position:relative;height:56px;margin:10px 0;background:var(--inset-bg)}
 .rl-strip{display:flex;will-change:transform}
 .rl-cell{flex:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-weight:700;font-size:18px;border-right:1px solid var(--line)}
 .rl-marker{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--amber);transform:translateX(-1px);z-index:2;box-shadow:0 0 12px var(--amber)}
 .sreel-row{display:flex;gap:8px;justify-content:center;margin:12px 0}
-.sreel{width:66px;height:66px;overflow:hidden;border:1px solid var(--line2);border-radius:14px;background:var(--inset-bg)}
+.sreel{width:66px;height:66px;overflow:hidden;border:1px solid var(--line2);border-radius:var(--r);background:var(--inset-bg)}
 .sreel-col{display:flex;flex-direction:column;will-change:transform}
 .sreel-col span{height:66px;flex:none;display:flex;align-items:center;justify-content:center;font-size:38px}
 .h-roll-big{font-family:'IBM Plex Mono';font-size:42px;font-weight:600;text-align:center;padding:10px 0;letter-spacing:.06em}
@@ -525,24 +549,24 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 
 /* ── video poker ── */
 .vp-row{display:flex;gap:6px;justify-content:center;margin:10px 0;flex-wrap:wrap}
-.vp-card{flex:1;min-width:52px;max-width:64px;aspect-ratio:.7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--glass-strong);border:1px solid var(--line2);border-radius:10px;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .12s,border-color .12s;box-shadow:inset 0 1px 0 var(--hi)}
+.vp-card{flex:1;min-width:52px;max-width:64px;aspect-ratio:.7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--glass-strong);border:1px solid var(--line2);border-radius:var(--r);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .12s,border-color .12s;box-shadow:inset 0 1px 0 var(--hi)}
 .vp-card.redsuit .vp-cv{color:var(--down)}
 .vp-card .vp-cv{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:700}
 .vp-card .vp-hold{font-family:'Orbitron';font-size:8px;letter-spacing:.1em;color:var(--dim)}
 .vp-card.held{border-color:var(--amber);transform:translateY(-6px);box-shadow:0 6px 16px -6px var(--amber)}
 .vp-card.held .vp-hold{color:var(--amber)}
-.vp-pay{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.vp-pay{margin-top:10px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .vp-pay-row{display:flex;justify-content:space-between;padding:5px 10px;font-size:12px;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--line)}
 .vp-pay-row:last-child{border-bottom:none}
 
 /* ── pachinko ── */
-.pk-cv{display:block;width:100%;max-width:340px;margin:6px auto;border:1px solid var(--line2);border-radius:14px;background:#080a18}
+.pk-cv{display:block;width:100%;max-width:340px;margin:6px auto;border:1px solid var(--line2);border-radius:var(--r);background:#080a18}
 
 /* ── oracle prediction markets ── */
 .pm-bar{display:flex;gap:2px;height:14px;border-radius:7px;overflow:hidden;margin-top:10px}
 .pm-seg{display:flex;align-items:center;justify-content:center;min-width:0;transition:flex .4s ease}
 .pm-seg span{font-size:9px;font-weight:700;color:rgba(0,0,0,.7);font-family:'IBM Plex Mono',monospace}
-.pm-out{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line2);border-left:3px solid var(--c,var(--cyan));border-radius:10px;margin-bottom:8px;background:var(--glass);transition:transform .12s,border-color .12s}
+.pm-out{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line2);border-left:3px solid var(--c,var(--cyan));border-radius:var(--r);margin-bottom:8px;background:var(--glass);transition:transform .12s,border-color .12s}
 .pm-out.sel{border-color:var(--c);box-shadow:0 0 0 1px var(--c) inset;transform:translateX(2px)}
 .pm-out[onclick]{cursor:pointer}
 .pm-out-l{display:flex;align-items:center;gap:8px;font-size:14px}
@@ -556,15 +580,24 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 
 /* ── stardeck arcade ── */
 .ar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.ar-tile{border:1px solid var(--line2);border-top:2px solid var(--acc);border-radius:14px;padding:16px 14px;background:var(--glass);cursor:pointer;transition:transform .12s,border-color .12s;text-align:center}
+.ar-tile{position:relative;border:1px solid var(--line2);padding:16px 14px;background:var(--glass);cursor:pointer;
+  -webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%);box-shadow:inset 0 1px 0 var(--hi);
+  --ch:12px;clip-path:polygon(0 0,calc(100% - var(--ch)) 0,100% var(--ch),100% 100%,var(--ch) 100%,0 calc(100% - var(--ch)));
+  transition:transform .12s,border-color .12s,box-shadow .2s;text-align:center}
+.ar-tile::before,.ar-tile::after{content:'';position:absolute;width:11px;height:11px;pointer-events:none;opacity:.85;z-index:1}
+.ar-tile::before{top:0;left:0;border-top:2px solid var(--acc);border-left:2px solid var(--acc)}
+.ar-tile::after{bottom:0;right:0;border-bottom:2px solid var(--acc);border-right:2px solid var(--acc)}
+.ar-tile:hover{transform:translateY(-2px);border-color:var(--acc);box-shadow:0 14px 30px -16px var(--acc)}
 .ar-tile:active{transform:scale(.97)}
-.ar-glyph{font-size:34px;line-height:1}
+.ar-glyph{font-size:34px;line-height:1;color:var(--acc);text-shadow:0 0 16px var(--acc)}
+.ar-glyph svg{display:block;width:40px;height:40px;margin:0 auto;filter:drop-shadow(0 0 9px var(--acc))}
+.ar-bar-title svg{width:18px;height:18px;vertical-align:-3px;filter:drop-shadow(0 0 6px currentColor)}
 .ar-name{font-family:'Orbitron';font-size:12px;letter-spacing:.05em;margin-top:8px;color:var(--ink)}
 .ar-desc{font-size:11px;color:var(--dim);margin-top:5px;line-height:1.4;min-height:30px}
 .ar-best{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--acc);margin-top:6px;letter-spacing:.08em}
 .ar-bar-title{font-family:'Orbitron';font-size:13px;letter-spacing:.05em}
 .ar-host{margin-top:12px}
-.ar-cv{display:block;width:100%;max-width:340px;margin:0 auto;border:1px solid var(--line2);border-radius:14px;background:#080a18;touch-action:none}
+.ar-cv{display:block;width:100%;max-width:340px;margin:0 auto;border:1px solid var(--line2);border-radius:var(--r);background:#080a18;touch-action:none}
 .ar-score{display:flex;justify-content:space-between;align-items:center;max-width:340px;margin:10px auto 0;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700}
 .ar-hint{font-size:11px;text-align:center;margin:10px auto;max-width:340px;line-height:1.5}
 .ar-controls{display:flex;gap:8px;justify-content:center;max-width:340px;margin:10px auto 0}
@@ -603,7 +636,7 @@ canvas{width:100%;height:180px;display:block;touch-action:pan-y}
 .sol-slot.drop,.sol-col.drop{border-radius:8px;animation:solDropPulse 1s ease-in-out infinite}
 .sol-col.drop{outline:2px dashed #5dff8f;outline-offset:1px}
 .sol-prompt{max-width:360px;margin:6px auto 0;text-align:center;font-size:12px;line-height:1.4;color:var(--ink);min-height:16px}
-.sol-help{max-width:360px;margin:10px auto 0;background:var(--glass);border:1px solid var(--line2);border-radius:12px;padding:12px 14px}
+.sol-help{max-width:360px;margin:10px auto 0;background:var(--glass);border:1px solid var(--line2);border-radius:var(--r);padding:12px 14px}
 .sol-help-h{font-family:'Orbitron';font-size:11px;letter-spacing:.08em;color:var(--cyan);margin-bottom:8px}
 .sol-help ul{margin:0;padding-left:18px}
 .sol-help li{font-size:12px;line-height:1.55;color:var(--ink);margin-bottom:6px}
@@ -1091,6 +1124,26 @@ function _stackToasts(){_toasts.forEach((t,i)=>{t.style.bottom=(82+i*54)+"px";t.
 function ago(t){const s=(Date.now()-t)/1e3;if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";
   if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago"}
 
+/* shared HUD empty-state block — use for every "nothing here yet" message */
+function emptyState(glyph,title,sub){
+  return `<div class="empty"><div class="eg">${glyph}</div><div class="et">${title}</div>${sub?`<div class="es">${sub}</div>`:""}</div>`;
+}
+
+/* chip rows (filters, casino games, GM sections) can overflow on phones —
+   fade the clipped edge so it reads as scrollable. One observer covers every
+   .chips row ever rendered. */
+function _chipFade(el){
+  const max=el.scrollWidth-el.clientWidth;
+  el.classList.toggle("ovf-l",max>4&&el.scrollLeft>4);
+  el.classList.toggle("ovf-r",max>4&&el.scrollLeft<max-4);
+}
+(function(){
+  const all=()=>document.querySelectorAll(".chips").forEach(_chipFade);
+  new MutationObserver(all).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener("scroll",e=>{if(e.target instanceof Element&&e.target.classList.contains("chips"))_chipFade(e.target)},{capture:true,passive:true});
+  window.addEventListener("resize",all);
+})();
+
 // ── SUPABASE STORAGE ─────────────────────────────────────────────────────
 const SUPA_URL = "https://ifcensohczakjhqbzzkv.supabase.co";
 const SUPA_ANON = "sb_publishable_Y2-6dIwfLKBd2B5c8jUoRw_5AgeuLKE";
@@ -1168,7 +1221,7 @@ let STORAGE_OK=false, ME=null, MYKEY=null, TAB="market", APP=null, ADMIN=false, 
    more of the underlying tab views. APP===null means we're on the home screen. */
 const APPS={
   exchange:{name:"AGX EXCHANGE",tag:"Markets · Portfolio · Newswire",glyph:"⬢",col:"var(--cyan)",
-    tabs:[["market","MARKET"],["portfolio","PORTFOLIO"],["feed","FEED"],["leaders","LEADERS"],["guide","GUIDE"]]},
+    tabs:[["market","MARKET"],["portfolio","FOLIO"],["feed","FEED"],["leaders","LEADERS"],["guide","GUIDE"]]},
   casino:{name:"DRIFT CASINO",tag:"Tables · Wheels · Cards",glyph:"♠",col:"var(--vio)",
     tabs:[["casino","FLOOR"]]},
   blackmarket:{name:"BLACK MARKET",tag:"Contraband channels",glyph:"☠",col:"var(--down)",
@@ -1679,7 +1732,7 @@ function folderTreeHTML(){
   const notes=scopeNotes();
   if(!notes.length){
     const empty=NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":NOTESCOPE==="briefs"?(ADMIN?"No briefings yet. Hit + NEW to compose one and pick its recipients.":"No briefings have been sent to you."):"No notes yet. Hit + NEW to start your logbook.";
-    return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
+    return emptyState("❖","NOTEBOOK EMPTY",empty);
   }
   const byFolder={},unfiled=[];
   for(const n of notes){if(n.folder)(byFolder[n.folder]=byFolder[n.folder]||[]).push(n);else unfiled.push(n);}
@@ -1711,7 +1764,7 @@ function treeNoteRow(n){
 function noteListHTML(list){
   if(list.length)return list.map(noteCard).join("");
   const empty=scopeNotes().length?"No notes match.":NOTESCOPE==="shared"?"No shared notes yet. Be the first to post one.":NOTESCOPE==="briefs"?(ADMIN?"No briefings yet.":"No briefings have been sent to you."):"No notes yet. Hit + NEW to start your logbook.";
-  return `<div class="dim" style="padding:34px;text-align:center">${empty}</div>`;
+  return emptyState("❖",scopeNotes().length?"NO MATCHES":"NOTEBOOK EMPTY",empty);
 }
 function renderGMNotes(v){
   const groups=GMNOTES||[];
@@ -1732,7 +1785,7 @@ function gmGroupsHTML(groups,q){
     if(!ns.length)continue;
     html+=`<div class="sect">${esc(g.op.toUpperCase())} · ${ns.length}</div>`+ns.map(noteCard).join("");
   }
-  return html||`<div class="dim" style="padding:34px;text-align:center">No notes match.</div>`;
+  return html||emptyState("❖","NO MATCHES","No operator notes match that search.");
 }
 function noteCard(n){
   const snip=plain(n.body).slice(0,110);
@@ -2013,7 +2066,7 @@ function renderNotesGraph(v){
   const head=`${scopeTabsHTML()}
     <div class="card" style="margin-top:10px"><div class="hud-tag"><span class="hud-dot" style="background:var(--vio);box-shadow:0 0 8px var(--vio)"></span>KNOWLEDGE GRAPH · ${notes.length} NODES</div>
       <div class="dim" style="font-size:11px;margin-top:6px">Each node is a note; links are <b>[[cross-references]]</b>. Node size grows with connections, colour groups by folder. Tap a node to open it.</div></div>`;
-  if(notes.length<1){v.innerHTML=head+`<div class="dim" style="padding:34px;text-align:center">No notes to map yet.</div>`;return;}
+  if(notes.length<1){v.innerHTML=head+emptyState("❖","NO SIGNALS","No notes to map yet — write a few and link them with [[Title]].");return;}
   const {nodes,edges,byId}=computeGraph(notes);
   // normalise the layout into a fixed world box so node sizes/spacing stay
   // consistent regardless of how tight or loose the force layout came out
@@ -2091,7 +2144,7 @@ async function renderPay(v){
           <div class="pay-time">${ago(h.at)}</div>
         </div>
         <div class="pay-amt ${h.d>=0?"up":"down"}">${h.d>=0?"+":"−"}${fmt(Math.abs(h.d))}</div>
-      </div>`).join(""):`<div class="dim" style="padding:24px;text-align:center">No transfers yet. Send a friend some credits.</div>`}`;
+      </div>`).join(""):emptyState("⇄","NO TRANSFERS","Send a friend some credits and the ledger starts here.")}`;
   const sel=$("#pay-to");if(sel)sel.onchange=e=>PAYTO=e.target.value;
   const amt=$("#pay-amt");if(amt)amt.oninput=e=>PAYAMT=e.target.value;
   const memo=$("#pay-memo");if(memo)memo.oninput=e=>PAYMEMO=e.target.value;
@@ -2167,7 +2220,7 @@ function renderBounties(v){
       <div style="display:flex;gap:6px">${ADMIN?`<button class="btn ghost" style="padding:9px 11px" onclick="refreshBounties()">⟳</button><button class="btn amber" onclick="newBounty()">+ POST</button>`:`<button class="btn ghost" style="padding:9px 11px" onclick="refreshBounties()">⟳</button>`}</div>
     </div></div>
     <div class="chips">${filters.map(f=>`<button class="chip ${BOUNTYFILTER===f[0]?"on":""}" onclick="setBountyFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
-    <div id="bounty-list">${list.length?list.map(bountyCard).join(""):`<div class="dim" style="padding:34px;text-align:center">${ADMIN?"No contracts here yet. Hit + POST to create one.":BOUNTYFILTER==="mine"?"You haven't accepted any contracts.":"No contracts posted right now. Check back, operative."}</div>`}</div>`;
+    <div id="bounty-list">${list.length?list.map(bountyCard).join(""):emptyState("⌖","NO CONTRACTS",ADMIN?"Nothing here yet. Hit + POST to create one.":BOUNTYFILTER==="mine"?"You haven't accepted any contracts.":"No contracts posted right now. Check back, operative.")}</div>`;
 }
 function setBountyFilter(f){BOUNTYFILTER=f;renderTab();}
 function bountyCard(b){
@@ -2899,7 +2952,7 @@ function renderPortfolio(v){
         <div class="sym">${s}</div>
         <div class="nm"><div class="n1">${(+pos.q.toFixed(4)).toLocaleString()} sh · avg ${fmt(pos.c/pos.q)}</div><div class="n2">${esc(a.name.toUpperCase())}</div></div>
         <div class="pxc"><div class="p">${fmt(pos.q*p)}</div><div class="c ${cls(pl)}">${(pl>=0?"+":"")+fmt(pl)} · ${pct(plp)}</div></div></div>`;
-    }).join(""):`<div class="dim" style="padding:24px;text-align:center">No positions yet. Hit the Market tab and buy something speculative.</div>`}
+    }).join(""):emptyState("⬢","NO POSITIONS","Hit the Market tab and buy something speculative.")}
    ${(ME.opts||[]).length?`<div class="sect">OPTION POSITIONS</div>`+ME.opts.map(o=>{
       const v2=optVal(o),pl=(v2-o.prem)*o.q,days=Math.max(0,(o.exp-gameNow())/864e5);
       return `<div class="row" onclick="if(!event.target.closest('button'))openAsset('${o.sym}')">
@@ -3167,7 +3220,7 @@ function renderFeed(v){
      else if(e.t==="pump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ ANOMALY:</b> ${hl?esc(hl):`Unusual order flow detected in <b>${e.sym}</b>. Analysts are baffled.`}`;
      else if(e.t==="spump"&&!e.silent)body=`<b class="vio" style="color:var(--vio)">⚠ SECTOR ANOMALY:</b> ${hl?esc(hl):`Correlated order flow sweeping the <b>${esc(e.sec)}</b> sector.`}`;
      return `<div class="feed-item"><div>${body}</div><div class="t">${ago(e.at)}</div></div>`;
-   }).join("")||`<div class="dim" style="padding:24px;text-align:center">All quiet on the infosphere.</div>`);
+   }).join("")||emptyState("⟟","ALL QUIET","Nothing on the infosphere right now. News breaks as the market moves."));
 }
 
 /* ---------- ORACLE MARKETS (player + GM prediction betting) ----------
@@ -3212,7 +3265,7 @@ function renderPredict(v){
       <div style="display:flex;gap:6px"><button class="btn ghost" style="padding:9px 11px" onclick="refreshPredict()">⟳</button><button class="btn" style="background:var(--cyan);color:#001" onclick="startNewPred()">+ HOST</button></div>
     </div></div>
     <div class="chips">${[["open","OPEN"],["mine","MINE"],["resolved","SETTLED"],["all","ALL"]].map(f=>`<button class="chip ${PREDFILTER===f[0]?"on":""}" onclick="setPredFilter('${f[0]}')">${f[1]}</button>`).join("")}</div>
-    <div>${list.length?list.map(predCard).join(""):`<div class="dim" style="padding:34px;text-align:center">No markets here yet. Hit + HOST to open one.</div>`}</div>`;
+    <div>${list.length?list.map(predCard).join(""):emptyState("◎","NO MARKETS","Hit + HOST to open one and let the table bet on it.")}</div>`;
 }
 function setPredFilter(f){PREDFILTER=f;renderTab();}
 const PRED_STAT={open:["LIVE","var(--up)"],resolved:["SETTLED","var(--dim)"],void:["VOIDED","var(--amber)"]};
@@ -3471,10 +3524,14 @@ function arHS(id,score){
   return hi;
 }
 const AR_GAMES={
-  mines:{name:"SPACE MINESWEEPER",glyph:"💣",col:"#ff7aa8",desc:"Clear the asteroid field without striking a mine.",init:arInitMines},
-  breaker:{name:"SPACE BLOCK BREAKER",glyph:"🧱",col:"#4dd2ff",desc:"Bounce the probe to shatter every hull block.",init:arInitBreak},
-  snake:{name:"SPACE SNAKE",glyph:"🐍",col:"#5dff8f",desc:"Grow your tail-drone by collecting stars.",init:arInitSnake},
-  solitaire:{name:"SPACE SOLITAIRE",glyph:"♠",col:"#ffd24d",desc:"Stack the star-deck up by suit — classic Klondike.",init:arInitSol}
+  mines:{name:"SPACE MINESWEEPER",col:"#ff7aa8",desc:"Clear the asteroid field without striking a mine.",init:arInitMines,
+    glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><circle cx="32" cy="36" r="12"/><path d="M32 20v-6M32 58v-6M16 36h-6M54 36h-6M20.7 24.7l-4.3-4.3M47.6 51.6l-4.3-4.3M43.3 24.7l4.3-4.3M16.4 51.6l4.3-4.3"/><circle cx="27.5" cy="31.5" r="2" fill="currentColor" stroke="none"/></svg>`},
+  breaker:{name:"SPACE BLOCK BREAKER",col:"#4dd2ff",desc:"Bounce the probe to shatter every hull block.",init:arInitBreak,
+    glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M10 10h13v8H10zM25.5 10h13v8h-13zM41 10h13v8H41zM10 22h13v8H10zM41 22h13v8H41z"/><circle cx="32" cy="40" r="3.2" fill="currentColor" stroke="none"/><rect x="20" y="52" width="24" height="5" rx="2.5"/></svg>`},
+  snake:{name:"SPACE SNAKE",col:"#5dff8f",desc:"Grow your tail-drone by collecting stars.",init:arInitSnake,
+    glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4.6" stroke-linejoin="round" stroke-linecap="round"><path d="M14 50h22c5 0 8-3 8-8s-3-8-8-8H22c-5 0-8-3-8-8s3-8 8-8h18"/><circle cx="44" cy="18" r="3" fill="currentColor" stroke="none"/><path d="M52 40l1.6 3.8 3.8 1.6-3.8 1.6L52 50.8l-1.6-3.8-3.8-1.6 3.8-1.6z" stroke-width="1.8"/></svg>`},
+  solitaire:{name:"SPACE SOLITAIRE",col:"#ffd24d",desc:"Stack the star-deck up by suit — classic Klondike.",init:arInitSol,
+    glyph:`<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M32 8C38 20 52 26 52 37c0 6-5 11-11 11-3 0-6-1.4-9-4-3 2.6-6 4-9 4-6 0-11-5-11-11 0-11 14-17 20-29Z"/><path d="M32 44v12M26 56h12" stroke-linecap="round"/></svg>`}
 };
 function renderArcade(v){
   arcadeStop();
@@ -4664,7 +4721,7 @@ function renderOpLogSection(){
         <span class="oplog-op">${esc(e.op)}</span>
         <span class="oplog-txt">${esc(e.txt)}</span>
         <span class="oplog-t">${ago(e.t)}</span>
-      </div>`).join(""):`<div class="dim" style="padding:24px;text-align:center">No operator activity recorded yet.</div>`}</div>
+      </div>`).join(""):emptyState("⌬","NO ACTIVITY","No operator activity recorded yet.")}</div>
   </div>`;
 }
 function renderAdmin(v){
